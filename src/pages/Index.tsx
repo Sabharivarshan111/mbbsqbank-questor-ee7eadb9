@@ -8,6 +8,10 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eye } from "lucide-react";
 import { AdBanner } from "@/components/AdBanner";
+import { HeroSection } from "@/components/home/HeroSection";
+import { WhyChooseUs } from "@/components/home/WhyChooseUs";
+import { ExploreMoreSection } from "@/components/home/ExploreMoreSection";
+import { SEOHead } from "@/components/SEOHead";
 
 const Index = () => {
   const { theme } = useTheme();
@@ -18,6 +22,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden relative">
+      <SEOHead 
+        title="ORBIT MBBS QBANK - Free Medical Question Bank with AI Assistant"
+        description="Free comprehensive MBBS question bank covering Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, and more. Features AI-powered study assistant for medical students preparing for university exams and NEET PG."
+        keywords="MBBS question bank, medical MCQ, NEET PG preparation, anatomy questions, pharmacology MCQ, pathology questions, medical education, free medical questions"
+      />
       <InstallPrompt />
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col items-center animate-fade-in">
@@ -34,8 +43,14 @@ const Index = () => {
             </div>
           </div>
           
+          {/* Hero Section with Static Content */}
+          <HeroSection />
+          
           {/* Header Ad Banner */}
           <AdBanner adSlot="YOUR_AD_SLOT_1" adFormat="horizontal" className="w-full max-w-3xl" />
+          
+          {/* Why Choose Us Section */}
+          <WhyChooseUs />
           
           <div className="grid gap-8 grid-cols-1 lg:grid-cols-[1fr,1fr] w-full mb-28">
             <div className="space-y-8">
@@ -46,6 +61,9 @@ const Index = () => {
               <AiChat />
             </div>
           </div>
+          
+          {/* Explore More Resources */}
+          <ExploreMoreSection />
           
           {/* Footer Ad Banner */}
           <AdBanner adSlot="YOUR_AD_SLOT_2" adFormat="horizontal" className="w-full max-w-3xl" />
@@ -58,25 +76,15 @@ const Index = () => {
           <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
           <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
           <Link to="/about" className="hover:text-primary transition-colors">About</Link>
+          <Link to="/blog" className="hover:text-primary transition-colors">Study Guides</Link>
+          <Link to="/faq" className="hover:text-primary transition-colors">FAQ</Link>
         </div>
         Created by{' '}
         <a 
           href="https://www.instagram.com/_varshan_king/" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="
-            transition-all duration-300 
-            animate-pulse 
-            text-primary 
-            drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] 
-            cursor-pointer 
-            px-2 py-1 
-            rounded-md 
-            border border-transparent 
-            border-primary/30 
-            bg-primary/10
-            hover:animate-none
-          "
+          className="transition-all duration-300 animate-pulse text-primary drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] cursor-pointer px-2 py-1 rounded-md border border-transparent border-primary/30 bg-primary/10 hover:animate-none"
         >
           Sabharivarshan S
         </a>
