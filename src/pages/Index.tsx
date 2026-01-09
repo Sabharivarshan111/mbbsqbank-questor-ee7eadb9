@@ -43,16 +43,8 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Hero Section with Static Content */}
-          <HeroSection />
-          
-          {/* Header Ad Banner */}
-          <AdBanner adSlot="YOUR_AD_SLOT_1" adFormat="horizontal" className="w-full max-w-3xl" />
-          
-          {/* Why Choose Us Section */}
-          <WhyChooseUs />
-          
-          <div className="grid gap-8 grid-cols-1 lg:grid-cols-[1fr,1fr] w-full mb-28">
+          {/* Question Bank - FIRST */}
+          <div className="grid gap-8 grid-cols-1 lg:grid-cols-[1fr,1fr] w-full mb-8">
             <div className="space-y-8">
               <QuestionBank />
             </div>
@@ -62,6 +54,35 @@ const Index = () => {
             </div>
           </div>
           
+          {/* Footer with Creator Name */}
+          <div className="w-full text-center text-sm text-muted-foreground mb-8">
+            <div className="flex justify-center gap-4 mb-2">
+              <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+              <Link to="/about" className="hover:text-primary transition-colors">About</Link>
+              <Link to="/blog" className="hover:text-primary transition-colors">Study Guides</Link>
+              <Link to="/faq" className="hover:text-primary transition-colors">FAQ</Link>
+            </div>
+            Created by{' '}
+            <a 
+              href="https://www.instagram.com/_varshan_king/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="transition-all duration-300 animate-pulse text-primary drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] cursor-pointer px-2 py-1 rounded-md border border-transparent border-primary/30 bg-primary/10 hover:animate-none"
+            >
+              Sabharivarshan S
+            </a>
+          </div>
+          
+          {/* Ad Banner */}
+          <AdBanner adSlot="YOUR_AD_SLOT_1" adFormat="horizontal" className="w-full max-w-3xl mb-8" />
+          
+          {/* Hero Section with Static Content - AFTER Question Bank */}
+          <HeroSection />
+          
+          {/* Why Choose Us Section */}
+          <WhyChooseUs />
+          
           {/* Explore More Resources */}
           <ExploreMoreSection />
           
@@ -70,25 +91,6 @@ const Index = () => {
         </div>
       </div>
       <PomodoroTimer />
-      
-      <div className="absolute bottom-4 left-0 right-0 text-center text-sm text-muted-foreground">
-        <div className="flex justify-center gap-4 mb-2">
-          <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-          <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
-          <Link to="/about" className="hover:text-primary transition-colors">About</Link>
-          <Link to="/blog" className="hover:text-primary transition-colors">Study Guides</Link>
-          <Link to="/faq" className="hover:text-primary transition-colors">FAQ</Link>
-        </div>
-        Created by{' '}
-        <a 
-          href="https://www.instagram.com/_varshan_king/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="transition-all duration-300 animate-pulse text-primary drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] cursor-pointer px-2 py-1 rounded-md border border-transparent border-primary/30 bg-primary/10 hover:animate-none"
-        >
-          Sabharivarshan S
-        </a>
-      </div>
     </div>
   );
 };
