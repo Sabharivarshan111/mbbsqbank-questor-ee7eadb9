@@ -17,7 +17,11 @@ const Index = () => {
   const { theme } = useTheme();
   
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Delayed scroll to ensure it runs after all components mount
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
