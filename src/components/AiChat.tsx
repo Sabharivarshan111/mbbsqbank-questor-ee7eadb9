@@ -37,13 +37,17 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   // Scroll to bottom when messages change, but not on first load
   useEffect(() => {
     if (!isFirstLoad && messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Use block: 'nearest' to only scroll within the chat container, not the page
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [messages, isFirstLoad]);
   
-  // Mark first load as complete after initial render
+  // Mark first load as complete after a delay to prevent scroll on page load
   useEffect(() => {
-    setIsFirstLoad(false);
+    const timer = setTimeout(() => {
+      setIsFirstLoad(false);
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
   
   // Check connection status
