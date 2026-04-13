@@ -911,6 +911,26 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "ageing-onco-and-others": {
+      name: "Ageing, Onco & Others",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Sheehan syndrome? (Page No: 989)",
+            "What is Delirium? (Page No: 1359)",
+            "What are the Emergency complications of cancer? (Page No: NA)",
+            "What is Psychogeriatrics? (Page No: NA)",
+            "What are the Causes of falls in the elderly? (Page No: NA)",
+            "What is a Tumour marker? (Page No: 1058)",
+            "What is Superior vena cava obstruction? (Page No: NA)",
+            "What is Tumour lysis syndrome? (Page No: 1072)",
+            "What is Anti-Phospholipid Syndrome? (Page No: 0719)",
+            "What is HELLP syndrome? (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
