@@ -727,6 +727,96 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "neuro-and-stroke": {
+      name: "Neuro and Stroke",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is Parkinsonism? (Page No: 1205)",
+            "What is Epilepsy? (Page No: 1157, 1164)",
+            "Classify Epilepsy. Discuss their clinical features and management. (Page No: 1157, 1164)",
+            "What is GBS? (Page No: 1194)",
+            "Define Cerebro Vascular accident (CVA). Classify CVA. Discuss pathophysiology, clinical features and diagnosis of acute ischemic stroke. Write about complications of acute ischemic stroke. (Page No: 1135)",
+            "What is Stroke or cerebral infarction? (Page No: 1135)",
+            "Define seizure and epilepsy. Classify epilepsy and discuss the clinical features of tonic clonic seizures and its management. (Page No: 1157)",
+            "Discuss etiology, pathogenesis, clinical features and management of multiple sclerosis. (Page No: 1154)",
+            "Define Parkinson's disease, its etiology, clinical features and management. (Page No: 1205)",
+            "Enumerate the causes of parkinsonism and describe the approach to management of idiopathic parkinsonism. (Page No: 1205)",
+            "What is Meningococcal Meningitis? (Page No: 1168)",
+            "What is Meningitis? (Page No: 1168)",
+            "What is Pyogenic Meningitis? (Page No: 1168)",
+            "Describe the aetiology of meningitis. Elaborate on the clinical features, management and complications of Tuberculous meningitis. (Page No: 1168)",
+            "What is Myasthenia gravis? (Page No: 1196)",
+            "Define Cerebrovascular accident or stroke. Describe the causes, diagnosis and management of cerebral thrombosis. (Page No: 1135)",
+            "What is a Haemorrhagic Stroke? (Page No: 1136, 1146)",
+            "What is an Ischemic Stroke? (Page No: 1135)",
+            "What is Paraplegia? (Page No: 1182)",
+            "Discuss the causes, clinical features, investigations and management of acute ischemic cerebral infarction. (Page No: 1135)",
+            "What is a Subarachnoid Haemorrhage? (Page No: 1149)",
+            "Discuss the Etiology-Pathogenesis, Clinical Features, Investigation, and Management of Viral Encephalitis. (Page No: 1172)",
+            "A 45 year old admitted in critical care unit following Road Traffic Accident is declared brain dead. The patients relatives want to know regarding the medicolegal issues, socio economic and ethical issues regarding organ donation. As the treating physician how will you explain to them? (Page No: NA)",
+            "A 60 / M presented with inability to use Right upper and Lower limb with deviation of angle of mouth to left side with difficulty in speech since early morning. What is the diagnosis? Discuss the pathophysiology, clinical features, risk factors and treatment of Acute Ischemic Stroke. (Page No: 1135)",
+            "What is the definition, etiology, clinical features, investigations and treatment of Status epilepticus? (Page No: NA)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is a Transient Ischaemic attack (TIA)? (Page No: 1149)",
+            "What is the acute and long term treatment of Myasthenia gravis? (Page No: 1196)",
+            "What is Status epilepticus? (Page No: 1164)",
+            "What is Tuberculous meningitis? (Page No: 1169)",
+            "What is a Lumbar puncture? (Page No: 1166)",
+            "What is Rabies prophylaxis? (Page No: 398)",
+            "What is Tetanus? (Page No: 345)",
+            "What is Migraine? (Page No: 1128)",
+            "What is the Aetiology and management of Acute inflammatory demyelinating polyneuropathy (AIDP)? (Page No: NA)",
+            "What is Rabies? (Page No: 397)",
+            "What is Increased ICT? (Page No: 1228)",
+            "What is Bell's palsy? (Page No: 1227)",
+            "What is Parkinsonism? (Page No: 1205)",
+            "What is Trigeminal neuralgia? (Page No: 1225)",
+            "What is Psychomotor epilepsy? (Page No: NA)",
+            "What is a Partial seizure? (Page No: 1157)",
+            "What are Superficial reflexes? (Page No: 1121)",
+            "What is Vestibular neuromitis? (Page No: NA)",
+            "What is the management of Migraine? (Page No: 1131)",
+            "What are Parkinsonism plus Syndromes? (Page No: 1208)",
+            "What is Amyotrophic lateral sclerosis? (Page No: 1185)",
+            "What are the causes of Wasting of small muscles of the hand? (Page No: 1184)",
+            "What is Bacterial meningitis? (Page No: 1168)",
+            "What is the CSF profile in meningitis? (Page No: 1172)",
+            "What are the types of Gait? (Page No: 1122)",
+            "What is Anti rabies vaccination? (Page No: 398)",
+            "What are the causes of Loss of memory? (Page No: 1272)",
+            "What is the Immunization for rabies? (Page No: 398)",
+            "What are the causes of Acute confusion? (Page No: 1213)",
+            "What is Rabies? (Page No: 397)",
+            "What is Sub acute sclerosing Pan encephalitis? (Page No: 1172)",
+            "What is SSPE? (Page No: 1172)",
+            "A 50 year old man brought to the hospital with status epilepticus is critically ill and needs ventilatory care. As a treating physician how will you explain to the patient's attendants regarding the condition and prognosis of the patient? (Page No: NA)",
+            "What are the Clinical features of Tetanus? (Page No: 345)",
+            "What is General paralysis of the insane? (Page No: 1174)",
+            "What is an EEG? (Page No: 1234)",
+            "What are Sub tentorial brain tumors? (Page No: 1231)",
+            "What is Guillain barre syndrome? (Page No: 1194)",
+            "What is a CT scan of the head? (Page No: NA)",
+            "What is a Claw Hand? (Page No: 1320)",
+            "What is Neuralgic amyotrophy? (Page No: NA)",
+            "What are Febrile seizures? (Page No: 1160)",
+            "What is Pontine haemorrhage? (Page No: 1147)",
+            "What is the Circle of Willis? (Page No: 1151)",
+            "What is an Ischemic stroke? (Page No: 1135)",
+            "What are Primitive reflexes? (Page No: NA)",
+            "What are the CT findings in stroke? (Page No: 1142)",
+            "What is Internal ophthalmoplegia? (Page No: NA)",
+            "What is Cortical Vein Thrombosis (CVT)? (Page No: 1153)",
+            "What is Phenytoin? (Page No: 1163)"
+          ]
+        }
+      }
     }
   }
 };
