@@ -455,6 +455,33 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "nutrition": {
+      name: "Nutrition",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Write the causes, sequelae investigations and management of obesity. (Page No: 1109)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Pellagra? (Page No: 1094)",
+            "What is Beri Beri? (Page No: 1091)",
+            "What is Scurvy? (Page No: 1097)",
+            "What is the etiology of obesity and its complications? (Page No: 1112, 1115)",
+            "What are the causes of marked loss of weight? (Page No: NA)",
+            "What are the causes of weight loss? (Page No: NA)",
+            "What is Hypervitaminosis? (Page No: NA)",
+            "What is Thiamine deficiency? (Page No: 1090)",
+            "What is Fluorosis? (Page No: 1105)",
+            "What is Macro Nutrient Deficiency? (Page No: NA)",
+            "What are the neurological manifestations of vitamin B12 deficiency? (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
