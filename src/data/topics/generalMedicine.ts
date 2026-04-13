@@ -817,6 +817,38 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "dermatology": {
+      name: "Dermatology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "23 year old male patient presents to the Dermatology OPD with one month history of sharply demarcated, erythematous plaques with mica-like scales predominantly over his elbows and scalp. What is your diagnosis? Describe the etiology, clinical presentation, types, differential diagnosis and management of this condition / Psoriasis (Page No: 635)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Psoriasis? (Page No: 1988)",
+            "What is Urticaria? (Page No: 1403)",
+            "What is Tenia Capitis? (Page No: NA)",
+            "What is Acne vulgaris? (Page No: 1312)",
+            "What is Seborrheic dermatitis? (Page No: 1296)",
+            "What is Pemphigus Vulgaris? (Page No: 1299)",
+            "What is Lichen planus? (Page No: 1292)",
+            "What is Dermatitis herpetiformis? (Page No: 1300)",
+            "What are Hypopigmented skin lesions? (Page No: 1304)",
+            "What is Erythema Nodosum? (Page No: 1318)",
+            "What is Discoid lupus erythematosus? (Page No: NA)",
+            "What is a Drug Eruption? (Page No: NA)",
+            "What is SSSS? (Page No: NA)",
+            "What is Pediculosis? (Page No: 1326)",
+            "Enumerate the clinical features and Management of Rosacea. (Page No: NA)",
+            "What is the diagnosis and management of Stevens-Johnson syndrome? (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
