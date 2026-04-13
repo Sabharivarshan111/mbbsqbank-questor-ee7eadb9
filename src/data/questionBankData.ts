@@ -55,8 +55,7 @@ export const QUESTION_BANK_DATA = {
     subtopics: {
       "general-medicine": generalMedicineData,
       "obstetrics-gynaecology": obstetricsGynaecologyData,
-      "general-surgery": generalSurgeryData,
-      "orthopaedics": orthopaedicsData,
+      "general-surgery": { ...generalSurgeryData, name: "General Surgery and Orthopaedics" },
       "paediatrics": paediatricsData
     }
   }
