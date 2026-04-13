@@ -849,31 +849,6 @@ export const generalMedicineData = {
           ]
         }
       }
-    },
-    "psychiatry-medicine": {
-      name: "Psychiatry Medicine",
-      subtopics: {
-        "essay": {
-          name: "Essay",
-          questions: [
-            "Describe the Clinical features, Diagnosis and Management of Schizophrenia. (Page No: 1349)",
-            "Describe the pathogenesis, clinical features, investigations and treatment of alcohol misuse and dependence. (Page No: 1362)",
-            "Define Bipolar disorders - discuss the etiology, clinical features of various mood disorders and their management. (Page No: 1351)",
-            "Classify Mood disorders. Describe clinical features and management of Depression. (Page No: 1351)",
-            "Define somatoform disorders. Discuss the Aetiology, clinical features of various somatoform disorders and their management. (Page No: 1357)",
-            "Describe the approach to clinical recognition and initial therapy of psychiatric emergencies. (Page No: 1373)",
-            "What is Manic depressive psychosis? (Page No: 1353)",
-            "Classify the etiology, clinical features and management of stress-related disorders. (Page No: 1357)",
-            "What are Eating disorders? (Page No: 1365)",
-            "Define various personality disorders. Discuss the etiology, clinical features and management of personality disorders. (Page No: 1370)",
-            "Enumerate the different causes of dementia and discuss in detail about Alzheimer's disease. (Page No: 1272)"
-          ]
-        },
-        "short-notes": {
-          name: "Short Notes",
-          questions: []
-        }
-      }
     }
   }
 };
