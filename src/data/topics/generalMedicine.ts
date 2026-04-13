@@ -680,6 +680,53 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "rheumatic-and-bone-diseases": {
+      name: "Rheumatic and Bone Diseases",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the pathogenesis, clinical features, investigations and management of Rheumatoid arthritis. (Page No: 670)",
+            "What is Rheumatoid arthritis? (Page No: 670)",
+            "Mention the Sero-negative arthropathies. Describe the clinical features and diagnosis of Ankylosing spondylitis. (Page No: 687)",
+            "Discuss the pathophysiology, clinical features, investigations and management of osteoporosis. (Page No: 716)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is the treatment of Rheumatoid Arthritis? (Page No: 670, 675)",
+            "What is Gout? (Page No: 711)",
+            "What are DMARDS in Rheumatoid Arthritis? (Page No: 676)",
+            "What is Sjogren's syndrome? (Page No: 710)",
+            "What is Osteoporosis? (Page No: 716)",
+            "What is Sero negative arthritis? (Page No: 691)",
+            "What is Reactive arthritis? (Page No: 690)",
+            "What is the classification of SLE? (Page No: 684)",
+            "What is Takayasu arteritis? (Page No: 702)",
+            "What is Acute Gout? (Page No: 711)",
+            "What is Pseudo Gout? (Page No: 714)",
+            "What is Felty's syndrome? (Page No: 677)",
+            "What is Sero negative spondylarthritis? (Page No: 691)",
+            "What is Psoriatic arthritis? (Page No: 691)",
+            "What are the Auto antibodies in SLE? (Page No: 683)",
+            "What is the Laboratory diagnosis of SLE? (Page No: 684)",
+            "What is CREST syndrome? (Page No: 706)",
+            "What is Raynaud's phenomenon? (Page No: 707)",
+            "What is Polymyositis? (Page No: 721)",
+            "What is Kawasaki disease? (Page No: 696)",
+            "What is Polymyalgia Rheumatica? (Page No: 697)",
+            "What are Bisphosphonates? (Page No: 718)",
+            "What is Paget's disease? (Page No: 1075, 92)",
+            "What is Henoch Schonlein purpura? (Page No: 701)",
+            "What is Reiter's syndrome? (Page No: 690)",
+            "What are the criteria for the classification for Systemic Lupus Erythematosis? (Page No: 684)",
+            "What is Systemic sclerosis? (Page No: 706)",
+            "What are four side effects of Methotrexate? (Page No: 676)"
+          ]
+        }
+      }
     }
   }
 };
