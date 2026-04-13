@@ -205,6 +205,21 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "bio-and-metabolic-medicine": {
+      name: "Bio and Metabolic Medicine",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Hyponatremia (Page No: 0915)",
+            "Syndrome of Inappropriate Antidiuretic Hormone SIADH (Page No: 0921)",
+            "Hyperkalemia (Page No: 930)",
+            "Metabolic acidosis (Page No: 935)",
+            "Potassium sparing diuretics (Page No: 1000)"
+          ]
+        }
+      }
     }
   }
 };
