@@ -527,6 +527,82 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "gastro-and-hepatology": {
+      name: "Gastro and Hepatology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is a Chronic peptic ulcer? (Page No: 0510)",
+            "Describe the etiology, pathogenesis, clinical features, investigations and treatment of tropical sprue. (Page No: 0523)",
+            "What is IBD? (Page No: 0533)",
+            "What is Ulcerative colitis? (Page No: 0534)",
+            "Define ulcerative colitis. Discuss in detail about aetiology, pathology, immunology, clinical features and diagnosis of ulcerative colitis. Add a note on treatment of ulcerative colitis. (Page No: 0534)",
+            "What is Acute Pancreatitis? (Page No: 0640)",
+            "What is Ascites? (Page No: 0607)",
+            "What is Hepatic encephalopathy? (Page No: 0599)",
+            "What is Cirrhosis of the liver? (Page No: 0583)",
+            "What is Portal Hypertension? (Page No: 0592)",
+            "Discuss the etiopathogenesis, clinical features, investigations and management of chronic viral hepatitis. (Page No: 0568)",
+            "Describe the etiopathogenesis, clinical features, investigations and treatment of Viral Hepatitis. Add a note on prevention. (Page No: 0568)",
+            "Define acute hepatitis. Elaborate on the pathogenesis, clinical features, management and prevention of acute hepatitis due to Hepatitis B virus. (Page No: 0561)",
+            "Describe pathogenesis, clinical features, investigation and treatment of ethanol induced liver disease. (Page No: 0581)",
+            "Discuss the aetiopathogenesis and management of acute fulminant hepatic failure. (Page No: 0576)",
+            "A 56 year old man presents to the Emergency Room with altered sensorium. On probing the history, his wife gave history that patient had an alcoholic binge the previous day following which patient had a massive bout of haematemesis and altered sensorium. He is a known case of chronic liver disease for the past few years on irregular medication and follows up. On Examination his Glasgow Coma Scale was 3/15, with Pulse Rate of 120/min, and Blood pressure of 80/50mmHg and on systemic examination, shifting dullness present and Plantar reflex was extensive response bilaterally. a) What is the complete diagnosis? b) What are the other precipitants that can cause altered sensorium in the given clinical condition? c) What is the pathogenesis leading to altered sensorium? d) How to manage the patient? e) What prophylaxis should the patient be given and what advice is given to the patient on recovery? (Page No: 0599)",
+            "Define ulcerative colitis. Discuss in detail about aetiology, pathology, immunology, clinical features and diagnosis of ulcerative colitis. Add a note on treatment of ulcerative colitis? (Page No: 0599)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Hepatic encephalopathy? (Page No: 0599)",
+            "What is Irritable bowel syndrome? (Page No: 0528)",
+            "What are H. Pylori infections? (Page No: 0511)",
+            "What is Gastro Esophageal Reflux Disorder (GERD)? (Page No: 0505)",
+            "What are the Clinical Features and Treatment of Zollinger Ellison Syndrome? (Page No: 0653)",
+            "What is Malabsorption syndrome? (Page No: 0805)",
+            "What is Alcoholic liver disease? (Page No: 0581)",
+            "What is Hepatitis C virus? (Page No: 0563)",
+            "What is Spontaneous bacterial peritonitis? (Page No: 0615)",
+            "What are PPIs? (Page No: 0515)",
+            "What is Wilson's disease? (Page No: 029)",
+            "What is Celiac disease? (Page No: 0521)",
+            "What are the Techniques of liver biopsy? (Page No: 0554)",
+            "What is Ulcerative Colitis? (Page No: 0534)",
+            "What is Upper Gastro Intestinal Endoscopy? (Page No: 0497)",
+            "What are the investigations and management of acute pancreatitis? (Page No: 0640)",
+            "What are Liver function tests? (Page No: 0548)",
+            "What is Tropical sprue? (Page No: 0523)",
+            "What is Fulminant hepatic failure? (Page No: 0576)",
+            "What is Refractory Ascites? (Page No: 0613)",
+            "What is the management of Ascites? (Page No: 0612)",
+            "What is the management of acute bleeding from esophageal varices? (Page No: 0596)",
+            "What is Hepatorenal syndrome? (Page No: 0605)",
+            "What is a Lower GI bleed? (Page No: 0497)",
+            "What is Portal Hypertension? (Page No: 0592)",
+            "What are the Diagnostics in Hepatitis B viral infection? (Page No: 0565)",
+            "What is the management of Hepatitis B? (Page No: 0568)",
+            "What is Omeprazole? (Page No: 0515)",
+            "What are the Diagnostic criteria, supporting diagnostic features and treatment in Irritable Bowel Syndrome? (Page No: 0528)",
+            "What are the complications of PUD? (Page No: 0510)",
+            "What is Non-alcoholic fatty liver disease? (Page No: 0578)",
+            "What is Hepatoma? (Page No: 0622)",
+            "What is Achalasia of the oesophagus? (Page No: 0509)",
+            "What is Gilbert's syndrome? (Page No: 0558)",
+            "What is Budd-Chiari syndrome? (Page No: 0620)",
+            "What is a Tender liver? (Page No: 0633)",
+            "What is Inferior vena caval obstruction? (Page No: NA)",
+            "What is Celiac sprue? (Page No: 0521)",
+            "What is Acute Pancreatitis? (Page No: 0640)",
+            "What is the management of acid peptic disease? (Page No: 0514)",
+            "What is Liver transplantation? (Page No: 0623)",
+            "What is Inflammatory Bowel disease? (Page No: 0533)",
+            "What is Crohn's disease? (Page No: 0539)",
+            "What is Chronic active hepatitis? (Page No: 0568)"
+          ]
+        }
+      }
     }
   }
 };
