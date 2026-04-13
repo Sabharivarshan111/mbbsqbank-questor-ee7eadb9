@@ -482,6 +482,51 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "diabetes-mellitus": {
+      name: "Diabetes Mellitus",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Diabetes Mellitus. (Page No: 0944)",
+            "Diabetic Ketoacidosis. (Page No: 0968)",
+            "Classify diabetes mellitus. Enumerate the acute complication of DM. Define about Dawn and Somogyi phenomenon. (Page No: 975, 976)",
+            "Discuss the etiopathogenesis of insulin dependent Diabetes Mellitus and NIDDM. Briefly discuss etiopathogenesis of diabetic ketoacidosis and its management. (Page No: 944, 947, 953)",
+            "Describe the etiology, pathogenesis, clinical features, investigation and treatment of Hyperosmolar Non ketotic. (Page No: 972)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Hypoglycaemia? (Page No: 973)",
+            "What is Diabetic ketoacidosis? (Page No: 968)",
+            "What is Diabetic Nephropathy? (Page No: 977)",
+            "What is Glycosylated Haemoglobin (HbA1C)? (Page No: 966)",
+            "What is Metabolic syndrome? (Page No: 984)",
+            "What is Non ketotic hyperosmolar diabetic coma? (Page No: 972)",
+            "What are Oral hypoglycemic drugs? (Page No: 954)",
+            "What are Alpha glucosidase inhibitors? (Page No: 958)",
+            "What is Peripheral Neuropathy? (Page No: 980)",
+            "What is the Primary prevention of DM? (Page No: NA)",
+            "What is PBS? (Page No: NA)",
+            "What is an Oral GTT? (Page No: 952)",
+            "What is the Classification of Diabetes Mellitus? (Page No: 941)",
+            "What is the management of diabetic ketoacidosis? (Page No: 968)",
+            "What is Drug induced hypoglycemia? (Page No: NA)",
+            "What is Sitagliptin? (Page No: 958)",
+            "What are Incretin mimetics? (Page No: NA)",
+            "What is Insulin therapy? (Page No: 960)",
+            "What are Insulin analogues? (Page No: 961)",
+            "What are Newer insulins? (Page No: 961)",
+            "What is Insulin glargine? (Page No: 961)",
+            "What is Brittle diabetes? (Page No: NA)",
+            "What are the causes of Secondary diabetes? (Page No: 944)",
+            "What is the diabetic retinopathy? (Page No: 979)",
+            "What is the Diabetic retinopathy? (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
