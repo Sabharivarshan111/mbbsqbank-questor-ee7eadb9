@@ -409,6 +409,52 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "endocrinology": {
+      name: "Endocrinology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is Hyperthyroidism? (Page No: 1002)",
+            "Define thyrotoxicosis. Discuss epidemiology, pathophysiology, clinical features and diagnosis of Grave's diseases. Add a note on treatment of Grave's disease. (Page No: 1002)",
+            "What is hypothyroidism? (Page No: 1012)",
+            "What is Adrenal insufficiency? (Page No: 1036)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Addison's disease? (Page No: 1036)",
+            "What are the causes and investigations of Cushing's syndrome? (Page No: 1030)",
+            "What is Tetany? (Page No: 1028)",
+            "What is an Adrenal Crisis? (Page No: 1039)",
+            "What is Diabetes insipidus? (Page No: 0998)",
+            "What is Acromegaly? (Page No: 1046)",
+            "What is the diagnosis and what are the complications of thyrotoxicosis? (Page No: 1006, 1008)",
+            "What is Graves' disease? (Page No: 1003)",
+            "What is a Thyroid storm? (Page No: 1011)",
+            "What are Thyroid function tests? (Page No: 1000)",
+            "What is Myxoedema coma? (Page No: 1015)",
+            "What are the skin changes in Endocrine diseases? (Page No: NA)",
+            "What is a Thyroid profile? (Page No: 1000)",
+            "What is Cretinism? (Page No: 1012, 1021)",
+            "What are the clinical features of hypothyroidism? (Page No: 1013)",
+            "What is Myxoedema madness? (Page No: 1015)",
+            "What is Hirsutism? (Page No: NA)",
+            "What is Turner's syndrome? (Page No: 1412)",
+            "What is Klinefelter syndrome? (Page No: 1420)",
+            "What is Pseudo hypoparathyroidism? (Page No: 1029)",
+            "What is Steroid therapy? (Page No: 1040)",
+            "What is the classification of adrenal insufficiency? (Page No: NA)",
+            "What is an Insulinoma? (Page No: 0653)",
+            "What is Hyperprolactinemia? (Page No: 0996)",
+            "What are the causes of short stature? (Page No: 1045)",
+            "What is Multiple endocrine neoplasia? (Page No: 1023)",
+            "What is the diagnosis and management of Hypoglycemia? (Page No: 0973)"
+          ]
+        }
+      }
     }
   }
 };
