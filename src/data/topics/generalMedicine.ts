@@ -849,6 +849,68 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "psychiatry-medicine": {
+      name: "Psychiatry Medicine",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the Clinical features, Diagnosis and Management of Schizophrenia. (Page No: 1349)",
+            "Describe the pathogenesis, clinical features, investigations and treatment of alcohol misuse and dependence. (Page No: 1362)",
+            "Define Bipolar disorders - discuss the etiology, clinical features of various mood disorders and their management. (Page No: 1351)",
+            "Classify Mood disorders. Describe clinical features and management of Depression. (Page No: 1351)",
+            "Define somatoform disorders. Discuss the Aetiology, clinical features of various somatoform disorders and their management. (Page No: 1357)",
+            "Describe the approach to clinical recognition and initial therapy of psychiatric emergencies. (Page No: 1373)",
+            "What is Manic depressive psychosis? (Page No: 1353)",
+            "Classify the etiology, clinical features and management of stress-related disorders. (Page No: 1357)",
+            "What are Eating disorders? (Page No: 1365)",
+            "Define various personality disorders. Discuss the etiology, clinical features and management of personality disorders. (Page No: 1370)",
+            "Enumerate the different causes of dementia and discuss in detail about Alzheimer's disease. (Page No: 1272)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Schizophrenia? (Page No: 1349)",
+            "What is Depression? (Page No: 1352)",
+            "What is Wernicke's Encephalopathy? (Page No: 1092)",
+            "What is Anxiety Neurosis? (Page No: 1355)",
+            "What is OCD? (Page No: 1354)",
+            "What are Delusions? (Page No: 1340)",
+            "What is Hysteria? (Page No: 1357)",
+            "What is Delirium tremens? (Page No: 1364)",
+            "What are Selective serotonin reuptake inhibitors (SSRI)? (Page No: 1344)",
+            "What are the Uses and Contraindications of ECT? (Page No: 1346)",
+            "What is Manic depressive psychosis? (Page No: 1352)",
+            "What is Catatonia? (Page No: 1350)",
+            "What are Panic disorders? (Page No: 1356)",
+            "What are Eating disorders? (Page No: 1365)",
+            "What is Puerperal psychosis? (Page No: 1372)",
+            "What is Manic depressive psychosis? (Page No: 1352)",
+            "What are TCAs? (Page No: 1344)",
+            "What are Auditory hallucinations? (Page No: 1341)",
+            "What are Phenothiazines? (Page No: 1343)",
+            "What is Neuroleptic malignant syndrome? (Page No: NA)",
+            "What is Suicidal behaviour? (Page No: 1373)",
+            "What is Bipolar disorder? (Page No: 1354)",
+            "What are Panic attacks? (Page No: 1356)",
+            "What is the Classification of psychogenic drugs? (Page No: 1343)",
+            "What is an Obsession? (Page No: 1354)",
+            "What is Alcoholism? (Page No: 1362)",
+            "A 20 year old female is brought to the hospital with history of avoidance of eating food. Her mother also gives history that the patient has binge eating, purging, does excessive exercise and has lost weight considerably. On Examination her Body Mass Index was 16.5kg/m2. a) What is the probable diagnosis? b) What is the Diagnostic Criteria for this condition? c) What are the medical consequences of this condition? d) How to manage this condition? e) What is the prognosis of this condition? (Page No: 1365)",
+            "What is the difference between Neurosis and Psychosis? (Page No: 148)",
+            "What is Anorexia Nervosa? (Page No: 1365)",
+            "What are Personality disorders? (Page No: 1370)",
+            "What is Chronic fatigue syndrome? (Page No: NA)",
+            "What are the Methods of smoking cessation? (Page No: 229)",
+            "What are Anti-depressants? (Page No: 1344)",
+            "What are Somatoform disorders? (Page No: 1357)",
+            "Treatment of mood disorders (Page No: 1343)",
+            "Electro convulsive therapy (Page No: 1346)"
+          ]
+        }
+      }
     }
   }
 };
