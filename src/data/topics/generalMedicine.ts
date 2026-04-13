@@ -319,6 +319,96 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "respiratory-medicine": {
+      name: "Respiratory Medicine",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Define and discuss the Pathogenesis, Clinical features and Treatment of Bronchial Asthma. (Page No: 195)",
+            "What is Chronic Obstructive pulmonary disease? (Page No: 215)",
+            "Describe the clinical features, complications and management of community acquired pneumonia. (Page No: 284)",
+            "What is Pneumonia? (Page No: 282)",
+            "What is Pleural Effusion? (Page No: 268)",
+            "What is Acute pulmonary Embolism? (Page No: 173)",
+            "Describe the etiology, pathogenesis, clinical features, investigations and treatment of bronchiectasis. (Page No: 255)",
+            "Discuss the etiology, clinical features, prevention and management of acute pulmonary embolism. (Page No: 173)",
+            "What is Pneumothorax? (Page No: 278)",
+            "Discuss in detail about etiopathogenesis, clinical features, complications and management of viral pneumonia - COVID. (Page No: 393)",
+            "What is Tropical Pulmonary Eosinophilia? (Page No: 346)",
+            "A 45/M presented with fever, cough with wheezing for three days. Patient is a known case of recurrent episodes of wheezing during winter season since 15 years of age. What is the probable diagnosis? Discuss the management and complications. (Page No: NA)",
+            "Describe Chronic obstruct airway disease: Epidemiology, etiology, pathophysiology, clinical features, investigations and management. (Page No: 215)",
+            "Discuss the Etiology, pathology, clinical features, investigations and management of chronic bronchitis. (Page No: 215)",
+            "Discuss the pathology, clinical features, investigations, complications and management of Pneumococcal pneumonia. (Page No: 288)",
+            "What is Lobar Pneumonia? (Page No: 288)",
+            "What is Cystic Fibrosis? (Page No: 266)",
+            "Discuss the signs, symptoms and management of right sided tuberculous pleural effusion. (Page No: 268)",
+            "Mention the causes of haemoptysis. Describe in detail the current trends in management of pulmonary tuberculosis. (Page No: 341, 241)",
+            "What is Pulmonary TB? (Page No: 232)",
+            "What is Respiratory failure? (Page No: 321)",
+            "Compare the clinical features of pleural effusion, Hydropneumothorax, consolidation and cavity. (Page No: 268, 282)",
+            "What is Pulmonary Fibrosis? (Page No: 307)",
+            "Discuss the etiopathogenesis of Covid pneumonia and psychological disturbance in covid and Post covid state (Page No: 393)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is MDR TB? (Page No: 247)",
+            "What is Clubbing? (Page No: 188)",
+            "What is Acute severe asthma? (Page No: 199)",
+            "What is Obstructive sleep apnea? (Page No: 324)",
+            "What is Malignant pleural effusion? (Page No: 273)",
+            "What is the management of acute severe asthma? (Page No: 202)",
+            "What are Pulmonary Function Tests (PFT)? (Page No: 191)",
+            "What is Spirometry? (Page No: 200)",
+            "What is a Lung Abscess? (Page No: 263)",
+            "What is Drug resistant tuberculosis? (Page No: 246)",
+            "What is the clinical presentation and management of Miliary tuberculosis? (Page No: 251)",
+            "What is Pulmonary Eosinophilia? (Page No: 345)",
+            "What is Emphysema? (Page No: 222)",
+            "What is the management of Haemoptysis? (Page No: 340)",
+            "What is the basic management of Acute asthma? (Page No: 202)",
+            "How is Haemoptysis with scanty clinico radiological findings managed? (Page No: 340)",
+            "What is the management of COPD? (Page No: 219)",
+            "What is the procedure for sputum examination? (Page No: 237)",
+            "What is Pleural effusion? (Page No: 268)",
+            "What is Dry bronchiectasis? (Page No: 261)",
+            "What is Community acquired pneumonia? (Page No: 284)",
+            "What is Hospital acquired pneumonia? (Page No: 295)",
+            "What is the analysis of Arterial blood gases? (Page No: 187)",
+            "What is the interpretation of the Mantoux test? (Page No: 239)",
+            "What is DOTS? (Page No: 245)",
+            "What are Atypical mycobacteria? (Page No: 230)",
+            "What is Diagnostic pleural aspiration and biopsy? (Page No: 270)",
+            "What is the step wise management of Bronchial asthma? (Page No: 202)",
+            "What is Aspergillosis? (Page No: 404)",
+            "What is Small cell carcinoma of the lung? (Page No: 315)",
+            "What are the Non-metastatic extra pulmonary manifestations of bronchogenic carcinoma? (Page No: 317)",
+            "What are the Paraneoplastic syndromes in Carcinoma of the Lung? (Page No: 311)",
+            "What is Sarcoidosis? (Page No: 334)",
+            "What is Acute cor pulmonale? (Page No: 164)",
+            "What is Good Pasture's disease? (Page No: 861, 1397)",
+            "What is the treatment of severe asthma? (Page No: 211)",
+            "What is Coal Worker's Pneumoconiosis? (Page No: 304)",
+            "What is Caplan's syndrome? (Page No: 305)",
+            "What is Asbestosis? (Page No: 306)",
+            "What is D-dimer? (Page No: 174, 177)",
+            "What is Pulmonary Hypertension? (Page No: NA)",
+            "What is Status asthmaticus? (Page No: 199)",
+            "What is Pneumothorax? (Page No: 278)",
+            "What is an Exudative Pleural Effusion? (Page No: 271)",
+            "What is Recurrent pleural effusion? (Page No: 268)",
+            "What is Covid pneumonia? (Page No: 393)",
+            "What are four newer anti-TB drugs? (Page No: 243)",
+            "What is the classification of pulmonary hypertension? (Page No: NA)",
+            "What is a Pancost tumour? (Page No: 318)",
+            "What is the CURB-65 score for pneumonia? (Page No: 287)",
+            "What is Tropical Pulmonary Eosinophilia? (Page No: 345)"
+          ]
+        }
+      }
     }
   }
 };
