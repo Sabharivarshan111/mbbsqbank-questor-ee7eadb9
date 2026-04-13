@@ -156,6 +156,55 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "nephrology-and-neurology": {
+      name: "Nephrology and Neurology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the causes of Chronic Kidney Disease? Discuss the Pathophysiology and Management of Chronic Kidney Disease. (Page No: 876)",
+            "Describe the clinical features, complications and management of nephrotic syndrome. (Page No: 866)",
+            "What is AGN? (Page No: 861)",
+            "Define acute kidney injury/Acute Renal Failure. Discuss the aetiology, classification, pathophysiology, clinical feature and diagnosis of acute kidney injury. (Page No: 853)",
+            "List five causes of acute renal failure. Discuss the pathophysiology and management of acute tubular necrosis. (Page No: 854)",
+            "What is UTI? (Page No: 889)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Nephrotic Syndrome? (Page No: 860)",
+            "What is Microscopic Hematuria? (Page No: 849)",
+            "What is Alport Syndrome? (Page No: 871)",
+            "What is Polycystic Kidney Disease? (Page No: 885)",
+            "What is Lupus Nephritis? (Page No: 682, 685)",
+            "What is ARF and CRF? (Page No: 884)",
+            "What is Urinary Tract Infection? (Page No: 889)",
+            "What is the Endocrine Function of the Kidney? (Page No: 843, 844)",
+            "What is Urine Examination? (Page No: 846)",
+            "What are Microscopic Urinary Sediments? (Page No: 850)",
+            "What is Proteinuria? (Page No: 848)",
+            "What is Polyuria? (Page No: 847)",
+            "What is Post Streptococcal GN? (Page No: 863)",
+            "What is Haemolytic Uremic Syndrome (HUS)? (Page No: 829)",
+            "What is the Aetiology and Treatment of Acute Renal Failure? (Page No: 854, 858)",
+            "What are the Causes of Acute Renal Failure? (Page No: 854)",
+            "What is Renal Osteodystrophy? (Page No: 878)",
+            "What is Renal Replacement Therapy? (Page No: 896)",
+            "What is Hemodialysis? (Page No: 896)",
+            "What is the Classification and Treatment of Pyelonephritis? (Page No: 892)",
+            "What are Asymptomatic Urinary Abnormalities? (Page No: NA)",
+            "What is Erectile Impotence? (Page No: 1044)",
+            "What is Sexual Dysfunction? (Page No: 1044)",
+            "What is Rapidly Progressing Glomerulonephritis? (Page No: 864)",
+            "What is Sequential Nephron Blockade? (Page No: NA)",
+            "What is IgA Nephropathy? (Page No: 870)",
+            "What is the Management of Chronic Kidney Disease? (Page No: 882)",
+            "Enumerate the causes and Management of Pre Renal Acute Kidney Injury. (Page No: 854)"
+          ]
+        }
+      }
     }
   }
 };
