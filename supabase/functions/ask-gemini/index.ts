@@ -515,7 +515,6 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       
       // Add conversation history if needed for context
       if (needsConversationContext && conversationHistory.length > 0) {
-        // Only include up to the last 10 messages to avoid context window issues
         const recentHistory = conversationHistory.slice(-10);
         
         logWithTimestamp(`[${requestId}] Including ${recentHistory.length} messages from conversation history`);
@@ -531,24 +530,94 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       // Add current user question
       messages.push({ role: "user", parts: [{ text: actualQuestion }] });
       
-      // Set up the model with conversation and config
-      const modelPromise = model.generateContent({
-        contents: messages,
-        generationConfig
-      });
-      
-      // Set up timeout
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error(`Request timed out after ${timeoutMs}ms`));
-        }, timeoutMs);
-      });
-      
-      // Race the model response against the timeout
-      const result = await Promise.race([modelPromise, timeoutPromise]) as any;
-      
-      const response = result.response;
-      const text = response.text();
+      let text = "";
+      let usedFallback = false;
+
+      // Try Gemini first with retry
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const modelPromise = model.generateContent({
+            contents: messages,
+            generationConfig
+          });
+          
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
+          });
+          
+          const result = await Promise.race([modelPromise, timeoutPromise]) as any;
+          text = result.response.text();
+          break; // Success
+        } catch (geminiErr) {
+          const errMsg = geminiErr.message || "";
+          logWithTimestamp(`[${requestId}] Gemini attempt ${attempt + 1} failed: ${errMsg}`);
+          
+          if (errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("Service Unavailable")) {
+            if (attempt === 0) {
+              logWithTimestamp(`[${requestId}] Retrying Gemini after 2s...`);
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
+            // After retry, fall through to fallback
+          } else {
+            throw geminiErr; // Non-503 errors, don't retry
+          }
+        }
+      }
+
+      // Fallback to Lovable AI Gateway if Gemini failed
+      if (!text) {
+        logWithTimestamp(`[${requestId}] Falling back to Lovable AI Gateway`);
+        usedFallback = true;
+        
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        if (!LOVABLE_API_KEY) {
+          throw new Error("Both Gemini and fallback AI are unavailable");
+        }
+
+        // Convert messages to OpenAI format
+        const openaiMessages = [
+          { role: "system", content: systemPrompt }
+        ];
+        
+        if (needsConversationContext && conversationHistory.length > 0) {
+          const recentHistory = conversationHistory.slice(-10);
+          for (const msg of recentHistory) {
+            openaiMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
+          }
+        }
+        
+        openaiMessages.push({ role: "user", content: actualQuestion });
+
+        const fallbackResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: openaiMessages,
+            temperature: generationConfig.temperature || 0.7,
+            max_tokens: generationConfig.maxOutputTokens || 2000,
+          }),
+        });
+
+        if (!fallbackResponse.ok) {
+          const errText = await fallbackResponse.text();
+          logWithTimestamp(`[${requestId}] Fallback error: ${fallbackResponse.status} ${errText}`);
+          throw new Error(`Fallback AI also failed: ${fallbackResponse.status}`);
+        }
+
+        const fallbackData = await fallbackResponse.json();
+        text = fallbackData.choices?.[0]?.message?.content || "";
+        
+        if (!text) {
+          throw new Error("Fallback returned empty response");
+        }
+        
+        logWithTimestamp(`[${requestId}] Fallback response generated successfully`);
+      }
       
       // Extract and validate references
       const references = extractReferences(text);
@@ -559,7 +628,6 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
         validatedReferences = references
           .filter(ref => !ref.url || isValidUrl(ref.url))
           .map(ref => {
-            // Mark trusted sources
             if (ref.url && isTrustedMedicalDomain(ref.url)) {
               ref.source = ref.source || "Trusted Medical Source";
             }
@@ -571,7 +639,7 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       
       const endTime = Date.now();
       const duration = endTime - startTime;
-      logWithTimestamp(`[${requestId}] AI response generated successfully in ${duration}ms`);
+      logWithTimestamp(`[${requestId}] AI response generated successfully in ${duration}ms${usedFallback ? ' (via fallback)' : ''}`);
 
       return new Response(
         JSON.stringify({ 
@@ -589,13 +657,11 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       const duration = endTime - startTime;
       logWithTimestamp(`[${requestId}] AI Model Error after ${duration}ms:`, modelError);
       
-      // Enhanced error logging to capture more specific model errors
       if (modelError.message) {
         logWithTimestamp(`[${requestId}] Error message: ${modelError.message}`);
         
-        // If there's a model not found error, log it specially
         if (modelError.message.includes("not found") || modelError.message.includes("404")) {
-          logWithTimestamp(`[${requestId}] Model not found error. Attempted to use model: gemini-2.0-flash-001`);
+          logWithTimestamp(`[${requestId}] Model not found error`);
           return new Response(
             JSON.stringify({ 
               error: "The AI model is currently unavailable. Our team has been notified.",
@@ -609,12 +675,11 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
         }
       }
       
-      // Improved timeout error handling with more user-friendly message
       if (modelError.message && modelError.message.includes("timed out")) {
-        logWithTimestamp(`[${requestId}] Request to Gemini API timed out`);
+        logWithTimestamp(`[${requestId}] Request to AI timed out`);
         return new Response(
           JSON.stringify({ 
-            error: "The AI service is taking longer than expected. Your question might be complex - try asking a more focused question or try again later.",
+            error: "The AI service is taking longer than expected. Try asking a more focused question or try again later.",
             details: "AI processing timeout"
           }),
           {
@@ -626,7 +691,7 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       
       return new Response(
         JSON.stringify({ 
-          error: "Failed to generate response from AI model", 
+          error: "The AI service is temporarily unavailable. Please try again in a moment.", 
           details: modelError.message 
         }),
         {
