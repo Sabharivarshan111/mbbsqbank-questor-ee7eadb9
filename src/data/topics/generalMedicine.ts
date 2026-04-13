@@ -603,6 +603,83 @@ export const generalMedicineData = {
           ]
         }
       }
+    },
+    "hematology": {
+      name: "Hematology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the Causes, Prevalence, Complications and Management of Iron Deficiency Anemia. (Page No: 732)",
+            "Discuss the incidence, definition, aetiology, clinical features, diagnosis and treatment of chronic myeloid leukaemia. Add a note on blast crisis. (Page No: 776)",
+            "What is Megaloblastic anemia? (Page No: 736)",
+            "Define aplastic Anemia. Discuss the Etiology, clinical features, investigations and treatment of Aplastic anemia. (Page No: 762)",
+            "What is Blood Transfusion? (Page No: 833)",
+            "What is Sickle Cell anemia? (Page No: 747)",
+            "Discuss the etiopathogenesis, clinical features, investigations and management of Non Hodgkin's Lymphoma. (Page No: 798)",
+            "Mention the common bleeding disorders. Describe in detail any one of them. (Page No: 817)",
+            "Discuss the Etiology, clinical features, lab diagnosis and management of Haemophilia disease. (Page No: 824)",
+            "A 75 year old man presents to the out-patient department with progressive weight loss for 3 months, fatigue and malaise. He had lost up to 10 kgs. On Examination patient was ill built and ill nourished. Otherwise general examination was uneventful. On systemic examination, patient had a palpable spleen measuring about 9cms. No other organomegaly. His Complete blood count showed the following: Total Count -39,250 cells/cmn Differential count -Neutrophils 67%, Lymphocytes 7%, Monocytes 2%, basophils 4%, Eosinophils 3%, Bands 3%, Metamylocytes 5%, Myelocytes 9% RBC - 4.37 m/cumm Haemoglobin 13gm/dl MCV 92 fl MCH 29.7 pg MCHC 32.5 Platelets 1,98,000/cmm RDW-13.1% a) What is the probable diagnosis? b) What are the differential diagnosis for a patient presenting with palpable spleen of 9cms? c) What are the other investigations necessary for this patient for confirming the diagnosis? d) How can this patient be managed? (Page No: NA)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Haemophilia? (Page No: 827)",
+            "What is Idiopathic thrombocytopenic purpura (ITP)? (Page No: 824)",
+            "What is Polycythemia Rubra Vera? (Page No: 783)",
+            "What is Sideroblastic anaemia? (Page No: 756)",
+            "What is Megaloblastic anemia? (Page No: 736)",
+            "What is Agranulocytosis? (Page No: 765)",
+            "What is Disseminated intravascular coagulation? (Page No: 830)",
+            "What are the investigations and complications of CML? (Page No: 777)",
+            "What is Parenteral iron therapy? (Page No: 735)",
+            "What is Pernicious anemia? (Page No: 736)",
+            "What is Multiple myeloma? (Page No: 789)",
+            "What is the staging and management of Hodgkin's lymphoma? (Page No: 797)",
+            "What is Splenomegaly? (Page No: 633, 839, 786)",
+            "What is CML? (Page No: 776)",
+            "What is Thalassemia? (Page No: 751)",
+            "What is Hemolysis? (Page No: 744)",
+            "What is the Lab evaluation of hemolysis? (Page No: 745)",
+            "What is Prothrombin time? (Page No: 496, 551, 590)",
+            "What is Sickle cell disease? (Page No: 747)",
+            "What are the Clinical features of Sickle cell anemia? (Page No: 747)",
+            "What is Hemolytic Anemia? (Page No: 744)",
+            "What is the management of Thalassasmias? (Page No: 753)",
+            "What is AML? (Page No: 766)",
+            "What is the management of Acute Leukemia? (Page No: 777)",
+            "What is Hemolytic jaundice? (Page No: 744)",
+            "What is the Laboratory diagnosis of haemolytic anaemia? (Page No: 745)",
+            "What is Lymphoma? (Page No: 795)",
+            "What is LMWH? (Page No: 809)",
+            "What is Schilling's test? (Page No: 741)",
+            "What is Von Willebrand disease? (Page No: NA)",
+            "What is Allogenic bone marrow transplant? (Page No: 805)",
+            "What is Blood component therapy? (Page No: 833)",
+            "What are the Clinical and laboratory features of Haemophilia - A? (Page No: 824)",
+            "What are the Hazards of Blood transfusion? (Page No: 835)",
+            "What is Primary proliferative polycythemia? (Page No: 782)",
+            "What is the Laboratory diagnosis of Aplastic Anaemia? (Page No: 763)",
+            "What is Aplastic anemia? (Page No: 762)",
+            "What is Thalidomide? (Page No: 1416, 1444)",
+            "What is Myelodysplastic syndrome? (Page No: 782)",
+            "What is Iron Deficiency Anemia? (Page No: 732)",
+            "What is Bone marrow transplantation? (Page No: 803)",
+            "What are Bleeding disorders? (Page No: 817)",
+            "What is Polycythemia? (Page No: 782)",
+            "What is the diagnosis and management of ITP? (Page No: 822)",
+            "What is a Sickle Cell Crisis? (Page No: 748)",
+            "What is Protein C & S Deficiency? (Page No: NA)",
+            "What is Blast crisis in CML? (Page No: 776)",
+            "What are the Indications for bone marrow aspiration? (Page No: 413, 769, 795)",
+            "What are the Screening tests for Blood transfusion? (Page No: 834)",
+            "What are the Indications of Allogenic Haematopoetic Stem Cell Transplantation and complications of the same? (Page No: 803)",
+            "What is the pathogenesis of Anaemia of Chronic Disease? What are the investigations to differentiate Anaemia of chronic disease from iron deficiency anaemia? (Page No: NA)",
+            "What is the Treatment of Iron deficiency Anemia? (Page No: 734)"
+          ]
+        }
+      }
     }
   }
 };
