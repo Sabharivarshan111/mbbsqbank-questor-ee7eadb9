@@ -295,6 +295,32 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "newborn-neonatology": {
+      name: "Newborn and neonatology",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Cephal haematoma. (Page No: 537)******",
+            "Neonatal Jaundice. (Page No: 525)******",
+            "Asphyxia Neonatorum. (Page No: 581)***",
+            "APGAR. (Page No: 513)**",
+            "Breast feeding. (Page No: 514)**",
+            "Prematurity. (Page No: 536)**",
+            "Neonatal convulsions. (Page No: 535)**",
+            "Caput succedaneum. (Page No: 536)**",
+            "Neonatal resuscitation. (Page No: 510)",
+            "Cord blood. (Page No: NA)",
+            "Care of newborn. (Page No: 514)",
+            "Respiratory distress syndrome. (Page No: 520)",
+            "Physiological Jaundice. (Page No: 525)",
+            "Birth injuries to child. (Page No: 536)",
+            "Baby friendly hospital. (Page No: 592)",
+            "Describe the various changes that occur in the circulatory system of the infant after birth. (Page No: 036)"
+          ]
+        }
+      }
     }
   }
 };
