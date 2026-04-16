@@ -445,6 +445,38 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "small-large-intestine": {
+      name: "Small and large intestine",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Intestinal obstruction. (Page No: 976)**",
+            "Discuss the etiology, pathology and surgical management of sigmoid volvulus. (Page No: 990)**",
+            "Carcinoma colon. (Page No: 959)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Intussusception. (Page No: 987)******",
+            "Meckel's diverticulum. (Page No: 920)*****",
+            "Carcinoid tumour. (Page No: 935)*****",
+            "Rectal polyp. (Page No: NA)**",
+            "Crohn's disease. (Page No: 922)",
+            "Peutz - Jegher's syndrome. (Page No: 957)",
+            "Congenital megacolon. (Page No: 945)",
+            "Premalignant lesions of colon and rectum. (Page No: 957)",
+            "Colectomy. (Page No: 966)",
+            "Colostomy. (Page No: 969)",
+            "Barium enema. (Page No: 974)",
+            "Pseudo intestinal obstruction. (Page No: NA)",
+            "Hirschprung. (Page No: 945)",
+            "Clinical features and management of ulcerative colitis. (Page No: 951)"
+          ]
+        }
+      }
     }
   }
 };
