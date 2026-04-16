@@ -266,6 +266,72 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "peritoneum-hbs-pancreas": {
+      name: "Peritoneum, HBS, Pancreas",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Acute Pancreatitis. A 30 year old male alcoholic had a binge of alcohol for the past one week presented with severe abdominal pain and distension. What is the differential diagnosis? Elaborate on pathophysiology, investigation and the scoring systems used in Acute pancreatitis. (Page No: 738)******",
+            "Causes of haemoperitoneum; clinical features, diagnosis, management of traumatic rupture of spleen. (Page No: 722)***",
+            "Main functions of liver; liver function test, clinical features, diagnosis and management of amoebic liver abscess. (Page No: 647)**",
+            "Causes of hematemesis; portal hypertension; Clinical features, management of oesophageal variceal bleeding. (Page No: 668)**",
+            "50 year old female admitted with c/o abdominal pain and jaundice of two months duration with IHBR dilatation on USG. Discuss the differential diagnosis. Discuss the investigation and management of choledocholithiasis. Obstructive jaundice etiology, clinical features, diagnosis and management of stone in common bile duct. (Page No: 706)***",
+            "Acute Cholecystitis; anatomy of gallbladder. Calculus Cholecystitis.",
+            "Tumours of pancreas, Clinical features, investigation, management of Carcinoma head of pancreas. (Page No: 758)**",
+            "Ileocaecal tuberculosis. (Page No: 631)",
+            "Hydatid cyst liver: Diagnosis, complication and management. Discuss aetiology, pathogenesis, clinical features and management of hydatid cyst of liver. (Page No: 652)**",
+            "60 year old man presenting with palpable lump in right hypochondrium with yellow discoloration of eyes. What is your diagnosis? Discuss the etiopathogenesis, investigation and treatment. (Page No: 656)",
+            "Different causes of splenomegaly and surgical management of portal hypertension. (Page No: 665)",
+            "Describe etiopathogenesis of gall stones, investigations and management. Discuss the etiopathogenesis of gall stones. Discuss the clinical features of acute cholecystitis and management. (Page No: 690)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Pseudo pancreatic cyst. (Page No: 746)*********",
+            "Hydatid disease of liver. (Page No: 652)******",
+            "Mesenteric cyst. (Page No: 625)****",
+            "Choledochal cyst. (Page No: 687)***",
+            "Post splenectomy complications. (Page No: 726, 731)***",
+            "Desmoid tumour. (Page No: 799)**",
+            "Splenic injury. (Page No: 722)****",
+            "APUDoma. (Page No: 547)**",
+            "Peritonitis complications. (Page No: 615)",
+            "Meconium peritonitis. (Page No: 621)",
+            "Subdiaphragmatic abscess. (Page No: 623)",
+            "Biopsy of liver indications, technique and complications. (Page No: 644)",
+            "Liver abscess | Pyogenic liver abscess. (Page No: 651)**",
+            "Amoebic liver abscess. (Page No: 647)**",
+            "Sengstaken tube. (Page No: 672)",
+            "Billary atresia. (Page No: 689)",
+            "Gall stone | Cholelithiasis | Billary stones. (Page No: 690)***",
+            "Gallstone complications. (Page No: 692)**",
+            "Mucocele gall bladder. (Page No: 698)",
+            "Gall stone ileus. (Page No: 700)",
+            "Stone in CBD. (Page No: 705)",
+            "Courvoisier's law. (Page No: 705)",
+            "Cholangio carcinoma. (Page No: 710)",
+            "Laparoscopic cholecystectomy. (Page No: 716)",
+            "Acute pancreatitis. (Page No: 738)",
+            "Management and complications of acute pancreatitis. (Page No: 743)",
+            "Ransons criteria. (Page No: 742)",
+            "Primary Peritonitis. (Page No: 614)",
+            "Porcelain Gallbladder. (Page No: 705)",
+            "Complications of Pancreatitis. (Page No: 745)",
+            "Complications of Liver injury. (Page No: 645)",
+            "Hydatid cyst. (Page No: 652)**",
+            "Tuberculous peritonitis. (Page No: 636)",
+            "Types and management of choledochal cyst. (Page No: 688)",
+            "Therapeutic uses of endoscopic retrograde cholangiopancreaticography (ERCP). (Page No: 684)",
+            "Hypersplenism. (Page No: 726)",
+            "Capsule endoscopy. (Page No: 938)",
+            "Tillaux sign. (Page No: NA)",
+            "Upper Gastro intestinal scopy. (Page No: 875)"
+          ]
+        }
+      }
     }
   }
 };
