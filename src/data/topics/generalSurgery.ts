@@ -92,6 +92,36 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "hand-foot-arterial-diseases": {
+      name: "Hand, foot and arterial diseases",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "How will you investigate and treat a 50 year old man with gangrene right toe. (Page No: 195)",
+            "Discuss the etiology, clinical features, investigations and management of chronic lower limb ischemia. (Page No: 220)",
+            "TAO, Investigation of arterial occlusive disease, complication, clinical features, management of atherosclerotic gangrene. (Page No: 200)",
+            "A 42 year old male presented with a complaint of pain in the right leg while walking for a short distance and blackish discolouration of right 2nd toe. What is the probable diagnosis? Write in detail about the risk factors of peripheral vascular occlusive disease. How will you differentiate TAO from atherosclerosis? Write a management plan of peripheral vascular disease due to atherosclerosis. (Page No: 200)",
+            "TAO, etiology, clinical features, diagnosis and management. (Page No: 203)****"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Acute paroxychia. (Page No: 178)**",
+            "Collar stud abscess. (Page No: 181)",
+            "Deep palmar abscess. (Page No: 182)",
+            "Colour doppler in peripheral vascular disease. (Page No: 198)",
+            "Buerger disease. (Page No: 203)**",
+            "TAO. (Page No: 203)**",
+            "Lumbar Sympathectomy. (Page No: 206)",
+            "Hemangloma. (Page No: 238)",
+            "Arterio venous fistula. (Page No: 242)",
+            "Cirsold aneurism. (Page No: 241)"
+          ]
+        }
+      }
     }
   }
 };
