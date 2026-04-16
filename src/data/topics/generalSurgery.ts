@@ -830,6 +830,64 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "miscellaneous": {
+      name: "Miscellaneous",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "A 65 year old obese individual has come to the hospital with complaints of pain both knee joints. Discuss a) Clinical examination b) Investigations c) Various treatment modalities of osteoarthritis of knee. (Page No: 288)",
+            "Describe the etiology, clinical features and management of Rickets. (Page No: 301)",
+            "Discuss the etiology, pathological anatomy and clinical features of Genu valgum in a 13 year girl. Add a note on the management. (Page No: 314)",
+            "Common deformities of knee region in children and adolescents. (Page No: 315)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Genu valgum. (Page No: 315)****",
+            "Tennis elbow. (Page No: 294)***",
+            "Paget's disease of bone. (Page No: 308)***",
+            "Baker's cyst. (Page No: 317)****",
+            "neuropathic joint. (Page No: 286)**",
+            "Trigger finger. (Page No: 295)**",
+            "Ganglion. (Page No: 295)**",
+            "Osteoporosis. (Page No: NA)**",
+            "Perthe's disease. (Page No: 309)**",
+            "Lumbar disc prolapse. (Page No: 246)",
+            "spondylolisthesis. (Page No: 276)",
+            "Rheumatoid arthritis. (Page No: 279)",
+            "GOUT. (Page No: 286)**",
+            "Gouty arthritis. (Page No: 286)",
+            "Haemarthrosis. (Page No: 286)",
+            "Golfer's elbow. (Page No: 295)",
+            "De Quervain's Tenosynovitis. (Page No: 295)",
+            "Carpal tunnel syndrome. (Page No: 295)",
+            "Frozen shoulder. (Page No: 296)",
+            "plantar fascitis. (Page No: 296)",
+            "Ruptured tendoachillis. (Page No: NA)",
+            "Calcitonin. (Page No: 299)",
+            "Rickety rosary. (Page No: 301)",
+            "Complications of pagets disease. (Page No: 308)",
+            "Kinenboch's disease. (Page No: 309)",
+            "Torticollis. (Page No: 312)",
+            "Cervical rib. (Page No: 313)",
+            "Diagnosis of slipped capital femoral epiphysis. (Page No: 314)",
+            "Slipped capital femoral epiphysis. (Page No: 314)",
+            "Knock knee. (Page No: 315)",
+            "Pes planus. (Page No: 317)",
+            "Hallux Valgus. (Page No: 318)",
+            "Ideal Stump. (Page No: 319)",
+            "Below knee amputation. (Page No: 319)",
+            "Arthroplasty & Arthroscopy. (Page No: 325)",
+            "Allen test. (Page No: NA)",
+            "Adson test. (Page No: NA)",
+            "Management of rickets. (Page No: 310)",
+            "Fluorosis of bone and teeth. (Page No: 304)"
+          ]
+        }
+      }
     }
   }
 };
