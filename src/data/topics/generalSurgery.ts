@@ -153,6 +153,36 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "neoplasm-and-others": {
+      name: "Neoplasm and others",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "A 50 yr old man, who works as agricultural labour has a blackish raised lesion on 5cm on the sole of the foot. What will be the probable diagnosis? What are the types and staging of this condition? Discuss the management of this condition Malignant melanoma, Clinical staging and treatment. (Page No: 327)****",
+            "Describe the layers of skin, premalignant lesions of skin. Describe the epidemiology, pathogenesis, clinical presentation and management of Basal cell carcinoma. (Page No: 323)",
+            "Organ Transplantation. (Page No: 370)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Marjolin ulcer. (Page No: 323)****",
+            "FNAC. (Page No: 306)***",
+            "Squamous cell carcinoma face. (Page No: 320)***",
+            "Rodent ulcer. (Page No: 323)***",
+            "Malignant melanoma. (Page No: 327)***",
+            "Split skin graft. (Page No: 258)***",
+            "Tumor markers. (Page No: 307)",
+            "Epithelioma. (Page No: 320)",
+            "Basal cell carcinoma. (Page No: 323)",
+            "Graft Rejection. (Page No: 372)",
+            "Flaps. (Page No: 362)",
+            "Core needle biopsy. (Page No: 306)"
+          ]
+        }
+      }
     }
   }
 };
