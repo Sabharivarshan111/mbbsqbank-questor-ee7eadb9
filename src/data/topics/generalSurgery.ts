@@ -602,6 +602,51 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "anaesthesia": {
+      name: "Anaesthesia",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Spinal Anaesthesia. (Page No: 1209)********",
+            "Epidural Anaesthesia. (Page No: 1210)*******",
+            "Local anaesthesia. (Page No: 1209)****",
+            "Bupivacaine / Sensorcaine. (Page No: 1206)***",
+            "General endotracheal anaesthesia. (Page No: 1206)***",
+            "Regional anesthesia. (Page No: 1209)****",
+            "Nerve block. (Page No: 1209)***",
+            "Intravenous Anaesthesia. (Page No: 1206)**",
+            "Muscle relaxants. (Page No: 1206)**",
+            "Premedication. (Page No: 1191)**",
+            "preparation of patient for GA. (Page No: 1205)",
+            "Nitrous oxide. (Page No: 1206)",
+            "Pancuronium bromide. (Page No: 1206)",
+            "Succinyl Choline. (Page No: 1206)",
+            "Propofol. (Page No: 1206)**",
+            "Endo tracheal intubation. (Page No: 1206)",
+            "Management of airway in an unconscious patient. (Page No: NA)",
+            "Endotracheal tube. (Page No: 1207)",
+            "Boyle's apparatus. (Page No: 1207)",
+            "Post operative care for abdominal surgery. (Page No: 1208)",
+            "Stages of Ether anaesthesia. (Page No: NA)",
+            "Stages of general endotracheal anaesthesia. (Page No: NA)",
+            "Local anaesthetic agents. (Page No: 1209)",
+            "Field block anaesthesia. (Page No: 1209)",
+            "Ankle block. (Page No: 1209)",
+            "lidocaine. (Page No: 1209)",
+            "Pulse oximeter. (Page No: NA)",
+            "Digital block anaesthesia. (Page No: 1209)",
+            "Lumbar puncture. (Page No: 1210)",
+            "Lignocaine. (Page No: 1209)",
+            "Patient controlled analgesia. (Page No: NA)",
+            "Post-spinal Anaesthesia head ache. (Page No: 1210)",
+            "Complications of spinal anaesthesia. (Page No: 1210)",
+            "Triad of General Anaesthesia. (Page No: NA)",
+            "Methods of Pain Relief in Malignancy. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
