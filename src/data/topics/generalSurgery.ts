@@ -718,6 +718,37 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "upper-lower-limb": {
+      name: "Upper and lower limb",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the clinical features, radiological finding treatment and complications of colle's fracture. (Page No: 109)******",
+            "Classification, clinical features, complication and management of Supracondylar fracture of humerus. (Page No: 094)*****",
+            "Fracture neck of femur; classification & Management. (Page No: 130)****",
+            "Shoulder joint dislocation. (Page No: 087)***",
+            "Dislocation of hip joint. (Page No: 128)**",
+            "Posterior dislocation of hip joint. (Page No: 128)**",
+            "Pathological fracture of shaft of femur. (Page No: 138)**",
+            "Classification and management of ankle fracture. (Page No: 157)**",
+            "Describe the etiopathology and clinical features of anterior dislocation of the shoulder. Describe surgical options in a 20 years old athletic with recurrent shoulder dislocation. (Page No: 087)",
+            "Fractures occurring around elbow. Discuss the classification, management and complications of supracondylar fractures of elbow. (Page No: 093)",
+            "Classification of epiphyseal injury. Details about medial condyle fracture humerus. (Page No: 102)",
+            "Describe in detail about intertrochanteric fracture of femur and its management. (Page No: 135)",
+            "Trochanteric fracture of femur. (Page No: 135)",
+            "A foot ball player sustained an injury to his left knee while playing and complaints of instability of knee. Discuss about: a) Various clinical tests to be done to diagnose cruciate ligament injuries. b) Investigations to be done. c) Treatment of cruciate ligament injuries. (Page No: 143)",
+            "Rheumatoid arthritis. (Page No: 279)",
+            "Classification, clinical features, complication and management of fracture neck of femur in adult. (Page No: NA)",
+            "Describe and discuss the mechanism of injury, clinical features, investigations, classification and various modalities of management of fracture proximal humerus. (Page No: 090)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: []
+        }
+      }
     }
   }
 };
