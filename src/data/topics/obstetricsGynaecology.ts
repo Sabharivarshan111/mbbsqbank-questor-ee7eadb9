@@ -164,6 +164,40 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "diseases-pregnancy": {
+      name: "Diseases and pregnancy",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Briefly the principles in the management of labour in heart disease complicating pregnancy. (Page No: 348)***",
+            "GDM-Indications for screening and methods of screening. Management of Mrs.X, G3P2L2 with GDM diagnosed at 32 weeks. Brief on maternal & fetal complications. (Page No: 332)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "AIDS infection. (Page No: 378)***",
+            "OGTT. (Page No: 334)****",
+            "Screening test for gestational diabetes. (Page No: 332)***",
+            "Effects of diabetes in pregnancy. (Page No: 334)***",
+            "Management of labour in heart disease complicating pregnancy. (Page No: 348)",
+            "Role of cardiac surgery in pregnancy. (Page No: 349)",
+            "Prevention of vertical transmission in pregnancy. (Page No: 379)",
+            "Drugs used in HIV during pregnancy. (Page No: 379)",
+            "Gestational DM. (Page No: 331)",
+            "GDM - diagnosis and management. (Page No: 332)",
+            "Screening of GDM. (Page No: 332)",
+            "Role of medical nutrition therapy in GDM. (Page No: 335)",
+            "Neonatal complications in diabetic mother. (Page No: 338)",
+            "Asymptomatic bacteruria. (Page No: 387)**",
+            "Acute renal failure in obstetrics. (Page No: 390)",
+            "Fibroid complicating pregnancy. (Page No: 397)",
+            "Glucose Challenge Test. (Page No: 333)"
+          ]
+        }
+      }
     }
   }
 };
