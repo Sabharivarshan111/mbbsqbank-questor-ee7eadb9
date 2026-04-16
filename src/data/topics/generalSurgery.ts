@@ -675,6 +675,49 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "trauma-and-fractures": {
+      name: "Trauma and fractures",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "A young motor cycle rider is involved in road traffic accident. Discuss the examination, assessment and immediate resuscitation of this patient. (Page No: 040)",
+            "Define Compound fracture, Discuss about classification, Investigation, and Management of Compound fracture. (Page No: 002)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Claw hand. (Page No: 063)******",
+            "Foot drop. (Page No: 063)****",
+            "Wrist drop. (Page No: 063)****",
+            "Non-Union. (Page No: 048)***",
+            "Myositis ossificans. (Page No: 052)***",
+            "Radial nerve injuries. (Page No: 065)***",
+            "Bone graft. (Page No: 084)***",
+            "Plaster of paris & Uses. (Page No: 017)**",
+            "Thomas splint. (Page No: 026)**",
+            "Compartment syndrome. (Page No: 047)**",
+            "Malunion. (Page No: 050)**",
+            "Epiphyseal injuries. (Page No: 058)**",
+            "Erb's palsy. (Page No: NA)**",
+            "Classification of compound fracture. (Page No: 002)",
+            "Bone cement. (Page No: 366)",
+            "Uses of external fixation. (Page No: 031)",
+            "Intramedullary fixation of fracture. (Page No: 032)",
+            "Clinical features and diagnosis of fat embolism following fracture shaft of femur. (Page No: 044)",
+            "Clinical features of acute compartment syndrome. (Page No: 047)",
+            "Nerve injuries. (Page No: 063)",
+            "Clinical features of ulnar nerve palsy. (Page No: 067)",
+            "Saturday night palsy. (Page No: 065)",
+            "Tinel's sign. (Page No: 069)",
+            "Electromyography. (Page No: 069)",
+            "Ulnar claw hand. (Page No: 064)",
+            "Blood supply of long bone. (Page No: 009)"
+          ]
+        }
+      }
     }
   }
 };
