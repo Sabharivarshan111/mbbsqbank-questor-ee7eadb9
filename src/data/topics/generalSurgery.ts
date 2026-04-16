@@ -477,6 +477,36 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "appendix-rectum-anal-canal": {
+      name: "Appendix, Rectum and anal canal",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss etiology, types , clinical features, investigation and management of Carcinoma rectum. (Page No: 1015)*****",
+            "Discuss the differential diagnosis of right iliac fossa mass. Discuss the clinical features and management of appendicular mass. (Page No: 1005)",
+            "Appendicitis, etiology, clinical features, investigations, management of appendicular lump. (Page No: 1005)",
+            "Acute appendicitis. (Page No: 0997)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Fistula in ano. (Page No: 1041)*******",
+            "Fissure in ano. (Page No: NA)**",
+            "Appendicular abscess. (Page No: 1005)***",
+            "Management of Appendicular mass. (Page No: 1005)****",
+            "Colonoscopy. (Page No: 1015)**",
+            "Pilonidal sinus. (Page No: 1027)**",
+            "Prolapse rectum. (Page No: 1021)",
+            "Complications of hemorrhoids. (Page No: 1032)",
+            "Ischiorectal abscess. (Page No: 1038)",
+            "Differential Diagnosis of Acute Appendicitis. (Page No: 1001)",
+            "Haemorrhoids. (Page No: 1030)"
+          ]
+        }
+      }
     }
   }
 };
