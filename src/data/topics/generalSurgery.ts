@@ -396,6 +396,55 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "esophagus-stomach": {
+      name: "Esophagus and stomach",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Elaborate on aetiology, clinical features, classification and management of carcinoma stomach. (Page No: 901)******",
+            "Motility disorders of esophagus. Discuss in detail about achalasia cardia. (Page No: 853)",
+            "Esophageal atresia; tracheo oesophageal fistula. (Page No: 859)",
+            "Carcinoma Oesophagus. (Page No: 860)",
+            "Complications of acid peptic disease, Write in detail about perforation. (Page No: 881)",
+            "Surgical anatomy of Duodenum, clinical features, investigation, management of duodenal ulcer. (Page No: 882)",
+            "Stomach surgical anatomy, etiology, clinical features, diagnosis and management of benign gastric ulcer. (Page No: 892)",
+            "Complications of peptic ulcer; etiology, clinical features, diagnosis and management of chronic duodenal ulcer. (Page No: 882)",
+            "Causes of hematemesis; management of bleeding peptic ulcer. (Page No: 890)",
+            "Lymphatic drainage of stomach; clinical features, diagnosis and management of linitis plastica. (Page No: 906)",
+            "Discuss the causes for Dysphagia. Write in detail about Etiopathology, Clinical features and management of Achalasia Cardia. (Page No: 853)",
+            "Clinical features, investigations and management of Gastric outlet obstruction. (Page No: 884)",
+            "Discuss the etiology, clinical features, investigation and management of upper GI bleed. (Page No: 890)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Helico bacter pylori. (Page No: 876)***",
+            "Achalasia cardia. (Page No: 853)**",
+            "Hiatus hernia. (Page No: 850)",
+            "Plummer vinson syndrome. (Page No: 856)",
+            "Barium meal series. (Page No: 874)",
+            "Infantile hypertrophic pyloric stenosis | Congenital pyloric stenosis. (Page No: 877)***",
+            "Early gastric cancer. (Page No: 901)",
+            "Metabolic complications of gastric outlet obstruction. (Page No: 886)",
+            "Hematemesis. (Page No: 893)",
+            "Causes of upper GI bleed. (Page No: 893)",
+            "Duodenal fistula. (Page No: 895)",
+            "Dumping syndrome. (Page No: 896)**",
+            "Etiology of cancer stomach. (Page No: 902)",
+            "Troisiers sign. (Page No: 907)",
+            "Post operative complications of Gastrectomy. (Page No: 894)",
+            "Post operative complications of vagotomy. (Page No: NA)",
+            "Gastric volvulus. (Page No: 899)",
+            "Barrett's Esophagus. (Page No: 852)**",
+            "Management of GERD. (Page No: 848)",
+            "Gastric banding. (Page No: 119)",
+            "Gastrointestinal stromal tumour. (Page No: 914)"
+          ]
+        }
+      }
     }
   }
 };
