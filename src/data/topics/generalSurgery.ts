@@ -749,6 +749,43 @@ export const generalSurgeryData = {
           questions: []
         }
       }
+    },
+    "infection-bones-joints": {
+      name: "Infection of bones and joints",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Classification of osteomyelitis; Details about chronic osteomyelitis. (Page No: 170)**",
+            "Potts spine. (Page No: 183)**",
+            "Describe about etiology, pathogenesis, clinical features, investigations and management of Acute osteomyelitis. (Page No: 166)",
+            "Tuberculosis of Hip joint. (Page No: 192)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Chronic osteomyelitis of tibia. (Page No: 170)****",
+            "Osteomyelitis. (Page No: 168)***",
+            "Sequestrum. (Page No: 170)***",
+            "Septic arthritis. (Page No: 174)***",
+            "Potts spine. (Page No: 183)***",
+            "Clinical features and management of acute osteomyelitis of tibia in a 7 year old girl. (Page No: 166)**",
+            "Osteomyelitis of humerus. (Page No: 166)**",
+            "Tuberculosis arthritis. (Page No: 192)**",
+            "cold abscess. (Page No: 186)**",
+            "Tuberculosis knee. (Page No: 197)**",
+            "Brodie's abscess. (Page No: 173)",
+            "Madure foot. (Page No: 176)",
+            "Ankylosis. (Page No: 176)",
+            "Psoas abscess. (Page No: 195)",
+            "Tuberculous synovitis. (Page No: 197)",
+            "Tuberculous dactylitis. (Page No: 200)",
+            "Radiological features of Brodies abscess. (Page No: 173)",
+            "Radiological features of Tuberculosis spine. (Page No: 183)"
+          ]
+        }
+      }
     }
   }
 };
