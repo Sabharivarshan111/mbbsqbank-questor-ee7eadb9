@@ -217,6 +217,55 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "neck-thyroid-parathyroid": {
+      name: "Neck, thyroid, and parathyroid",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Etiology, Clinical features, Investigations and Management of primary Thyrotoxicosis (Graves disease). (Page No: 508)**",
+            "Describe in detail: clinical features, management of Multinodular goitre. (Page No: 500)",
+            "Surgical anatomy of thyroid; etiology, clinical features, diagnosis and management of solitary nodular goitre. (Page No: 503)",
+            "Classification of goiter. Thyrotoxicosis and its types, clinical features, management. (Page No: 508)**",
+            "Classify Goitres. Clinical features and Management of Medullary carcinoma thyroid. (Page No: 526)",
+            "Parathyroid adenoma. (Page No: 541)",
+            "Classification of Thyroid Neoplasms. Clinical features, Diagnosis and Management of Papillary Carcinoma of Thyroid. (Page No: 518)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Thyroglossal cyst. (Page No: 496)*********",
+            "Tuberculous lymphadenopathy. (Page No: 457)******",
+            "Cystic hygroma. (Page No: 449)***",
+            "Solitary nodule of thyroid. (Page No: 503)***",
+            "Hashimoto thyroiditis. (Page No: 528)***",
+            "Branchial cyst. (Page No: 445)**",
+            "Carotid body tumor. (Page No: 453)***",
+            "Retro sternal goitre. (Page No: 506)***",
+            "Radioactive iodine. (Page No: 516)**",
+            "Types of thyroiditis. (Page No: 528)**",
+            "Post thyroidectomy complications. (Page No: 533)***",
+            "Cervical rib. (Page No: 442)",
+            "Branchial fistula. (Page No: 446)",
+            "Pharyngeal pouch. (Page No: 447)",
+            "Thyroid storm. (Page No: NA)",
+            "Papillary Carcinoma Thyroid. (Page No: 518)",
+            "Reidels thyroiditis. (Page No: 528)",
+            "Parathyroid adenoma. (Page No: 541)",
+            "DD hyperparathyroidism. (Page No: 541)",
+            "Conn's syndrome. (Page No: 551)",
+            "Pheochromocytoma. (Page No: 553)**",
+            "Role of ultra sonography in thyroid. (Page No: 504)",
+            "Multiple Endocrine Neoplasia Syndrome. (Page No: 547)",
+            "Neuroendocrine tumours. (Page No: 549)",
+            "Radio isotope thyroid scan. (Page No: 496)",
+            "Write about investigation and management of toxic nodule thyroid. (Page No: 508)",
+            "Sestamibi scan. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
