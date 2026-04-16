@@ -256,6 +256,45 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "obstetric-operations": {
+      name: "Obstetric operations",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is induction of labour? What are the indications & contraindications, methods used for inducing labour? (Page No: 164)*****",
+            "Primi 37 weeks, breech plan her mode of delivery and what procedure done to facilitate normal delivery. (Page No: 551)",
+            "Define caesarean section and its various indications. Explain the management of previous lower segment caesarean section in labour. (Page No: 559)",
+            "Enumerate the indications for lower segment caesarian section. Discuss the management of a case of previous caesarean section posted for vaginal delivery. (Page No: 560, 567)",
+            "Define Caesarean Section. Discuss the types, indication, techniques and complication of Caesarean Section. (Page No: 559)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Outlet forceps. (Page No: 545)*****",
+            "Conduct of VBAC in a case of Post Caesarean Pregnancy. (Page No: 568)***",
+            "External cephalic version. (Page No: 551)****",
+            "Enumerate the steps in lower segment caesarean section. Mention some complications of caesarean section. (Page No: 562)**",
+            "Bishops score. (Page No: 166)**",
+            "Hydrocephalus. (Page No: 589)**",
+            "Forceps in obstetrics. (Page No: 540)",
+            "Indications for forceps in modern obstetrics. (Page No: 541)",
+            "Suction cup delivery. (Page No: 547)",
+            "Advantages of forceps over ventouse. (Page No: 548)",
+            "Craniotomy. (Page No: 554)",
+            "Indications for elective caesarean section. (Page No: 560)",
+            "Classical caesarean section. (Page No: 563)",
+            "Complications of emergency caesarean section. (Page No: 565)",
+            "Mention indication, contra indications and complications of induction of labour. (Page No: 164)",
+            "Syntocinon in obstetrics. (Page No: 168)",
+            "Oxytocin. (Page No: 168)",
+            "Advantages and Disadvantages of Vacuum Extractor in delivery of foetus. (Page No: 548)",
+            "Prostaglandins. (Page No: 166)"
+          ]
+        }
+      }
     }
   }
 };
