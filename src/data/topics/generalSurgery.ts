@@ -332,6 +332,40 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "breast": {
+      name: "Breast",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the clinical features, pathology and management of carcinoma breast. Carcinoma breast T2N2M0 : Clinical features and management. (Page No: 574)****",
+            "Surgical anatomy of breast; Details about Fibroadenoma breast. (Page No: 557)",
+            "Discuss about Benign Breast Diseases. Write in detail about Phylloides Tumour. (Page No: 564)",
+            "Describe triple assessment. Clinical presentation and management of carcinoma breast. (Page No: 591, 574)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Fibro adenoma breast. (Page No: 560)********",
+            "Cystosarcoma phylloides. (Page No: 564)*****",
+            "Mammography. (Page No: 559)**",
+            "Breast Abscess. (Page No: 567)**",
+            "ANDI of breast | Classification of ANDI. (Page No: 560)**",
+            "Mastalgia. (Page No: 565)",
+            "Acute bacterial mastitis. (Page No: 567)",
+            "Antibioma. (Page No: 569)",
+            "Gynaecomastia. (Page No: 572)",
+            "Inflammatory carcinoma for breast. (Page No: 577)",
+            "Tamoxifen. (Page No: 601)",
+            "Nipple retraction. (Page No: 609)",
+            "Sentinel node biopsy. (Page No: 332)",
+            "Management of early breast cancer. (Page No: 601)",
+            "Discuss about the ways you show empathy towards a patient who has developed surgical site infection following a breast reconstruction surgery. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
