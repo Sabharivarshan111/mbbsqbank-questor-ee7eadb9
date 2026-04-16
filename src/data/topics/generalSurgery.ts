@@ -507,6 +507,70 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "urologycanal": {
+      name: "Urologycanal",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the etiopathogenesis, clinical features, investigations and management of renal cell carcinoma. (Page No: 1084)***",
+            "Discuss the pre-malignant conditions of carcinoma penis. Elaborate on clinical features and management of carcinoma penis. Discuss the pathology and surgical management of carcinoma Penis. (Page No: 1123)****",
+            "Classify testicular tumors. How will you manage a 60 year old man presenting with seminoma testis? (Page No: 1143)",
+            "Classification of testicular tumors; clinical features, investigation & management of seminoma. (Page No: 1143)***",
+            "Bilateral Hydronephrosis. (Page No: 1071)**",
+            "Renal calculus - etiology, clinical features, diagnosis and management of calculus in renal pelvis. (Page No: 1076)**",
+            "Wilms tumour. (Page No: 1083)**",
+            "Neoplasms of kidney: classification clinical features, diagnosis and management of hypernephroma. (Page No: 1084)**",
+            "Kidney surgical anatomy, Renal TB - clinical features, diagnosis and management. (Page No: 1069)",
+            "Unilateral hydronephrosis; etiology, clinical features, diagnosis and management | Hydronephrosis in children. (Page No: 1071)**",
+            "Renal stone; recent trends in management. (Page No: 1076)",
+            "Urinary bladder rupture. (Page No: NA)",
+            "Causes of Acute retention of urine; Details about BPH. (Page No: 1104)",
+            "Undescended testis. (Page No: 1139)",
+            "Classify testicular tumors, etiopathology, clinical features, investigation and management of teratoma. (Page No: 1143)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Tension testes? (Page No: 1142)******",
+            "What is Phimosis? (Page No: 1119)****",
+            "What is an Undescended testis? (Page No: 1139)*****",
+            "What is Seminoma testis? (Page No: 1143)***",
+            "What is Wilms tumour? (Page No: 1083)***",
+            "What is Peyronies disease? (Page No: 1122)**",
+            "What is Hypernephroma? (Page No: 1084)**",
+            "What is Vesical Calculus? (Page No: 1090)**",
+            "What is Ectopia Vesiacae? (Page No: 1090)**",
+            "What is Circumcision? (Page No: 1120)**",
+            "What is Congenital hydrocele? (Page No: 1130)**",
+            "What is Varicocele? (Page No: 1135)**",
+            "What is Hypospadias and its management? (Page No: 1115)**",
+            "What is Intravenous pyelography? (Page No: 1057)",
+            "What is Hydronephrosis? (Page No: 1071)",
+            "What is Dietl's crisis? (Page No: 1072)",
+            "What is Renal calculus? (Page No: 1076)",
+            "What is PSA? (Page No: 1103)",
+            "What is Ca Prostate? (Page No: 1108)",
+            "What is Urethral injury? (Page No: 1111)",
+            "What is Rupture urethra? (Page No: 1111)",
+            "What is the Classification of testicular tumour? (Page No: 1143)",
+            "What is Hematuria? (Page No: 1964)",
+            "What are the Causes of retention of urine? (Page No: 1118)",
+            "What is the Etiology of CA penis? (Page No: 1123)",
+            "What is Renal tuberculosis? (Page No: 1069)",
+            "What are the Premalignant lesions in cancer penis? (Page No: 1123)",
+            "What is Fournier gangrene? (Page No: 1128)",
+            "What is Spermatocele? (Page No: 1135)",
+            "What is Ectopic testis? (Page No: 1141)",
+            "What is Teratoma testis? (Page No: 1144)",
+            "What is Autosomal dominant polycystic kidney diseases? (Page No: 1065)",
+            "What is Pyelonephritis? (Page No: 1074)",
+            "What are Urethral diverticulae? (Page No: 1115)"
+          ]
+        }
+      }
     }
   }
 };
