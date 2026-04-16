@@ -198,6 +198,64 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "abnormal-labour": {
+      name: "Abnormal labour",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is Deep Transverse arrest? Mention how you diagnose and treat such case. (Page No: 408)******",
+            "Describe the aetiology, diagnosis, complications & management of postpartum haemorrhage. (Page No: 472)******",
+            "Discuss the aetiology, clinical features and management of puerperal infection. (Page No: 500)******",
+            "Describe the causes, diagnosis and management of Breech presentation. (Page No: 426)*****",
+            "What is obstructed labour? Write causes and treatment. (Page No: 460)*****",
+            "What are the causes for III stage complications? Explain the management of atonic postpartum hemorrhage. (Page No: 473)****",
+            "Describe the aetiology diagnosis and management of ROP? (Page No: 408)**",
+            "What are the types of Breech presentation, discuss the etiology of Breech presentation and how will you diagnose Breech presentation. Discuss the management Breech presentation in a Primi at 36 wks of gestation. (Page No: 425)",
+            "How will you diagnose the ROP clinically? Discuss the mechanism of labour in ROP in a Anthropoid pelvis b Android pelvis. And its management in each condition. (Page No: 407)",
+            "Discuss aetiology, diagnosis and management of a case of transverse lie at term in early labour. (Page No: 419)",
+            "Discuss the causes, management of unengaged head in primi at term. Describe the Caldwell and Moloy classification of female pelvis. Discuss the causes and management of a case of primi with mobile head at term. (Page No: 51, 457)**",
+            "Define PPH, its types and discuss its causes and prevention. Discuss in detail about the management of Atonic PPH."
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Management of after coming head of breech presentation. (Page No: 431)*****",
+            "Complete perineal tear. (Page No: 494)*****",
+            "Face to pubis delivery. (Page No: 409)***",
+            "Trial labour. (Page No: 460)***",
+            "Shoulder dystocia. (Page No: 437)***",
+            "Cord Prolapse. (Page No: 440)**",
+            "Management and complications of 3rd stage of labour. (Page No: 472)**",
+            "Adherent placenta. (Page No: 483)**",
+            "Placenta accreta. (Page No: 483)**",
+            "Acute inversion of uterus | Inversion of uterus. (Page No: 485)**",
+            "Deep Transverse arrest. (Page No: 408)",
+            "Bandi's ring. (Page No: 421)",
+            "Shoulder presentation. (Page No: 422)",
+            "Impacted breech. (Page No: 433)",
+            "Hypotonic uterine inertia. (Page No: 450)",
+            "Incordinate uterine action. (Page No: 451)**",
+            "Difference between constriction ring and contraction ring dystocia. (Page No: 452)",
+            "Munroker Muller method. (Page No: 459)",
+            "Assessment of cephalopelvic disproportion. (Page No: 458)",
+            "Third stage complication. (Page No: 472)",
+            "Internal IIIac artery ligation. (Page No: 478)",
+            "Retained Placenta. (Page No: 482)",
+            "Manual removal of placenta. (Page No: 482)",
+            "Vulval hematoma. (Page No: 491)",
+            "Prevention of Rupture uterus. (Page No: 496)",
+            "Puerperal sepsis. (Page No: 500)",
+            "Puerperal pyrexia. (Page No: 500)",
+            "Lower Uterine Segment. (Page No: 012)",
+            "Obstructed labour. (Page No: 460)",
+            "Atonic Postpartum Haemorrhage. (Page No: 473)",
+            "AMTSL (Active management of the third stage of labour). (Page No: 474)"
+          ]
+        }
+      }
     }
   }
 };
