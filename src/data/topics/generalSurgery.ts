@@ -53,6 +53,45 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "shock-burns-trauma": {
+      name: "Shock, Burns and Trauma",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Classify shock and discuss the clinical features, investigations and management of hypovolemic shock. (Page No: 085, 087)****",
+            "Shock classification; Details about septic shock. (Page No: 086)",
+            "Haemorrhagic shock. (Page No: 093)",
+            "Classification of burns and its complications and management. (Page No: 122)",
+            "Calculate the burns body surface area involved; write about the management of this patient. (Page No: 122)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Hypokalemia. (Page No: 106)",
+            "Metabolic acidosis. (Page No: 109)***",
+            "Volume expanders. (Page No: 112)",
+            "Enteral Nutrition. (Page No: 113)",
+            "Total Parenteral Nutrition | TPN - Complications. (Page No: 116)****",
+            "Septic shock. (Page No: 086)",
+            "MODS. (Page No: 090)",
+            "Systemic Inflammatory Response Syndrome. (Page No: 090)**",
+            "CPR. (Page No: 091)",
+            "Reactionary haemorrhage. (Page No: 093)",
+            "Auto transfusion. (Page No: 099)",
+            "Rh incompatibility. (Page No: NA)",
+            "Transfusion reactions | Complications of blood transfusion. (Page No: 098)****",
+            "Burns-fluid therapy. (Page No: 127)",
+            "Electrical Burns. (Page No: 131)",
+            "Inhalation injury. (Page No: 132)",
+            "FAST. (Page No: 040)",
+            "Blast injuries. (Page No: 036)",
+            "Causes of acute kidney injuries in surgical ward. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
