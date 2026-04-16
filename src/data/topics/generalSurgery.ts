@@ -786,6 +786,50 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "ctev-bone-tumors": {
+      name: "CTEV and BONE TUMORS",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Classification of bone tumours. (Page No: 230)",
+            "Osteoclastoma. (Page No: 232)",
+            "Define Osteosarcoma, describe its etiology, pathology, pathogenesis , clinical features, investigations, complications and management. (Page No: 234)*******",
+            "Classification of bone tumour. Details about Ewing sarcoma. (Page No: 236)**",
+            "Classification of bone tumour. Describe about etiology, clinical features, investigations and management of Giant cell tumours. (Page No: 232)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "CTEV. (Page No: 206)*******",
+            "Osteosarcoma. (Page No: 234)*******",
+            "Osteoid osteoma. (Page No: 230)*****",
+            "Club foot. (Page No: NA)****",
+            "Osteoclastoma. (Page No: 232)****",
+            "Ewing's sarcoma. (Page No: 236)*****",
+            "Congenital dislocation of hip. (Page No: 214)**",
+            "Ortolani sign / Test. (Page No: 216)**",
+            "Acute poliomyelitis. (Page No: 221)**",
+            "Spina bifida. (Page No: 225)**",
+            "Metastatic bone disease. (Page No: 240)**",
+            "Osteochondroma. (Page No: 242)*****",
+            "Clinical features of congenital dislocation of the hip. (Page No: 215)",
+            "meningomyelocele. (Page No: 226)",
+            "Diagnosis of Giant cell tumour of proximal tibia. (Page No: 232)",
+            "Giant cell tumor. (Page No: 232)",
+            "codman's triangle. (Page No: 235)",
+            "Chondrosarcoma. (Page No: 241)",
+            "Bone cyst. (Page No: 243)",
+            "Fibrous dysplasia. (Page No: 243)",
+            "Aneurysmal Bone Cyst. (Page No: 243)",
+            "Galeazzi test. (Page No: 215)",
+            "Osteosarcoma - radiological feature.",
+            "Write short notes on Diphyseal Aclasia and Radiology. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
