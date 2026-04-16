@@ -82,6 +82,88 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "pregnancy-complications": {
+      name: "Pregnancy complications",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe an Eclamptic fit. Discuss the management of eclampsia. (Page No: 324)************",
+            "Define APH. Discuss etiology, diagnosis and management of abruptio placenta. Mention the complications. (Page No: 225, 233)**********",
+            "Discuss aetiology and types of placenta previa. How would you manage a 3rd gravida with 32 weeks of pregnancy with posterior placenta previa? (Page No: 234)********",
+            "Discuss the classification and causes of Anaemia Complicating Pregnancy. Describe in detail the preventions of Nutritional Anaemia during pregnancy, complications of anaemia complicating pregnancy and management during pregnancy and labour. What are the causes of Anaemia? How will you manage a term pregnant lady with 6gms% Hb? Causes of anemia, preventive measures & treatment of anemia in pregnancy Primi, 26 weeks with Hb 7.0 g%, Investigation, Management in pregnancy & Labour. (Page No: 295, 300, 302, 304)************",
+            "Define vesicular mole. Discuss the signs, symptoms, diagnosis of vesicular mole. What are the complications of vesicular mole? How do you follow up a case of vesicular mole after evacuation? (Page No: 214)*****",
+            "Describe the aetiology, clinical features, and management of a case of hyperemesis gravidarum. (Page No: 183)****",
+            "Define antepartum hemorrhage. What are its causes? How do you diagnose and manage a case of placenta previa. (Page No: 233)****",
+            "Discuss the etiology, diagnosis, complications and management of twin pregnancy. (Page No: 272)****",
+            "Discuss the differential diagnosis and management of acute Ectopic gestation. (Page No: 203)***",
+            "What are the causes of second trimester abortions? How do you diagnose and manage a case of cervical incompetence. (Page No: 193)**",
+            "Define preterm labour. Explain the etiology and management of preterm labour. (Page No: 242)**",
+            "Classify hypertension in pregnancy. Etiopathology, clinical features, complications of preeclampsia and management of eclampsia. (Page No: 311)",
+            "Discuss classification of gestational hypertension (GHT). Write the complication of GHT. 20 Year old primi with 36 weeks gestational age presenting with generalized tonic clonic convulsion in casualty. How will you manage? (Page No: 324)",
+            "Primi, 36 weeks with BP: 140/100 with bleeding per vagina. Discuss the diagnosis, investigations, management and complications. (Page No: 228)",
+            "Primi gravida, 20 years, has come to hospital with bleeding PV at 8 months of amenorrhoea. What are the differential diagnosis? Discuss the management of abruptio placenta and its complications. (Page No: 226)",
+            "A 22 year old second gravida presents with history of 8 months of amenorrhoea and bleeding per vaginum. How will you proceed? (Page No: 225)",
+            "Define intrauterine growth restriction. Describe the etiology, diagnosis and management of intrauterine growth restriction. (Page No: 254)",
+            "A 30 year old G2P1LO at 20 weeks is reffered as Rh negative pregnancy with no details of previous pregnancy with no details of previous pregnancy Anti D administration. How will you manage the patient? What are the complications that can occur due to Rh isoimmunisation? How will you prevent Rh isoimmunisation?"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Missed Abortion. (Page No: 192)***********",
+            "Cervical incompetence. (Page No: 193)*******",
+            "Couvelaire uterus. (Page No: 229)********",
+            "Recurrent abortion. (Page No: 194)*****",
+            "Follow up of Vesicular Mole | Follow up after Molar Pregnancy Evacuation. (Page No: 219)*****",
+            "Diagnosis and management of preterm labour. (Page No: 246)*****",
+            "Hyperemesis gravidarum. (Page No: 183)*****",
+            "Incomplete abortion. (Page No: 191)****",
+            "Management of antepartum eclampsia. (Page No: 325)***",
+            "Enumerate the complications encountered during pregnancy and labour in multiple pregnancy. (Page No: 275)**",
+            "Inevitable abortion. (Page No: 191)**",
+            "Septic Abortion. (Page No: 196)**",
+            "Preterm labour. (Page No: 243)",
+            "Differential diagnosis of ruptured ectopic pregnancy. (Page No: 204)**",
+            "Parenteral treatment of anemia & its indications. (Page No: 301)***",
+            "HELLP Syndrome. (Page No: 322)***",
+            "Foeto Maternal Complications of Multiple Pregnancies. (Page No: 275)**",
+            "Rh-Isoimmunisation. (Page No: 288)**",
+            "Causes of first trimester abortion. (Page No: 188)",
+            "What is BOH? Enumerate the causes of BOH. (Page No: 194)",
+            "Threatened abortion. (Page No: 190)",
+            "Habitual abortion. (Page No: 194)",
+            "Cerclage stitch. (Page No: 194)",
+            "Medical management of unruptured ectopic pregnancy. (Page No: 206)**",
+            "Medical management of ectopic gestation. (Page No: 206)",
+            "Management of Molar Pregnancy. (Page No: 218)",
+            "Anaemia in pregnancy - prevention. (Page No: 305)",
+            "Antihypertensive drugs in pregnancy. (Page No: 323)",
+            "Antepartum Eclampsia. (Page No: 324)",
+            "Eclampsia. (Page No: 324)***",
+            "Imminent Eclampsia. (Page No: 324)",
+            "MgSo4 therapy in obstetrics. (Page No: 326)**",
+            "Pritchard's Regimen. (Page No: 326)",
+            "Difference between APH due to abruption and placenta previa. (Page No: 235)",
+            "Signs & symptoms of Abruptio placenta. (Page No: 226)**",
+            "Prevention of preterm labour. (Page No: 245)",
+            "Atosiban. (Page No: 248)",
+            "Intrauterine growth restriction. (Page No: 254)",
+            "Post maturity | Complications of post maturity | Post Maturity Syndrome. (Page No: 268)***",
+            "Meconium Aspiration syndrome. (Page No: 266)**",
+            "Conjoined twins. (Page No: 277)",
+            "Vanishing twin. (Page No: 276)",
+            "Diagnosis of multiple pregnancy. (Page No: 273)",
+            "Delivery of second twin - in transverse lie with cord prolapse. (Page No: 279)",
+            "Erythroblastosis foetalis | Hydrops foetalis. (Page No: 285)**",
+            "Complications in a grand multi during pregnancy and labour. (Page No: 473)",
+            "Megaloblastic anaemia in Pregnancy. (Page No: 298)",
+            "Intra uterine death. (Page No: 587)",
+            "Anemia Mukt bharat"
+          ]
+        }
+      }
     }
   }
 };
