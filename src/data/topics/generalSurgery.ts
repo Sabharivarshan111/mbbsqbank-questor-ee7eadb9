@@ -571,6 +571,37 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "neuro-cardiothoracic-surgery": {
+      name: "Neuro and cardiothoracic surgery",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Flail Chest. (Page No: 1174)*******",
+            "GLASGOW Coma scale. (Page No: 1153)****",
+            "Acute extradural hematoma. (Page No: 1155)****",
+            "Pneumothorax. (Page No: 1174)***",
+            "Acute subdural haematoma. (Page No: 1155)**",
+            "Lucid interval. (Page No: 1155)",
+            "Hutchinson's pupil. (Page No: 1156)",
+            "Subdural hematoma. (Page No: 1156)**",
+            "Hydrocephalus. (Page No: 1159)",
+            "Berry's aneurysm. (Page No: 1161)",
+            "Astrocytoma. (Page No: 1161)",
+            "Meningocele. (Page No: 1165)",
+            "Open chest injuries. (Page No: 1171)",
+            "Tension pneumothorax. (Page No: 1175)**",
+            "Empyema thoracis. (Page No: 1177)",
+            "Pancoast tumour. (Page No: 1185)",
+            "Cardiac tamponade. (Page No: 1187)",
+            "Diaphragmatic hernia. (Page No: 1187)",
+            "PDA. (Page No: 1193)",
+            "Coarctation of Aorta. (Page No: 1193)",
+            "Ventriculoperitoneal Shunt. (Page No: 1160)"
+          ]
+        }
+      }
     }
   }
 };
