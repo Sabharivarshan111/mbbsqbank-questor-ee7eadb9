@@ -51,6 +51,37 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "physiology-labor": {
+      name: "Physiology of labor",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Define normal labour. Write the mechanism and management of normal labour. (Page No: 128)**",
+            "Define labour. What are the stages of labour? Write in detail about etiology, management, complications and prevention of obstructed labour. (Page No: 119)",
+            "Puerperium-Define, complications and management. (Page No: 175)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Episiotomy - Types, Indication & complications. (Page No: 145)********",
+            "Partography. (Page No: 138)******",
+            "Physiology of lactation. (Page No: 177)***",
+            "Differentiate true from false labour pains. (Page No: 120)",
+            "First stage of labour. (Page No: 120)",
+            "Normal Second stage of labour. (Page No: 123)",
+            "Alert line, action line & their importance. (Page No: 139)",
+            "What is partogram? How do you monitor a patient in labour? (Page No: 138)",
+            "Foetal distress in labour. (Page No: 159)",
+            "Admission test. (Page No: 160)",
+            "Monitoring uterine activity during labour. (Page No: 161)",
+            "Lochia. (Page No: 172)",
+            "Mention the two hormones involved in milk secretion and milk ejection. Enumerate the advantages of breast feeding. (Page No: 177)"
+          ]
+        }
+      }
     }
   }
 };
