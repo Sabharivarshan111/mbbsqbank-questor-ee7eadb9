@@ -366,6 +366,36 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "abdominal-wall-hernia": {
+      name: "Abdominal wall and hernia",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "DD lump in the Right iliac fossa; etiology, clinical features, diagnosis and management of Carcinoma Caecum. (Page No: 787, 959)",
+            "Discuss the etiopathogenesis, clinical features, management of obstructed inguinal hernia. (Page No: 824)",
+            "Inguinal hernia complications; Treatment of strangulated hernia. (Page No: 824)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Femoral hernia. (Page No: 827)********",
+            "Incisional hernia. (Page No: 830)**",
+            "Retroperitoneal tumours | Retroperitoneal sarcoma. (Page No: 775)**",
+            "Psoas abscess. (Page No: 778)",
+            "Obstructed femoral hernia. (Page No: 827)",
+            "Pantaloon hernia. (Page No: 827)",
+            "Umbilical hernia. (Page No: 833)",
+            "Epigastric hernia | Fatty hernia of linea alba. (Page No: 835)**",
+            "Spigelian hernia. (Page No: 836)",
+            "Secondaries Liver. (Page No: 662)",
+            "Clinical symptoms of obstructed hernia. (Page No: 825)",
+            "Total extraperitoneal hernia repair. (Page No: 822)"
+          ]
+        }
+      }
     }
   }
 };
