@@ -183,6 +183,40 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "faciomaxillary-salivary-glands": {
+      name: "Faciomaxillary and salivary glands",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Etiology, Pathology, clinical features and management of carcinoma tongue. (Page No: 428)***",
+            "Surgical anatomy of parotid gland. Pleomorphic adenoma and its etiology, clinical features, diagnosis and management. (Page No: 478)***",
+            "Carcinoma buccal mucosa. (Page No: 406)",
+            "Classify parotid tumours. How will you evaluate parotid swelling and what are the principles of managing different Malignant parotid tumors Classify parotid neoplasm. What are the clinical features suggestive of malignancy in a parotid tumor? Discuss the surgical management of parotid tumor. (Page No: 477)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Adamantinoma. (Page No: 396)***",
+            "Dental Cyst. (Page No: 397)**",
+            "Ranula. (Page No: 401)**",
+            "Mixed parotid tumour. (Page No: 478)**",
+            "Warthin's tumour. (Page No: 481)***",
+            "Epulis. (Page No: 395)",
+            "Dentigerous cyst. (Page No: 397)",
+            "Alveolar abscess. (Page No: 398)",
+            "Predisposing factors and premalignant conditions in oral cavity malignancy. (Page No: 406)",
+            "Tongue Tie. (Page No: 428)",
+            "Management of Ca tongue. (Page No: 430)",
+            "Submandibular salivary glands. (Page No: 471)",
+            "Salivary calculus. (Page No: 473)",
+            "Parotid abscess. (Page No: 475)",
+            "Pleomorphic adenoma. (Page No: 478)****"
+          ]
+        }
+      }
     }
   }
 };
