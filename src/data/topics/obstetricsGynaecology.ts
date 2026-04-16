@@ -33,6 +33,24 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "anatomy-physiology": {
+      name: "Anatomy and physiology",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Placenta succenturista. (Page No: 35)**",
+            "Pelvic Inlet. (Page No: 02)",
+            "Diagonal conjugate. (Page No: 02)",
+            "Compare the gynecoid pelvis with android pelvis. (Page No: 06)",
+            "Signs of ovulation. (Page No: 20)",
+            "Amnion. (Page No: 29)",
+            "Foetal circulation. (Page No: 26)",
+            "Lower Uterine Segment. (Page No: 12)"
+          ]
+        }
+      }
     }
   }
 };
