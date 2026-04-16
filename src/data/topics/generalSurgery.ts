@@ -122,6 +122,37 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "vein-lymphatics-nerves": {
+      name: "Vein, lymphatics and nerves",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the etiology, clinical features and management of varicose veins. (Page No: 252)",
+            "Unilateral swelling of lower limb causes, Test for varicose veins, Varicose ulcer management. (Page No: 252)",
+            "Lymphoedema causes, types, management of filarial lymphedema. (Page No: 275)",
+            "Classify lymphoma. Write in detail about clinical features, diagnosis and management of Hodgkin's lymphoma. (Page No: 281, 283)",
+            "Discuss the CEAP classification etiopathogenisis, clinical features, investigations and management of varicose vein. (Page No: 253)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Deep Vein Thrombosis. (Page No: 248)***",
+            "CEAP classification. (Page No: 253)",
+            "Complications of varicose veins. (Page No: 265)**",
+            "Varicose ulcers. (Page No: 265)***",
+            "Filarial Lymphedema. (Page No: 275)",
+            "Hodgkins disease | Hodgkins lymphoma. (Page No: 283)**",
+            "Peripheral nerve injury. (Page No: 292)",
+            "DVT Prophylaxis. (Page No: 251)",
+            "Clinical features of venous hypertension of leg. (Page No: 255)",
+            "Modified well's criteria. (Page No: 251)",
+            "Podoconiosis (Endemic elephantiasis). (Page No: 275)"
+          ]
+        }
+      }
     }
   }
 };
