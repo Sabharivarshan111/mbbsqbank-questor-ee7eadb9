@@ -647,6 +647,34 @@ export const generalSurgeryData = {
           ]
         }
       }
+    },
+    "operative-surgery-and-others": {
+      name: "Operative surgery and others",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Ultrasonography. (Page No: 1211)***",
+            "Brachytherapy. (Page No: 1201)**",
+            "MRI. (Page No: 1215)**",
+            "Universal Precaution. (Page No: NA)**",
+            "Suture material. (Page No: 1226)**",
+            "Day care surgeries. (Page No: 1238)**",
+            "Immunosuppressive therapy. (Page No: 1203)",
+            "Computerised tomography. (Page No: 1213)",
+            "Disinfection. (Page No: 1218)",
+            "Vasectomy. (Page No: 1229)",
+            "Tracheostomy. (Page No: 1230)",
+            "Lasers in surgery. (Page No: 1232)",
+            "Laparoscopy. (Page No: 1234)",
+            "Minimal access surgery. (Page No: 1236)",
+            "Radiofrequency ablation. (Page No: 1305)",
+            "Doppler ultrasound. (Page No: 257)",
+            "Diagnostic Laparoscopy. (Page No: 1234)",
+            "Confidentiality. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
