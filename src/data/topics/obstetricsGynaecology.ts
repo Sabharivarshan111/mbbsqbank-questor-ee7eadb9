@@ -567,6 +567,48 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "benign-condition-in-gynec": {
+      name: "Benign condition in gynec",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the supports of Uterus. Discuss the aetiology, differential diagnosis and management of Uterovaginal Prolapsed in a 45 years old Multipara. (Page No: 417)***",
+            "Classify prolapse, Clinical features, DD & management of nulliparous prolapse. (Page No: 419)**",
+            "Describe pelvic floor and discuss etiology of prolapse. How will you manage a lady of 55 years with third degree utero-vaginal prolapse? Mention the steps of surgery. (Page No: 417)***",
+            "What are the degree of genital prolapse. Treatment of procidentia in a 80 years old lady. (Page No: 417)",
+            "What are the causes of mass descending per vaginum in a 30 year old nulliparous woman? How do you manage third degree uterovaginal prolapse in such a patient? (Page No: 417)",
+            "Mention specific causes of Leukorrhoea. How do you confirm the diagnosis? Briefly mention treatment of any one of them. (Page No: 099)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Supports of uterus. (Page No: 416)*********",
+            "PCOS | PCOD. (Page No: 315)******",
+            "Bacterial vaginosis. (Page No: 216)*******",
+            "Nulliparous prolapse. (Page No: 429)*****",
+            "Bartholin abscess. (Page No: 211)***",
+            "Trichomonal Vaginitis. (Page No: 217)**",
+            "Procidentia. (Page No: 419)",
+            "Differential diagnosis of mass per vagina. (Page No: 426)",
+            "Etiology of prolapse. (Page No: 418)",
+            "Decubitus ulcer. (Page No: 423)",
+            "Urinary symptoms associated with genital prolapse. (Page No: 422)",
+            "Pessary treatment of prolapse. (Page No: 427)",
+            "Fothergill's operation. (Page No: 429)",
+            "Abdominal cervicopexy. (Page No: 430)",
+            "Vault prolapse. (Page No: 429)",
+            "Enterocele. (Page No: 419)",
+            "Cystic tumors of ovary - DD. (Page No: 189)",
+            "Functional cysts of ovary. (Page No: 190)",
+            "Leucorrhea - Investigations and management. (Page No: 099)",
+            "Gardnerella vaginosis. (Page No: 216)",
+            "Hirsuitism. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
