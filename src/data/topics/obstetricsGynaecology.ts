@@ -483,6 +483,90 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "common-condition": {
+      name: "Common condition",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "How do you investigate a case of female sterility, enumerate causes. (Page No: 369)****",
+            "Discuss the differential diagnosis and management of acute Ectopic gestation. (Page No: 240)***",
+            "Discuss the aetiology, clinical features and management of tubal pregnancy. (Page No: NA)***",
+            "Enumerate the causes of secondary infertility. How do you manage the case of secondary infertility? (Page No: 361)**",
+            "Define Infertility. Discuss the Aetiology of Female Infertility. Describe the Investigation and Management of Ovarian Factors leading to Infertility. (Page No: 361)**",
+            "Primary infertility. Causes and management of anovulatory infertility. (Page No: 361)**",
+            "Discuss the mechanism of action and complications IUCD. (Page No: NA)**",
+            "How will you evaluate the couple with infertility? (Page No: 376)",
+            "Enumerate the cases of male and female infertility. Discuss the tests for ovulation. Discuss the seminal analysis. (Page No: 361)",
+            "Investigations and management of primary infertility in 25 year old female. (Page No: 361)",
+            "What are the causes of chronic pelvic pain? Describe the clinical features and diagnosis of pelvic endometriosis. (Page No: 273)",
+            "A young newly married couple wants contraceptive advice. Describe briefly the various methods which can be advised to them evaluating the advantages and disadvantages. (Page No: NA)",
+            "Mention the various methods of contraception. Discuss the advantages and disadvantages of oral contraceptives. (Page No: NA)",
+            "What are the different types of Hormonal contraceptives. Discuss the advantages and disadvantages of injectable contraceptives. (Page No: 404)",
+            "Discuss the various etiological causes of female infertility. How would you manage a 28 year old women present with irregular menstrual cycle with primary infertility. (Page No: 361)",
+            "A 16 year old woman, married since 3 years attended gynecology OPD with co inability to conceive. Discuss the investigations for ovulation and management of anovulation. (Page No: 362)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "IUCD. (Page No: NA)***********",
+            "Semen Analysis. (Page No: 375)******",
+            "Male condom. (Page No: NA)",
+            "Tubal patency test. (Page No: 371)*******",
+            "Tests for ovulation. (Page No: 369)*****",
+            "Minilap Technique. (Page No: NA)*****",
+            "Menstrual regulation. (Page No: NA)****",
+            "Aetiology and investigations in male infertility. (Page No: 365)***",
+            "Induction of Ovulation. (Page No: 377)***",
+            "Emergency contraception. (Page No: 410)***",
+            "Post coital test. (Page No: 375)**",
+            "Management of unruptured ectopic pregnancy. (Page No: NA)**",
+            "Barrier contraceptives. (Page No: NA)**",
+            "Complications of IUCDS. (Page No: NA)**",
+            "Oral contraception. (Page No: 404)**",
+            "Emergency contraception. (Page No: 410)***",
+            "What are the methods for first trimester MTP? Write about menstrual regulation. (Page No: NA)**",
+            "Secondary infertility - Causes & Investigations. (Page No: 361)",
+            "Huhner's post coital test. (Page No: 375)",
+            "Tubal function tests. (Page No: 371)",
+            "Basal body temperature. (Page No: 370)",
+            "Hyper prolactinaemia. (Page No: 313)",
+            "Ovarian pregnancy. (Page No: NA)",
+            "Decidual cast. (Page No: NA)",
+            "Methotrexate. (Page No: NA)",
+            "Medical treatment of ectopic gestation. (Page No: NA)**",
+            "Cervical Pregnancy. (Page No: NA)",
+            "Multiload Cu-T. (Page No: NA)",
+            "Copper T 380. (Page No: NA)",
+            "Complications of copper T insertion. (Page No: NA)",
+            "Oral contraceptive pills. (Page No: 404)",
+            "Low dose pills for contraception. (Page No: 404)",
+            "Mirena. (Page No: NA)**",
+            "Non contraceptive benefits of hormonal contraceptives. (Page No: 405)",
+            "Contraindications for combined oral pill. (Page No: 407)",
+            "Subdermal implant - nor plant. (Page No: 409)",
+            "Postcoital Contraception. (Page No: 410)",
+            "Male Sterilization. (Page No: NA)**",
+            "Vasectomy. (Page No: NA)",
+            "Female sterilization. (Page No: NA)",
+            "Laparoscopic sterilization. (Page No: NA)",
+            "Complications of tubal ligation. (Page No: NA)",
+            "Methods available for MTP in less than 6 weeks of pregnancy. (Page No: NA)",
+            "Complications of 1st trimester medical termination of pregnancy. (Page No: NA)",
+            "Causes and Management of Male infertility. (Page No: 382)",
+            "Nonhormonal Benefits of Oral Pills. (Page No: 405)",
+            "Heterotopic pregnancy. (Page No: NA)",
+            "Lactation amenorhea method. (Page No: NA)",
+            "Intra uterine insemination. (Page No: 384)",
+            "Discuss the tubal factors for infertility, its diagnosis and management. (Page No: 381)",
+            "Enumerate the barrier contraceptives. How will you counsel adolescent girl with 1/3 unprotected coitus? (Page No: 279)",
+            "Puerperal sterilization. (Page No: NA)",
+            "Centerhroman. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
