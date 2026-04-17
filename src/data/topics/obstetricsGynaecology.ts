@@ -321,6 +321,55 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "miscellaneous": {
+      name: "Miscellaneous",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the causes of rupture uterus? How will you diagnose and treat such case. (Page No: 569)******",
+            "Describe the causes, diagnosis and management of Intra uterine fetal death. (Page No: 587)*****"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "IUCD. (Page No: 621)*********",
+            "Perinatal Mortality. (Page No: 580)****",
+            "Ultrasound in 1st trimester. (Page No: 095)**************",
+            "Minilap Technique. (Page No: 636)****",
+            "Trichomonas Vaginitis. (Page No: NA)****",
+            "Use of ultrasonography in obstetrics | USG in obstetrics. (Page No: 095)****",
+            "Polyhydramnios. (Page No: 101)***",
+            "MTP in 1st trimester. (Page No: 609)***",
+            "Coagulation failure in obstetrics. (Page No: 586)**",
+            "Hormonal contraception. (Page No: 626)**",
+            "MTP ACT. (Page No: 607)**",
+            "Safe motherhood initiative. (Page No: 650)**",
+            "Deep vein thrombosis. (Page No: 589)",
+            "Ultrasonographic findings in intrauterine death of fetus. (Page No: NA)",
+            "Doppler in Obstetrics. (Page No: 103)",
+            "Anencephaly. (Page No: 597)",
+            "Oligohydramnios. (Page No: 101)",
+            "Hydramnios. (Page No: 101)",
+            "Surgical method of contraception. (Page No: 636)",
+            "Puerperal sterilisation. (Page No: 636)",
+            "Interval sterilisation. (Page No: 637)",
+            "Laparoscopy. (Page No: 637)",
+            "Vasectomy. (Page No: 638)",
+            "Complications of medical termination of pregnancy. (Page No: 613)",
+            "Mention the methods of MTP in the second trimester of pregnancy. (Page No: 613)",
+            "RCH interventions. (Page No: 650)",
+            "Epidural anaesthesia. (Page No: 104)",
+            "Define Maternal Mortality Ratio. Give the causes and prevention of Maternal Mortality. (Page No: 576)",
+            "FDA classification of drugs and write about two teratogenic drugs. (Page No: 088)",
+            "Chorionic villus sampling. (Page No: 605)",
+            "DIC in obstetrics. (Page No: 586)",
+            "Dr. Muthulakshmi Reddy Scheme. (Page No: 651)**"
+          ]
+        }
+      }
     }
   }
 };
