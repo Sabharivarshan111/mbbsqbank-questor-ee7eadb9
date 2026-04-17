@@ -609,6 +609,39 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "infections-in-gynaecology": {
+      name: "Infections in gynaecology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss aetiopathogenesis of Pelvic inflammatory diseases. How do you manage chronic pelvic tuberculosis. (Page No: 243)**",
+            "Describe the aetiology and diagnosis of a case of genital tuberculosis. Mention the management. (Page No: 243)**",
+            "Describe etiology, clinical features and management of acute salpingitis. (Page No: 229)",
+            "How do you diagnose endometrial tuberculosis? Discuss the treatment of endometrial tuberculosis in a 28 years old patient. (Page No: 248)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Candidial vaginitis. (Page No: 218)****",
+            "Definition, stages and management of pelvic inflammatory disease. (Page No: 234)***",
+            "PID. (Page No: 229)*",
+            "Hydrosalpinx. (Page No: 239)***",
+            "Asherman's syndrome. (Page No: 321)**",
+            "Aetiology of pelvic inflammatory disease. (Page No: 229)",
+            "Acute PID. (Page No: 229)",
+            "Differential diagnosis of pelvic inflammatory disease. (Page No: 233)",
+            "Chronic pelvic inflammatory disease causes and management. (Page No: 231)",
+            "Pelvic abscess. (Page No: NA)",
+            "Candidiasis. (Page No: 218)",
+            "Monitial Vaginitis. (Page No: 218)",
+            "Treatment of chronic cervicitis. (Page No: 221)",
+            "Genital tract TB. (Page No: 243)"
+          ]
+        }
+      }
     }
   }
 };
