@@ -433,6 +433,56 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "disorders-of-menstruation": {
+      name: "Disorders of menstruation",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the signs, symptoms and treatment of endometriosis. Define endometriosis. Write diagnosis and management of a case of endometriosis in a 35 year old lady with one child. Define endometriosis, what are the common sites of endometriosis? Write about clinical features of endometriosis. Causes of infertility in endometriosis. Role of minimal invasive surgery in endometriosis. (Page No: 252)********",
+            "Discuss the differential diagnosis of menorrhagia in a 35 year old woman. Describe hormonal treatment in dysfunctional uterine bleeding. (Page No: 116)****",
+            "Mention the types of fibroid. Discuss the various signs and symptoms of a fibroid uterus. How will you manage a 30 yr old infertile lady with fibroid uterus? Types of fibroids. Clinical features, diagnosis and management of fibroid in 25 years old women with infertility. (Page No: 169)*******",
+            "Discuss differential diagnosis and investigations of a midline mass of 20 weeks size in a 40 year old woman. How do you manage a case of fibroid uterus of 20 weeks size in a multiparous woman? (Page No: 169)**",
+            "DUB - Classification, clinical features, prognosis, differential diagnosis & treatment. (Page No: 116)",
+            "Define abnormal uterine bleeding. Discuss the latest classification, evaluation, diagnosis and conservative management of the same in reproductive age group. (Page No: 116)**",
+            "Explain menstrual cycle. Discuss management of metropathia haemorrhagica in a 40 years lady. (Page No: 121)",
+            "Incidence, clinical features, diagnosis and management of fibroid uterus. (Page No: 169)",
+            "Define secondary amenorrhoea. Discuss the various causes and its management."
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Adenomyosis. (Page No: 163)********",
+            "Chocolate cyst. (Page No: 255)********",
+            "Red degeneration of fibroid. (Page No: 174)******",
+            "Metropathia hemorrhagica. (Page No: 121)*****",
+            "Myomectomy. (Page No: 182)*******",
+            "Complications of Fibroid Uterus. (Page No: 174)*****",
+            "Dysmenorrhea. (Page No: 138)****",
+            "Management of puberty menorrhagia (non hormonal). (Page No: 129)****",
+            "Cystoglandular hyperplasia. (Page No: 122)**",
+            "Submucous fibroid. (Page No: 172)**",
+            "Broad ligament fibroid. (Page No: 172)**",
+            "Red Degeneration. (Page No: 174)**",
+            "Spasmodic dysmenorrhea. (Page No: 138)",
+            "Congestive dysmenorrhea. (Page No: 138)",
+            "Premenstrual syndrome. (Page No: 142)**",
+            "What is breakthrough bleeding? How do you manage? (ADR of hormonal contraceptives). (Page No: 406)",
+            "Metrorrhagia. (Page No: 118)",
+            "Delayed menarche. (Page No: 299)",
+            "Fibroid polyp. (Page No: 169)",
+            "Differential diagnosis of fibroid polyp. (Page No: 169)",
+            "Degeneration of fibroid uterus. (Page No: 173)",
+            "Complications of hysterectomy. (Page No: 637)",
+            "Antiestrogens. (Page No: 396)",
+            "PALM COEIN classification. (Page No: 119)**",
+            "SERM. (Page No: 395)",
+            "Causes of primary amenorrhoea. (Page No: 299)"
+          ]
+        }
+      }
     }
   }
 };
