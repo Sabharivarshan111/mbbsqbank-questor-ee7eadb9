@@ -385,6 +385,54 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "anat-physio-development": {
+      name: "Anat, physio and development",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the causes of Post Menopausal Bleeding? How you investigate the case. Mention the treatment of one cause. (Page No: 097)*******",
+            "Define normal menstrual cycle and discuss phases of normal menstrual cycle. (Page No: 053)",
+            "Define menopause. List causes of postmenopausal bleeding. How will you investigate and manage a 50 year old woman with postmenopausal bleeding and cervical growth? (Page No: 097, 343)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Cryptomenorrhea. (Page No: 301)************",
+            "Turner syndrome. (Page No: 303)********",
+            "Post Menopausal bleeding, etiology, investigations and management. (Page No: 097)*****",
+            "Bartholin's cyst. (Page No: 151)****",
+            "Estrogen Replacement therapy: Advantages, indications & contraindications. (Page No: 353)***",
+            "Lymphatic drainage of the cervix. (Page No: 019)**",
+            "Imperforate Hymen. (Page No: 033)**",
+            "Galactorrhoea. (Page No: 313)**",
+            "Erosion Cervix. (Page No: 157)**",
+            "Anatomy of fallopian tube. (Page No: 010)",
+            "Pelvic lymphatic drainage. (Page No: 019)",
+            "Pubic diaphragm. (Page No: 013)",
+            "Levator ani. (Page No: 013)",
+            "Graafian follicle. (Page No: 046)",
+            "Ovulation. (Page No: 047)",
+            "Luteal phase. (Page No: 048)",
+            "Secretory phase of endometrium. (Page No: 054)",
+            "Arias-Stella reaction. (Page No: NA)",
+            "Cervical Mucus. (Page No: 056)",
+            "Feedback mechanism. (Page No: 042)",
+            "Haematometra. (Page No: 035)",
+            "Hematocolpos. (Page No: 034)",
+            "Anorexia nervosa. (Page No: NA)",
+            "Menopausal symptoms. (Page No: 346)",
+            "Menopause - Symptoms and management. (Page No: 346)",
+            "Senile Vaginitis (Atrophic vaginitis). (Page No: 157)",
+            "Functional and therapeutic uses of oestrogens. (Page No: 394)",
+            "Estrogen replacement therapy. (Page No: 353)",
+            "Premature menopause. (Page No: 343)",
+            "Hirsutism. (Page No: 328)"
+          ]
+        }
+      }
     }
   }
 };
