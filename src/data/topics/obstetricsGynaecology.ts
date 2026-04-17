@@ -370,6 +370,21 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "approach-to-gynec-patients": {
+      name: "Approach to gynec patients",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Contribution of Sims to Gynaecology. (Page No: 071)**",
+            "Pap smear. (Page No: 492)*********",
+            "Early detection of cancer cervix. (Page No: 076)",
+            "Screening of carcinoma cervix. (Page No: 076)***",
+            "Colposcopy. (Page No: 503)**"
+          ]
+        }
+      }
     }
   }
 };
