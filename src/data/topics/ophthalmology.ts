@@ -260,6 +260,34 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "neuro-ophthalmology": {
+      name: "Neuro ophthalmology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Ocular manifestations of common neurological disorders? (Page No: 292)",
+            "Optic Neuritis. (Page No: 298)",
+            "Write an essay on optic atrophy & its management. (Page No: 306)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Papilloedema? (Page No: 304)****",
+            "What is Retrobulbar optic neuritis? (Page No: 299)***",
+            "What is Optic neuritis? (Page No: 298)**",
+            "What are Optic Atrophies? (Page No: 306)**",
+            "What is Papillitis? (Page No: 298)",
+            "What are Toxic optic neuropathies? (Page No: 300)",
+            "What are the Types of optic atrophy? (Page No: 306)",
+            "Describe the Fundus picture in papilloedema. (Page No: 305)",
+            "What is Colour Blindness? (Page No: 309)",
+            "What is Diplopia? (Page No: 325)"
+          ]
+        }
+      }
     }
   }
 };
