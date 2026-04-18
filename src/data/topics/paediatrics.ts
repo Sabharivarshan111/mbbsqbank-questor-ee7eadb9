@@ -47,6 +47,49 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "electrolytes-and-nutrition": {
+      name: "Electrolytes and nutrition",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Classify Malnutrition, Describe the clinical features, Management and follow up of Malnutrition. (Page No: 087)",
+            "Nutritional Rickets. (Page No: 104)**",
+            "Enumerate the clinical features of Kwashiorkor. Outline the management of a one year old child with severe malnutrition. (Page No: 087)",
+            "Classify PEM, Outline the clinical features, investigations and management of a four year old child weighing seven kilo grams with Marasmus. (Page No: 085)",
+            "Define and describe the etio-pathogenesis, WHO classification, clinical features, complication and management of Severe Acute Malnutrition (SAM). (Page No: 085)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Marasmus. (Page No: 087)***",
+            "Differences between Kwashiorkor and marasmus. (Page No: 082)**",
+            "Vitamin A prophylaxis. (Page No: 102)**",
+            "Nutritional rickets. (Page No: 104)**",
+            "Acidosis. (Page No: 071)",
+            "Hypokalemia in children and its management. (Page No: 063)",
+            "Hypocalcemia - Clinical features and management in neonates and children. (Page No: 066)",
+            "Grading of Marasmus. (Page No: 087)",
+            "Age independent indices to diagnose under nutrition. (Page No: 096)",
+            "Integrated child development services programme. (Page No: 097)",
+            "Signs, Symptoms and management of Vit.A deficiency in children. (Page No: 101)",
+            "Treatment schedule of Xerophthalmia. (Page No: 101)",
+            "Xerosis. (Page No: 101)",
+            "Clinical features of nutritional rickets. (Page No: 104)",
+            "Non nutritional rickets. (Page No: 107)",
+            "X-ray findings of Active Rickets. (Page No: 105)",
+            "Pseudotumor Cerebri. (Page No: 34)**",
+            "Zinc deficiency in children. (Page No: 115)**",
+            "Clinical features of zinc deficiency. (Page No: 115)",
+            "What is Severe Acute Malnutrition SAM? How will you manage the acute complications in a SAM child on the day 1 of admission? (Page No: 089)",
+            "Vitamin D resistant rickets. (Page No: 107)",
+            "Vitamin A. (Page No: 100)",
+            "Sever Acute Malnutrition SAM. (Page No: 089)"
+          ]
+        }
+      }
     }
   }
 };
