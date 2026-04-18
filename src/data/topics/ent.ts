@@ -302,6 +302,34 @@ export const entData = {
           ]
         }
       }
+    },
+    "esophagus": {
+      name: "Esophagus",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the clinical features, diagnosis and management of cancer esophagus. (Page No: 402)",
+            "Discuss the etiology, clinical features and management of stricture esophagus. (Page No: 400)",
+            "Discuss how you investigate and manage an adult patient with difficulty in swallowing. (Page No: 404)",
+            "A 65 year old male patient presented with difficulty in swallowing (Dysphagia). Write the differential diagnosis and investigations required to diagnose. Discuss treatment options for carcinoma of lower 1/3rd of esophagus. (Page No: 404)**",
+            "Enumerate the causes of dysphagia. Describe about etiology, clinical features, investigations and treatment of Plummer Vinson syndrome. (Page No: 403)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Describe the Physiology of Swallowing. (Page No: 398)",
+            "What is Plummer Vinson syndrome? (Page No: 401)***",
+            "What is Patterson-Brown-Kelly syndrome? (Page No: 401)",
+            "What is Achalasia cardia? (Page No: 401)**",
+            "What is the Etiology of carcinoma of esophagus? (Page No: 402)",
+            "What is Dysphagia? (Page No: 404)",
+            "What are the Investigations for dysphagia? (Page No: 404)***",
+            "What is an Esophagoscopy? (Page No: 501)"
+          ]
+        }
+      }
     }
   }
 };
