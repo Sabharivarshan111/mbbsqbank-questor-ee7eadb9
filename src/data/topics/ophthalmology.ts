@@ -101,6 +101,21 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-sclera": {
+      name: "Diseases of sclera",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Nodular episcleritis. (Page No: 133)",
+            "Episcleritis. (Page No: 133)**",
+            "Scleritis. (Page No: 135)",
+            "Scleromalacia perforans. (Page No: 136)",
+            "Staphyloma. (Page No: 137)****"
+          ]
+        }
+      }
     }
   }
 };
