@@ -379,9 +379,10 @@ serve(async (req) => {
     logWithTimestamp(`[${requestId}] Request types: isTripleTap=${isTripleTap}, isMCQRequest=${explicitMCQRequest}, isImportantQuestionsRequest=${explicitImportantQRequest}, isNeedingClarification=${isNeedingClarification}`);
     
     const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!apiKey) {
-      logWithTimestamp(`[${requestId}] GEMINI_API_KEY not set in environment variables`);
+    if (!apiKey && !LOVABLE_API_KEY) {
+      logWithTimestamp(`[${requestId}] No AI API keys set in environment variables`);
       return new Response(
         JSON.stringify({ error: "API key configuration error" }),
         {
@@ -391,10 +392,12 @@ serve(async (req) => {
       );
     }
 
-    // Create a client instance
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // Use Gemini 2.0 Flash - the correct model name
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // Create a client instance for direct Gemini fallback (only if key available)
+    const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+    // Direct Gemini API fallback model (used only if Lovable Gateway fails)
+    const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) : null;
+    // Primary model via Lovable AI Gateway - cheapest/highest free quota
+    const LOVABLE_MODEL = "google/gemini-2.5-flash-lite";
 
     // Extract the actual question content without any prefix
     const actualQuestion = isTripleTap ? prompt.replace(/Triple-tapped:|triple-tapped:/i, "").trim() : prompt;
@@ -533,92 +536,94 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       let text = "";
       let usedFallback = false;
 
-      // Try Gemini first with retry
-      for (let attempt = 0; attempt < 2; attempt++) {
+      // PRIMARY: Try Lovable AI Gateway with gemini-2.5-flash-lite (highest free quota)
+      if (LOVABLE_API_KEY) {
         try {
-          const modelPromise = model.generateContent({
-            contents: messages,
-            generationConfig
-          });
-          
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
-          });
-          
-          const result = await Promise.race([modelPromise, timeoutPromise]) as any;
-          text = result.response.text();
-          break; // Success
-        } catch (geminiErr) {
-          const errMsg = geminiErr.message || "";
-          logWithTimestamp(`[${requestId}] Gemini attempt ${attempt + 1} failed: ${errMsg}`);
-          
-          if (errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("Service Unavailable")) {
-            if (attempt === 0) {
-              logWithTimestamp(`[${requestId}] Retrying Gemini after 2s...`);
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
+          const openaiMessages: { role: string; content: string }[] = [
+            { role: "system", content: systemPrompt }
+          ];
+
+          if (needsConversationContext && conversationHistory.length > 0) {
+            const recentHistory = conversationHistory.slice(-10);
+            for (const msg of recentHistory) {
+              openaiMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
             }
-            // After retry, fall through to fallback
+          }
+
+          openaiMessages.push({ role: "user", content: actualQuestion });
+
+          const gatewayResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: LOVABLE_MODEL,
+              messages: openaiMessages,
+              temperature: generationConfig.temperature || 0.7,
+              max_tokens: generationConfig.maxOutputTokens || 2000,
+            }),
+          });
+
+          if (gatewayResponse.status === 429) {
+            logWithTimestamp(`[${requestId}] Lovable Gateway rate limit (429), trying fallback`);
+          } else if (gatewayResponse.status === 402) {
+            logWithTimestamp(`[${requestId}] Lovable Gateway credits exhausted (402), trying fallback`);
+          } else if (!gatewayResponse.ok) {
+            const errText = await gatewayResponse.text();
+            logWithTimestamp(`[${requestId}] Lovable Gateway error: ${gatewayResponse.status} ${errText}`);
           } else {
-            throw geminiErr; // Non-503 errors, don't retry
+            const gatewayData = await gatewayResponse.json();
+            text = gatewayData.choices?.[0]?.message?.content || "";
+            if (text) {
+              logWithTimestamp(`[${requestId}] Response generated via Lovable Gateway (${LOVABLE_MODEL})`);
+            }
           }
+        } catch (gatewayErr) {
+          logWithTimestamp(`[${requestId}] Lovable Gateway exception: ${gatewayErr.message}`);
         }
       }
 
-      // Fallback to Lovable AI Gateway if Gemini failed
-      if (!text) {
-        logWithTimestamp(`[${requestId}] Falling back to Lovable AI Gateway`);
+      // FALLBACK: Direct Gemini API if gateway failed and we have a key
+      if (!text && model) {
         usedFallback = true;
-        
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        if (!LOVABLE_API_KEY) {
-          throw new Error("Both Gemini and fallback AI are unavailable");
-        }
+        logWithTimestamp(`[${requestId}] Falling back to direct Gemini API`);
 
-        // Convert messages to OpenAI format
-        const openaiMessages = [
-          { role: "system", content: systemPrompt }
-        ];
-        
-        if (needsConversationContext && conversationHistory.length > 0) {
-          const recentHistory = conversationHistory.slice(-10);
-          for (const msg of recentHistory) {
-            openaiMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const modelPromise = model.generateContent({
+              contents: messages,
+              generationConfig
+            });
+
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
+            });
+
+            const result = await Promise.race([modelPromise, timeoutPromise]) as any;
+            text = result.response.text();
+            break; // Success
+          } catch (geminiErr) {
+            const errMsg = geminiErr.message || "";
+            logWithTimestamp(`[${requestId}] Gemini fallback attempt ${attempt + 1} failed: ${errMsg}`);
+
+            if (errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("Service Unavailable")) {
+              if (attempt === 0) {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+              }
+            } else if (attempt === 1) {
+              throw geminiErr;
+            }
           }
         }
-        
-        openaiMessages.push({ role: "user", content: actualQuestion });
-
-        const fallbackResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: openaiMessages,
-            temperature: generationConfig.temperature || 0.7,
-            max_tokens: generationConfig.maxOutputTokens || 2000,
-          }),
-        });
-
-        if (!fallbackResponse.ok) {
-          const errText = await fallbackResponse.text();
-          logWithTimestamp(`[${requestId}] Fallback error: ${fallbackResponse.status} ${errText}`);
-          throw new Error(`Fallback AI also failed: ${fallbackResponse.status}`);
-        }
-
-        const fallbackData = await fallbackResponse.json();
-        text = fallbackData.choices?.[0]?.message?.content || "";
-        
-        if (!text) {
-          throw new Error("Fallback returned empty response");
-        }
-        
-        logWithTimestamp(`[${requestId}] Fallback response generated successfully`);
       }
-      
+
+      if (!text) {
+        throw new Error("All AI providers are currently unavailable. Please try again in a moment.");
+      }
+
       // Extract and validate references
       const references = extractReferences(text);
       
