@@ -498,6 +498,32 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "iem-critical-care-and-miscellaneous": {
+      name: "IEM, Critical care, and Miscellaneous",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Kerosene Poisoning? (Page No: 753)****",
+            "What is the RCH Programme? (Page No: 003)****",
+            "What is the Baby Friendly Hospital Initiative? (Page No: NA)****",
+            "What is Scabies in children? (Page No: 741)***",
+            "What is a Scorpion Sting? (Page No: 759)**",
+            "What is the Treatment of Salicylate Intoxication? (Page No: 753)",
+            "What is Snake Envenomation? (Page No: 757)",
+            "What are the Steps in Treatment of OPC Poisoning? (Page No: 755)",
+            "What is Bone Marrow Aspiration? (Page No: 784)",
+            "What is ICDS? (Page No: 097)",
+            "What is the Adolescent Health Program in India? (Page No: 054)",
+            "What are the Five Basic Rights of a Child? (Page No: 787)",
+            "What are Cephalosporins? (Page No: 842)",
+            "What is the role of Phenobarbitone in Pediatric Practice? (Page No: 580)",
+            "What is the RBSK Program? (Page No: 004)",
+            "What is the Role of District Early Intervention Center in the management of a child with developmental delay? (Page No: 037)"
+          ]
+        }
+      }
     }
   }
 };
