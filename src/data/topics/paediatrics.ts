@@ -329,6 +329,39 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "ent-and-rs": {
+      name: "ENT And RS",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the common causes of Acute Bronchiolitis? How do you investigate and manage a child of 9 months with severe distress? (Page No: 406)",
+            "Discuss the etiology, clinical features and management of pneumonia in children. (Page No: 402)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Status Asthmaticus? (Page No: 409)**",
+            "What are the Complications of Otitis Media? (Page No: 382)",
+            "How is Bronchial Asthma classified in children? (Page No: 407)",
+            "What is the Management of Status Asthmaticus? (Page No: 409)",
+            "What is Recurrent Pneumonia? (Page No: 404)",
+            "What is Atypical Pneumonia in children? (Page No: 404)",
+            "What is Pneumonia? (Page No: 402)",
+            "What is Acute Bronchiolitis? (Page No: 406)",
+            "What is the Treatment of Acute Bronchiolitis? (Page No: 406)",
+            "What is the Acute Respiratory Tract Infection Control Programme? (Page No: 405)",
+            "What is the ARI Control Programme? (Page No: 405)",
+            "What are the Components of Kartagener's Syndrome? (Page No: 417)",
+            "What Inhalational Devices are used in the management of Asthma? (Page No: 412)",
+            "What is Staphylococcal Pneumonia? (Page No: 403)",
+            "What are the causes of pneumonia in children, its clinical features, and what investigations will you do? (Page No: 402)",
+            "What is Stridor and what are the common causes of stridor in children? (Page No: 497)"
+          ]
+        }
+      }
     }
   }
 };
