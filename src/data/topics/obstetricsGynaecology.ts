@@ -662,6 +662,62 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "gynecological-malignancies": {
+      name: "Gynecological malignancies",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the lymphatic drainage of cervix and etiology, clinical features and management of carcinoma cervix. (Page No: 514)********",
+            "Describe the staging of malignant ovarian tumors. Discuss its clinical features and management. (Page No: 565)***",
+            "What is CIN? Grade, diagnosis & treatment of CIN. (Page No: 486)**",
+            "Discuss the pathology/clinical features and management of Endometrial carcinoma. (Page No: 540)**",
+            "Staging, pathology, clinical features, investigations and management of ovarian cancer. (Page No: 568)**",
+            "Risk factors of Carcinoma cervix and management of Stage I carcinoma cervix. (Page No: 486)",
+            "Dysplasia, various types, screening techniques for Ca cervix. Management of LSIL and HSIL. (Page No: 486)",
+            "Describe the complications of ovarian tumours. How would you diagnose and manage a case of twisted ovarian cyst. (Page No: 557)",
+            "Classify ovarian tumors. Discuss diagnosis & management of germ cell tumors. (Page No: 557)**",
+            "Describe the clinical features, diagnosis and treatment of choriocarcinoma. (Page No: 597)",
+            "Discuss the causes and clinical features of invasive carcinoma cervix. Discuss management of stage-1B carcinoma cervix in a 45 yr old woman. (Page No: 514)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Dysgerminoma of ovary. (Page No: 582)*************",
+            "Dermoid cyst of ovary. (Page No: 192)********",
+            "Classification of CIN and its management. (Page No: 504)****",
+            "Staging and management of Carcinoma Cervix. (Page No: 519)***",
+            "Tumour markers in Ovarian Malignancy / Tumor Markers. (Page No: 569)***",
+            "Stages of Carcinoma Cervix. (Page No: 519)**",
+            "Granulosa cell tumour of ovary. (Page No: 585)**",
+            "Twisted ovarian cyst. (Page No: NA)**",
+            "Classification of gestational trophoblastic disease. (Page No: 590)**",
+            "Choriocarcinoma. (Page No: 597)**",
+            "Carcinoma in situ. (Page No: 486)",
+            "Laser in Gynecology. (Page No: 509)**",
+            "LLETZ. (Page No: 509)***",
+            "Indications of ionization of cervix. (Page No: 509)",
+            "Symptoms and signs of carcinoma cervix. (Page No: 522)",
+            "Radio Therapy for Carcinoma Cervix. (Page No: 530)",
+            "Brenner tumor. (Page No: 192)",
+            "Solid teratoma of ovary. (Page No: 192)",
+            "Arrhenoblastoma. (Page No: NA)",
+            "Complications of ovarian tumors. (Page No: 568)",
+            "Germ cell tumors of ovary. (Page No: 580)",
+            "Melg's syndrome. (Page No: 194)",
+            "Staging laparotomy. (Page No: NA)",
+            "Follow up of molar pregnancy Post evacuation. (Page No: 595)",
+            "Staging of Ovarian Carcinoma. (Page No: 565)",
+            "Carcinoma Cervix - screening protocol. (Page No: 514)",
+            "How will you counsel a 40 year old P2L2 for colposcopy and explain its importance on cancer prevention? (Page No: NA)",
+            "Krukenberg tumose of ovary. (Page No: NA)",
+            "Chemotherapy for choriocarcinoma. (Page No: NA)",
+            "Brachytherapy. (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
