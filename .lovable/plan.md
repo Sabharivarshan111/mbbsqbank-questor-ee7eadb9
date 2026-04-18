@@ -1,27 +1,34 @@
 
+The user wants the "No essays found" warning (currently shown for 1st/2nd/3rd year subtopics when essays are absent but short notes exist) to also apply to Final Year subtopics.
 
-## Plan: Add "Ageing, Onco & Others" subtopic to General Medicine
+Looking at `src/components/QuestionSection.tsx`:
+```ts
+const isNonFinalYear = yearKey && yearKey !== "final-year";
+...
+if (activeTab === "essay" && !hasEssays && hasShortNotes && isNonFinalYear) {
+  // show warning
+}
+```
 
-### What
-Add a new subtopic "Ageing, Onco & Others" under Final Year > General Medicine with a "Short Notes" section containing 10 questions (no Essay section for this subtopic).
+The warning is explicitly disabled for `final-year`. To enable it for Final Year too, I just need to remove the `isNonFinalYear` restriction so the warning shows for ALL years when:
+- on the Essay tab
+- no essays exist
+- short notes exist
 
-### How
-Edit `src/data/topics/generalMedicine.ts`:
-- Before the closing `}` of the `subtopics` object (line 914), add a new `"ageing-onco-and-others"` entry
-- Structure: `name` → `subtopics` → `short-notes` → `questions[]`
-- 10 short note questions with page references, matching existing format
+## Plan
 
-### Questions to add (Short Notes)
-1. Sheehan syndrome (Page 989)
-2. Delirium (Page 1359)
-3. Emergency complications of cancer (Page NA)
-4. Psychogeriatrics (Page NA)
-5. Causes of falls in the elderly (Page NA)
-6. Tumour marker (Page 1058)
-7. Superior vena cava obstruction (Page NA)
-8. Tumour lysis syndrome (Page 1072)
-9. Anti-Phospholipid Syndrome (Page 0719)
-10. HELLP syndrome (Page NA)
+**File to edit:** `src/components/QuestionSection.tsx`
 
-No existing code will be modified -- only appending a new subtopic block.
+**Change:** Remove the `isNonFinalYear` check so the "No essays found" message renders for Final Year subtopics (e.g., Ophthalmology > Diseases of vitreous, Ocular motility, etc.) just like it does for 1st/2nd/3rd year.
 
+Specifically:
+- Drop the `const isNonFinalYear = ...` line.
+- Update the condition to: `if (activeTab === "essay" && !hasEssays && hasShortNotes)`.
+
+All other features (essay/short-notes rendering, search, swipe tabs, theme styles) remain untouched.
+
+No other files need changes — `yearKey` is already passed through from the parent components, but the gating is purely inside `QuestionSection.tsx`.
+
+## Memory update
+
+I'll also update `mem://features/navigation` to reflect that the "No essays found" fallback now applies to ALL years, including Final Year.
