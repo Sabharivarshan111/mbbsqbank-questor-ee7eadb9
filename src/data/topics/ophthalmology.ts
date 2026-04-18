@@ -288,6 +288,20 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "ocular-motility": {
+      name: "Ocular motility",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Extraocular muscles. (Page No: 318)",
+            "Diplopia. (Page No: 325)",
+            "Esophoria. (Page No: 326)",
+            "How will you test the pupil? Why is it important? (Page No: NA)"
+          ]
+        }
+      }
     }
   }
 };
