@@ -433,6 +433,22 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "endocrine-and-metabolic-disorders": {
+      name: "Endocrine and metabolic disorders",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Cretinism? (Page No: 538)****",
+            "What is Congenital Hypothyroidism? (Page No: 538)***",
+            "What is Hypothyroidism? (Page No: 538)**",
+            "What is Cushing's Syndrome? (Page No: 543)",
+            "What is the Prevention of Childhood Obesity? (Page No: 551)",
+            "What is Childhood Obesity? (Page No: 547)"
+          ]
+        }
+      }
     }
   }
 };
