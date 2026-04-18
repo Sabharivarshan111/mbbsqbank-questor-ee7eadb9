@@ -330,6 +330,26 @@ export const entData = {
           ]
         }
       }
+    },
+    "miscellaneous": {
+      name: "Miscellaneous",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Acquired Immuno Defeciency Syndrome - AIDS in ENT - Discuss. (Page No: 436)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Lasers in ENT. (Page No: 414)***",
+            "Indirect laryngeoscopy. (Page No: 454)**",
+            "Thyroglossal cyst. (Page No: 461)***",
+            "Premalignant conditions in ENT. (Page No: NA)**"
+          ]
+        }
+      }
     }
   }
 };
