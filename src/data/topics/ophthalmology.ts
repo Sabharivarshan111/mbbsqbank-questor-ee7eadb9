@@ -60,6 +60,47 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-cornea": {
+      name: "Diseases of cornea",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Hypopyon corneal ulcer. (Page No: 097)",
+            "Bacterial corneal ulcer - etiology, clinical features, management. (Page No: 093)****",
+            "Herpes simplex keratitis - symptoms, signs, treatment. (Page No: 102)*******",
+            "Herpetic keratoconjuctivitis - etiology, clincial picture, treatment. (Page No: 102)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Describe the anatomy of the cornea. (Page No: 90)",
+            "Which organisms invade the normal epithelium? (Page No: NA)",
+            "What is a hypopyon corneal ulcer? (Page No: 97)",
+            "What is an ulcer serpens? (Page No: 97)",
+            "What are the prevention and management strategies for a perforated corneal ulcer? (Page No: 99)",
+            "What is the management of a fascicular ulcer? (Page No: 80)",
+            "What are the causes and management of a geographical ulcer? (Page No: 103)",
+            "What is keratomycosis? (Page No: 100)**",
+            "What is a fungal corneal ulcer? (Page No: 100)**",
+            "What are the clinical features of viral keratitis? (Page No: 102)**",
+            "What is herpes simplex keratitis? (Page No: 102)**",
+            "What is a dendritic ulcer? (Page No: 103)***",
+            "What is disciform keratitis? (Page No: 103)",
+            "What are the clinical features and management of herpes zoster ophthalmicus? (Page No: 104)",
+            "What is acanthamoeba keratitis? (Page No: 107)***",
+            "What is exposure keratitis? (Page No: 110)**",
+            "What is interstitial keratitis? (Page No: 114)**",
+            "What is keratoconus? (Page No: 123)*****",
+            "What is a corneal opacity? (Page No: 126)",
+            "What is corneal vascularization? (Page No: 128)",
+            "What are the indications for keratoplasty? (Page No: 129)",
+            "What is keratoplasty? (Page No: 129)**"
+          ]
+        }
+      }
     }
   }
 };
