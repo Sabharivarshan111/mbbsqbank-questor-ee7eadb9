@@ -302,6 +302,28 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-eyelids": {
+      name: "Diseases of eyelids",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is a Chalazion? (Page No: 349)****",
+            "What is Entropion? (Page No: 353)****",
+            "What is Ectropion? (Page No: 354)****",
+            "What is Lagophthalmos? (Page No: 359)****",
+            "What is Blepharitis? (Page No: 346)***",
+            "What is Symblepharon? (Page No: 358)**",
+            "What is Ptosis? (Page No: 360)**",
+            "What are Hordeolum interna and externa? (Page No: 349, 351)",
+            "Draw a cross section of the upper eyelid anatomy. (Page No: 344)",
+            "What are Malignant tumors of the eyelid? (Page No: 366)",
+            "What is Ulcerative Blepharitis? (Page No: 347)",
+            "What is Pseudoglioma? (Page No: 394)"
+          ]
+        }
+      }
     }
   }
 };
