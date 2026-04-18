@@ -211,6 +211,17 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-vitreous": {
+      name: "Diseases of vitreous",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Vitreous hemorrhage. (Page No: 243)**"
+          ]
+        }
+      }
     }
   }
 };
