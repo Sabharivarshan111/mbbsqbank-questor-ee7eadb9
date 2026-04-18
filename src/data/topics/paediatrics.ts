@@ -362,6 +362,41 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "cvs": {
+      name: "CVS",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is Acute Rheumatic Fever? (Page No: 457)****",
+            "Describe the etiology, pathophysiology, clinical features and management of congestive cardiac failure in children. (Page No: 423)**",
+            "Classify congenital heart diseases. Discuss the Hemodynamics, assessment of severity, its course and complications of ventricular septal defect. (Page No: 439)**",
+            "How would you treat a case of acute rheumatic fever with carditis? Discuss the prognosis of such a case. (Page No: 457)",
+            "Define Acute Rheumatic Fever. Mention Etiopathogenesis, clinical features and management of Rheumatic carditis. (Page No: 457)",
+            "What is Rheumatic Mitral Stenosis? (Page No: 463)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Fallot's Tetralogy? (Page No: 444)***",
+            "What is Rheumatic Fever? (Page No: 457)**",
+            "What is Infective Endocarditis Prophylaxis? (Page No: 468)**",
+            "What are Cyanotic Spells? (Page No: 443)**********",
+            "What is the Management of Congestive Cardiac Failure? (Page No: 424)",
+            "What is Acute Rheumatic Carditis? (Page No: NA)",
+            "What is Acute Rheumatic Fever? (Page No: 459)",
+            "What is Rheumatic Fever Prophylaxis? (Page No: 461)",
+            "What is Eisenmenger's Syndrome? (Page No: 452)",
+            "What is Jugular Venous Pulse? (Page No: NA)",
+            "What is Persistent Pulmonary Hypertension? (Page No: 477)",
+            "What is the Management of Cardiac Failure? (Page No: 424)",
+            "What is Cyanosis? What are the types and how will you differentiate? List the common congenital cyanotic heart diseases you know of. (Page No: 444)",
+            "What are the Modifications given in the revised Jones criteria of 2015? (Page No: 457)"
+          ]
+        }
+      }
     }
   }
 };
