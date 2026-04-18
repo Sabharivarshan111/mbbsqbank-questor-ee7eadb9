@@ -642,6 +642,26 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "urinary-and-intestinal-tract": {
+      name: "Urinary and intestinal tract",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the diagnosis, management and complications of accidental Haemorrhage. (Page No: 619)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Stress incontinence. (Page No: 443)***",
+            "Rectovaginal fistula. (Page No: 467)",
+            "Ureteric injuries. (Page No: 456)",
+            "Acute retention of urine in Gynaecology. (Page No: 451)"
+          ]
+        }
+      }
     }
   }
 };
