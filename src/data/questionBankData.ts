@@ -23,6 +23,8 @@ import { paediatricsData } from './topics/paediatrics';
 import { anatomyData } from './topics/anatomy';
 import { physiologyData } from './topics/physiology';
 import { biochemistryData } from './topics/biochemistry';
+import { entData } from './topics/ent';
+import { ophthalmologyData } from './topics/ophthalmology';
 
 
 // Create a structured hierarchy with all four years as main categories
@@ -56,7 +58,9 @@ export const QUESTION_BANK_DATA = {
       "general-medicine": generalMedicineData,
       "obstetrics-gynaecology": obstetricsGynaecologyData,
       "general-surgery": { ...generalSurgeryData, name: "General Surgery and Orthopaedics" },
-      "paediatrics": paediatricsData
+      "paediatrics": paediatricsData,
+      "ent": entData,
+      "ophthalmology": ophthalmologyData
     }
   }
 };
