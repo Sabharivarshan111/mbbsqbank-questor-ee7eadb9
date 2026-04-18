@@ -196,6 +196,66 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "infections-and-infestation": {
+      name: "Infections and infestation",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "List the common causes of pyrexia of unknown origin in children. Briefly indicate the investigations for a child with prolonged fever more than two weeks. Discuss the specific treatment for six year old Child with falciparum malaria. (Page No: 223)",
+            "Write in detail about epidemiology, Etiology, recent WHO classification, Clinical features and management of Dengue fever. (Page No: 241)",
+            "Mention the common exanthematous fevers that you came across in paediatric age group. Discuss clinical features, diagnosis, management and prevention of measles. (Page No: 224)",
+            "Classify dengue based on clinical Presentation. Discuss in detail about Etiology, Transmission, pathogenesis, Clinical features and management of dengue hemorrhagic fever. (Page No: 241)",
+            "How does primary tuberculosis differ from adult tuberculosis. (Page No: 255)",
+            "What is primary complex? Discuss natural course of primary complex. How will you investigate and manage a child with primary complex? (Page No: 254)**",
+            "Describe the clinical features, complications and management of Tetanus. (Page No: 269)",
+            "Cerebral Malaria. (Page No: 274)",
+            "A 6 years old child comes with fever of 10 days duration. Enumerate the possible causes. Discuss the clinical features, investigations, management and prevention of typhoid fever in children. (Page No: 266)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Complication of measles. (Page No: 231)*****",
+            "Pediatric HIV Infection. (Page No: 245)**",
+            "Mantoux Test. (Page No: 257)**",
+            "Ascariasis. (Page No: 286)**",
+            "Laboratory diagnosis and management of enteric fever. (Page No: 266)**",
+            "Difference between measles and German measles. (Page No: 230)",
+            "WHO grading of DHF. (Page No: 243)",
+            "Leptospirosis. (Page No: 268)",
+            "AIDS in Paediatrics. (Page No: 245)",
+            "Investigation of HIV in a child of 90 days. (Page No: 249)",
+            "Paediatric AIDS. (Page No: 245)",
+            "Impression of infant born to HIV we mother. (Page No: 251)",
+            "Prevention of Paediatric AIDS. (Page No: 251)",
+            "Primary complex. (Page No: 254)",
+            "Fate of Primary complex. (Page No: 254)",
+            "1 year old baby with +ve Mantoux. (Page No: 257)",
+            "Tuberculin skin test. (Page No: 257)",
+            "Difference between diphtheria and follicular tonsillitis. (Page No: 264)",
+            "Neonatal tetanus. (Page No: 269)",
+            "Cerebral malaria. (Page No: 274)",
+            "National Malaria eradication programme. (Page No: 279)",
+            "Common helminthic infection of childhood. (Page No: 286)",
+            "Black water fever. (Page No: 277)",
+            "Toxicity of antimalarial drugs. (Page No: 277)",
+            "Whooping cough. (Page No: 265)",
+            "Management of Malaria in Children. (Page No: 276)",
+            "Dengue shock syndrome. (Page No: 244)",
+            "Hepatitis B infection. (Page No: 238)",
+            "Exanthematous fever. (Page No: 224)",
+            "Clinical features and investigations in dengue fever. (Page No: 242)",
+            "Prevention of mother to child transmission in HIV. (Page No: 251)",
+            "Emerging viruses. (Page No: 254)",
+            "Diphtheria. (Page No: 264)",
+            "Investigations for malaria. How will you treat P.vivax malaria? (Page No: 275)",
+            "Management of a newborn born to hepatitis B positive mother. (Page No: 238)",
+            "Etiopathogenesis of Dengue fever and classification. (Page No: 241)"
+          ]
+        }
+      }
     }
   }
 };
