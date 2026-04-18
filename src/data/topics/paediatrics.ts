@@ -449,6 +449,55 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "cns": {
+      name: "CNS",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "A nine month old infant comes to the hospital with fever and altered sensorium. List out the causes. How will you investigate the case? Discuss the management of Acute Bacterial Meningitis. (Page No: 585)***",
+            "What is TB meningitis in children? (Page No: 586)**",
+            "Describe briefly CSF circulation. Discuss the etiology, clinical features and management of hydrocephalus in a new born baby. (Page No: 589)**",
+            "What are the common causes of convulsion in a one year old febrile infant? Outline the management. (Page No: 580)",
+            "Define seizure? What are the common causes of Neonatal seizures? How will you investigate and treat a Neonate of 10 days old with seizures? (Page No: 164)",
+            "Describe the etiology, investigation and management of a New born presenting with seizures. (Page No: 164)",
+            "What is Acute meningitis in infants? (Page No: 585)",
+            "Discuss the etiology, clinical features and differential diagnosis of the common causes of acute flaccid paralysis in children. Outline the management of one of the conditions. (Page No: 611)",
+            "An 8-month old infant is brought with history of weakness of right lower limb with fever of 5 days. Discuss the diagnosis, complications and management. (Page No: 597)",
+            "Define Cerebral Palsy. Discuss the etiopathogenesis, types, management and differential diagnosis of cerebral palsy. (Page No: 578)",
+            "Discuss the differential diagnosis of an infant with a large head. Outline the symptoms and signs of hydrocephalus in infancy and children. (Page No: 589)",
+            "Discuss the differential diagnosis for a child of 1 year age brought with history of fever, unconsciousness, convulsions to the hospital. How will you proceed with the management of the ill child? (Page No: 585)",
+            "A 5 year old child is admitted with history of fever for 2 days with altered sensorium and seizures several episodes without regaining consciousness for more than 30 minutes. On examination child had temp 102 F, with neck rigidity. Discuss the clinical conditions, diagnosis, investigations and treatment for the above mentioned scenario. (Page No: 580)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What are Febrile Seizures? (Page No: 580)*******",
+            "What is Status Epilepticus? (Page No: 579)****",
+            "What is Duchenne Muscular Dystrophy? (Page No: 614)***",
+            "What are the CSF findings in TB Meningitis? (Page No: 586)**",
+            "What is the Diagnosis of Tuberculous Meningitis? (Page No: 586)**",
+            "What is Reye's Syndrome? (Page No: NA)**",
+            "What is Hydrocephalus? (Page No: 589)**",
+            "What are the causes of convulsions in the newborn period? (Page No: 164)**",
+            "What is Acute Flaccid Paralysis Surveillance (AFP)? (Page No: 611)**",
+            "What are Infantile Spasms? (Page No: 582)",
+            "What is the Management of Febrile Fits? (Page No: 580)",
+            "What is the Difference between Febrile Convulsion and Convulsion due to Meningitis? (Page No: 580)",
+            "What is the Management of Pyogenic Meningitis in a 1 year old infant? (Page No: 585)",
+            "What is Pyogenic Meningitis? (Page No: 585)",
+            "What are the Common Metabolic Neuropathies? (Page No: 629)",
+            "What is Reverse Cold Chain? (Page No: 611)",
+            "What are Neurocutaneous Markers? (Page No: 576)",
+            "What is Gene Xpert? (Page No: 257)",
+            "What is Lumbar Puncture? (Page No: 573)",
+            "What is Microcephaly? (Page No: 574)",
+            "What are the CSF analysis findings in Tuberculous Meningitis and Pyogenic Meningitis? (Page No: 586)"
+          ]
+        }
+      }
     }
   }
 };
