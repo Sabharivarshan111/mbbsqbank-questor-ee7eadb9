@@ -222,6 +222,44 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-retina": {
+      name: "Diseases of retina",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the fundus picture in diabetic retinopathy. What are three complications of diabetic retinopathy? (Page No: 259)****",
+            "Define retinal detachment. Describe the etiology, types, clinical features, investigations and treatment of retinal detachment. (Page No: 279)****",
+            "What are the ocular manifestations of diabetes mellitus? Write a note on diabetic retinopathy. (Page No: 259)**",
+            "What are the causes of night blindness? Describe the fundus picture and treatment of retinitis pigmentosa. (Page No: 268)**",
+            "What is the classification and what are the clinical features of hypertensive retinopathy? (Page No: 255)",
+            "What is the differential diagnosis for Amaurotic cat's eye reflex? Describe the clinical features and management of retinoblastoma. (Page No: 284)",
+            "A 60 year old male has unilateral sudden loss of vision. What is the differential diagnosis? What investigations are required? (Page No: NA)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is central retinal artery occlusion? (Page No: 251)******",
+            "What is Diabetic retinopathy? (Page No: 259)*****",
+            "Describe the Fundus picture of hypertensive retinopathy. (Page No: 256)***",
+            "What is retinopathy of prematurity? (Page No: 264)***",
+            "What is retinitis pigmentosa? (Page No: 268)***",
+            "Describe retinoblastoma (with stages). (Page No: 285)***",
+            "What is Central retinal vein occlusion? (Page No: 253)**",
+            "Describe the Fundus picture in retinitis pigmentosa. (Page No: 268)**",
+            "Describe the fundus picture in Central retinal artery occlusion. (Page No: 252)",
+            "What are the fundus findings in Central retinal vein occlusion? (Page No: 253)",
+            "What is photocoagulation? (Page No: 443)",
+            "What is the classification and etiology of retinal detachment? (Page No: 279)",
+            "What are the causes of Leukocoria in children? (Page No: 176, 182, 242, 287, 285)",
+            "What is the differential diagnosis of leukocoria? (Page No: 287)",
+            "What is Amaurotic cat's eye reflex? (Page No: 285)",
+            "What are the Indications for enucleation? (Page No: 289)"
+          ]
+        }
+      }
     }
   }
 };
