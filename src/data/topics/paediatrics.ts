@@ -397,6 +397,42 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "nephrology": {
+      name: "Nephrology",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the clinical features, complications and management of nephrotic syndrome. (Page No: 500)****",
+            "A four year old child has been brought to the hospital with swollen face and limbs. Enumerate the causes. What investigations are to be done? Discuss the management of Nephrotic Syndrome. (Page No: 500)***",
+            "Describe the etiology, clinical manifestation and management of acute glomerulonephritis in children. (Page No: 496)",
+            "Mention differential diagnosis in a 4 years child with gross haematuria. Define and classify Acute Glomerulonephritis. Write clinical features and management of Acute Post streptococcal Glomerulonephritis. (Page No: 496)",
+            "A 10 years old male child is brought with history of hematuria. What are all the possible causes? Discuss the etiopathogenesis, clinical features, investigations and management of acute post-streptococcal glomerulonephritis. (Page No: 493)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Nephrotic Syndrome? (Page No: 500)****",
+            "What are the Complications and management of acute glomerulonephritis in children? (Page No: 496)**",
+            "What are Posterior Urethral Valves? (Page No: 529)**",
+            "What is Nocturnal Enuresis? (Page No: 527)**",
+            "What is Urine Examination? (Page No: 489)",
+            "What is Minimal Change Nephrotic Syndrome? (Page No: 500)",
+            "What is the Urine Examination in Nephritis and Nephrotic syndrome? (Page No: 489)",
+            "What are the indications and contraindications for Renal Biopsy in Nephrotic Syndrome? (Page No: 501)",
+            "What is the Management of Acute Renal Failure? (Page No: 513)",
+            "What is Post Streptococcal Glomerulonephritis? (Page No: 496)",
+            "What are the Causes and management of enuresis in children? (Page No: 527)",
+            "What are the Complications of Nephrotic Syndrome? (Page No: 504)",
+            "What are the common organisms causing urinary tract infection? How will you investigate a six months old male child with suspected urinary tract infection? (Page No: 507)",
+            "What is the Management of nephrotic syndrome in a 5 year old boy? (Page No: 500)",
+            "What is the Management of the First episode of Nephrotic Syndrome? (Page No: 500)",
+            "What are Urinary Tract Infections in children? (Page No: 508)"
+          ]
+        }
+      }
     }
   }
 };
