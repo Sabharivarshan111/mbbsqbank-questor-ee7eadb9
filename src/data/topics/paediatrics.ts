@@ -524,6 +524,28 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "childhood-malignancies": {
+      name: "Childhood malignancies",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the clinical manifestations, diagnosis and management of Acute Leukaemias of childhood. (Page No: 619)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is the Management of ALL? (Page No: 624)",
+            "What is Wilms Tumour? (Page No: 636)",
+            "What is the Diagnosis of Acute Leukemia? (Page No: 623)",
+            "What is Acute Lymphoblastic Leukemia? (Page No: 619)",
+            "What are the Prognostic Factors in Acute Lymphoblastic Leukemia? (Page No: 619)",
+            "What is the Classification of Acute Myeloid Leukemia? (Page No: 621)"
+          ]
+        }
+      }
     }
   }
 };
