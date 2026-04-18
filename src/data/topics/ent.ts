@@ -190,6 +190,19 @@ export const entData = {
           ]
         }
       }
+    },
+    "oral-cavity-and-salivary-gland": {
+      name: "Oral cavity and salivary gland",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Submucous fibrosis. (Page No: 250)",
+            "Leukoplakia of palate. (Page No: 263)****",
+            "Leukoplakia. (Page No: 263)****"
+          ]
+        }
+      }
     }
   }
 };
