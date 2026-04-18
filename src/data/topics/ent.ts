@@ -203,6 +203,56 @@ export const entData = {
           ]
         }
       }
+    },
+    "pharynx": {
+      name: "Pharynx",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Give the differential diagnosis of tonsillitis. How will you differentiate acute tonsillitis from acute faucial diphtheria? (Page No: 307, 503)**",
+            "What are the indications and contraindications of tonsillectomy? Describe the procedure of tonsillectomy surgery. (Page No: 503)**",
+            "Describe the diagnosis, complications and treatment of acute follicular tonsillitis. (Page No: 304)",
+            "What are the conditions which produce membranous lesions in the throat? How do you treat a case of faucial diphtheria? (Page No: 304, 306)",
+            "Describe Chronic tonsillitis: Classification, clinicopathology, management and contraindications for tonsillectomy. (Page No: 307)",
+            "Describe the etiopathology, clinical features, diagnosis and management of chronic tonsillitis. Mention the complications of tonsillitis. (Page No: 307)",
+            "Describe the etiology, signs and symptoms of peritonsillar abscess. Mention the complications of the disease. (Page No: NA)",
+            "What are the diseases in ENT practice which are likely to produce Trismus? Describe the clinical features and management of QUINSY. (Page No: 311)",
+            "Discuss the etiology, pathogenesis, clinical features and management of retropharyngeal abscess. (Page No: 312)",
+            "Describe the indications for tonsillectomy. How do you manage a post operative case? (Page No: 503)",
+            "Enumerate the causes of dysphagia. Write in detail about acute retropharyngeal abscess. (Page No: 312)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Quinsy (Peritonsillar abscess)? (Page No: 311)*****",
+            "What is Adenoid facies? (Page No: 287)****",
+            "What is Ludwig's angina? (Page No: 309)****",
+            "What is Killian's dehiscence? (Page No: 281)***",
+            "What is Waldeyer's ring? (Page No: 281)***",
+            "What is Faucial diphtheria? (Page No: 306)***",
+            "What is the Pyriform fossa? (Page No: 284)**",
+            "What is Eagle's syndrome? (Page No: 321)**",
+            "What is the Lingual tonsil? (Page No: 303)",
+            "What is Acute tonsillitis? (Page No: 304)",
+            "Mention the causes for a white patch over the tonsil. (Page No: 306)",
+            "What is Vincent's angina? (Page No: 306)",
+            "What is Membranous tonsillitis? (Page No: 306)",
+            "What is the Differential diagnosis in tonsil? (Page No: 306)",
+            "What are the Cardinal features of chronic tonsillitis? (Page No: 307)",
+            "What is Scarlet fever? (Page No: NA)",
+            "What is a Retropharyngeal abscess? (Page No: 312)",
+            "What are the Potential neck spaces? Describe Acute retropharyngeal abscess. (Page No: 313)",
+            "What is a Chronic retropharyngeal abscess? (Page No: 314)",
+            "What is a Parapharyngeal abscess? (Page No: 314)",
+            "What is a Pharyngeal pouch? (Page No: 323)",
+            "What is Polysomnography? (Page No: 327)",
+            "What are the Complications of tonsillectomy? (Page No: 506)",
+            "Reactionary hemorrhage following tonsillectomy? (Page No: 506)"
+          ]
+        }
+      }
     }
   }
 };
