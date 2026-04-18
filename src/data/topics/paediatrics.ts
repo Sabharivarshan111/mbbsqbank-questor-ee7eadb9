@@ -546,6 +546,22 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "rheumatology-and-genetics": {
+      name: "Rheumatology and genetics",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Down's Syndrome? (Page No: 666)*****",
+            "What is Genetic Counseling? (Page No: 676)**",
+            "What is the Antenatal Diagnosis of Down's Syndrome? (Page No: 668)",
+            "What is Antenatal Diagnosis? (Page No: 675)",
+            "What is Neonatal Screening? (Page No: 676)",
+            "What are the Antenatal Screening and Clinical Features of Down's Syndrome? (Page No: 668)"
+          ]
+        }
+      }
     }
   }
 };
