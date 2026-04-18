@@ -145,6 +145,36 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-lens": {
+      name: "Diseases of lens",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Enumerate acquired cataract. Define cataract. Describe the clinical features and management of senile cataract. What are the post operative complications? (Page No: 177)***",
+            "What are the causes of leukocoria? Describe the types, etiology, clinical features, and management of congenital cataract. (Page No: 193)**",
+            "What are the causes of gradual loss of vision? Describe the management of senile cortical cataract. (Page No: 185)**",
+            "A patient aged 59 presents with gradual diminution of vision. What are the investigations? What are the causes of cataract? What is the management of unocular cataract? (Page No: 514)**",
+            "What are the causes for painless progressive loss of vision? Describe the signs, symptoms and management of mature cataract. (Page No: 185)",
+            "What are the preoperative investigations for cataract surgery? (Page No: 185)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is a complicated cataract? (Page No: 184)*******",
+            "What is an after cataract? (Page No: NA)****",
+            "What is a lamellar/zonular cataract? (Page No: 174)***",
+            "What is an intraocular lens? (Page No: 195)***",
+            "What are the post operative complications of cataract surgery? (Page No: 201)",
+            "What is subluxation of the lens? (Page No: 204)**",
+            "What is a brown cataract? (Page No: NA)",
+            "What are the clinical features of a complicated cataract? (Page No: 184)",
+            "What is aphakia? (Page No: 36)"
+          ]
+        }
+      }
     }
   }
 };
