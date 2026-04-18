@@ -90,6 +90,78 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "newborn-infants": {
+      name: "Newborn infants",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the causes of jaundice in the newborn period? How do you investigate and manage a case of Rh incompatibility. (Page No: 170)**",
+            "Define normal term baby, preterm baby, LBW baby, IUGR baby. Describe in detail the care of Preterm Baby in Hospital and at home. (Page No: 119)",
+            "Enumerate the causes of respiratory distress in newborn in the first 24 hours of life. Discuss the diagnosis and management of Meconium aspiration syndrome. (Page No: 159)",
+            "Define Prematurity. Discuss the complications of Prematurity. How will you manage hyaline membrane disease? (Page No: 119, 157)**",
+            "Define Preterm. Enumerate the causes of Preterm. What are the principles in the management of preterm baby? (Page No: 133, 148)",
+            "Define and mention causes of prematurity. Write about hazards of premature baby. Mention care given to a preterm baby of weight 1.6 kg. (Page No: 133)",
+            "Write an essay on etiology, complications and management of preterm baby. (Page No: 148)",
+            "What are the causes of Sepsis in newborn period? Discuss the management and prevention of sepsis in newborn. (Page No: 166)",
+            "Discuss the physiology of lactation, the advantages of breastfeeding and technique of breastfeeding. How will you ensure adequacy of breast milk secretion and deal with common problems in lactation? (Page No: 142, 145)",
+            "Describe the etiology, pathophysiology and management of MAS. (Page No: 159)",
+            "Day one Jaundice in New born. (Page No: 172)",
+            "Define jaundice. What are the common causes of Neonatal jaundice? How do you investigate and treat a Neonate of 20 days with conjugate hyper Bilirubinemia? (Page No: 170)",
+            "When will you suspect pathological jaundice in newborn? List out the causes for pathological jaundice. What is Kramer rule? Discuss the different modalities of treatment of neonatal jaundice. How will you prevent Rh incompatibility? (Page No: 170)",
+            "Jaundice in New born. (Page No: 170)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Erb's palsy. (Page No: 176)",
+            "Causes of lactation failure. (Page No: 147)",
+            "Exclusive breast feeding. (Page No: 142)",
+            "Importance of breast feeding. (Page No: 142)",
+            "Steps for successful breast feeding. (Page No: 145)",
+            "Colostrum. (Page No: 144)",
+            "Aetiology of neonatal sepsis. (Page No: 166)",
+            "Birth injuries. (Page No: 126)",
+            "Septicemia in newborn. (Page No: 166)",
+            "Umbilical Sepsis. (Page No: 166)",
+            "Complications of umbilical cord sepsis. (Page No: 166)",
+            "Therapeutic Hypothermia. (Page No: 163)",
+            "Feeding difficulties in newborn. (Page No: 146)",
+            "Signs, symptoms and management of idiopathic respiratory distress syndrome in a new born. (Page No: 157)",
+            "Discuss briefly the complications of Prematurity. How will you manage respiratory distress syndrome (RDS)? (Page No: 157)",
+            "Advantages of breastfeeding to the child and the mother. (Page No: 142)",
+            "Types of tracheo-esophageal fistula. (Page No: 175)",
+            "Hydrops fetalis. (Page No: NA)",
+            "Discuss positioning and latching in breastfeeding. What are the advantages of a breastfeeding? (Page No: 145)",
+            "How to counsel a lactating mother who complains of inadequate breast milk. (Page No: 147)",
+            "Retinopathy of prematurity. (Page No: 709)",
+            "Infant of diabetic mother. (Page No: 181)***",
+            "Kangaroo mother care. (Page No: 149)***",
+            "Prevention and management of Respiratory distress syndrome. (Page No: 157)**",
+            "Meconium aspiration syndrome. (Page No: 159)**",
+            "Hypothermia of new born. (Page No: 139)**",
+            "Breast feeding advantages. (Page No: 142)**",
+            "Reflexes involved in breastfeeding. (Page No: 143)**",
+            "Phototherapy. (Page No: 174)**",
+            "Congenital diaphragmatic hernia. (Page No: 179)***",
+            "Neonatal resuscitation. (Page No: 121)**",
+            "Non Shivering Thermogenesis. (Page No: 139)",
+            "Birth asphyxia. (Page No: 161)",
+            "Anoxic spells. (Page No: 447)",
+            "Hypoxic ischemic encephalopathy. (Page No: 161)",
+            "First day jaundice in the newborn. (Page No: 172)",
+            "Management of hyperbilirubinemia in newborn. (Page No: 174)",
+            "Neonatal jaundice. (Page No: 170)",
+            "Kernicterus. (Page No: 170)",
+            "Care of LBW Neonates. (Page No: 147)",
+            "New born resuscitation algorithm Neonatal resuscitation flowchart. (Page No: 121)",
+            "Umbilical Hernia. (Page No: 136)",
+            "Define Apnea in Newborn - Its causes and management. (Page No: 160)"
+          ]
+        }
+      }
     }
   }
 };
