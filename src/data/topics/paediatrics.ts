@@ -256,6 +256,45 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "git-and-liver": {
+      name: "GIT and liver",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "2 years old female child weighing 8.2kgs brought to the Health centre with the complaints of vomiting and diarrhoea. How will you approach the child. Write the management in detail. (Page No: 309)",
+            "What is diarrhoea? Discuss the etiopathogenesis, complications, investigations and management of acute watery diarrhea with severe dehydration. (Page No: 309)",
+            "Describe fulminant hepatic failure. Describe its clinical presentation, complication and management. (Page No: 333)",
+            "Discuss the clinical features, diagnosis and management of acute diarrhoea in a child of 2 years. (Page No: 309)",
+            "What are the common causes of acute watery diarrhoea in children? How will you assess dehydration in children? What is the composition of WHO ORS? How will you manage different degrees of dehydration? (Page No: 309)",
+            "Etiology of chronic liver disease in children. Evaluation clinical features and complications of chronic liver disease and Management of chronic liver disease in a child. (Page No: 334)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Oral Rehydration therapy. (Page No: 311)****",
+            "Wilson's disease. (Page No: 342)***",
+            "Acute Diarrhoeal disease in 1 year old child. (Page No: 309)",
+            "How will you assess and correct dehydration in a 6 months old child with diarrhoea. (Page No: 309)",
+            "Causes of acute liver cell failure in children. (Page No: 333)",
+            "Portal Hypertension. (Page No: 338)",
+            "Infantile hypertrophic pyloric stenosis. (Page No: 295)",
+            "Chronic diarrhea evaluation and management. (Page No: 317)",
+            "Gastroesophageal reflux. (Page No: 296)",
+            "Gastrointestinal causes of Abdominal pain in children. (Page No: 303)",
+            "Obstructive jaundice. (Page No: 345)",
+            "Extra hepatic portal hypertension. (Page No: 241)",
+            "Cause of splenomegaly. (Page No: 329)",
+            "Management of constipation in children. (Page No: 300)",
+            "Congenital hypertrophic pyloric stenosis. (Page No: 295)",
+            "Extra hepatic biliary atresia. (Page No: 345)",
+            "Intussusception. (Page No: 304)",
+            "Treatment of some dehydration. (Page No: 309)"
+          ]
+        }
+      }
     }
   }
 };
