@@ -162,6 +162,40 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "immunization": {
+      name: "Immunization",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Newer vaccines. (Page No: 211)****",
+            "MMR vaccine. (Page No: 197)***",
+            "Pneumococcal vaccine. (Page No: 199)***",
+            "The cold Chain. (Page No: 213)***",
+            "Oral polio vaccine. (Page No: 192)**",
+            "Measles vaccination. (Page No: 197)**",
+            "Immunization schedule. (Page No: 189)",
+            "Adolescent vaccines. (Page No: 217)",
+            "Eradication of Poliomyelitis. (Page No: 195)",
+            "Adverse events following immunization. (Page No: 212)",
+            "National Immunisation Schedule. (Page No: 189)",
+            "Universal Immunisation programme. (Page No: 189)",
+            "Herd immunity. (Page No: 186)",
+            "Hepatitis B vaccination. (Page No: 198)",
+            "Varicella vaccine. (Page No: 204)",
+            "Influenza vaccine. (Page No: 205)",
+            "Live attenuated Vaccines. (Page No: 187)",
+            "Typhoid Vaccine. (Page No: 203)",
+            "HPV Vaccine. (Page No: NA)",
+            "Live vaccines. (Page No: 187)",
+            "Pentavalent Vaccine. (Page No: 211)",
+            "BCG vaccine. (Page No: 190)",
+            "DPT Vaccine. (Page No: 195)",
+            "Inactivated poliovirus vaccine. (Page No: 193)"
+          ]
+        }
+      }
     }
   }
 };
