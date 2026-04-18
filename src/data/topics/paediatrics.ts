@@ -295,6 +295,40 @@ export const paediatricsData = {
           ]
         }
       }
+    },
+    "hematological-disorders": {
+      name: "Hematological disorders",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Discuss the causes and clinical features of anemias of infancy. Briefly discuss the management of Thalassemia Major. (Page No: 360)",
+            "Discuss about the classification of hemolytic anemias and their action pathogenesis. Discuss in detail about beta thalassemias. (Page No: 357)",
+            "What are the stages of Red Blood corpuscles? Clinical features and management of nutritional anemia in a child. (Page No: 354)",
+            "Discuss the etio-pathogenesis, clinical features and management of Iron Deficiency anaemia. (Page No: 354)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Haemorrhagic disease of new born. (Page No: 110)***",
+            "Idiopathic thrombocytopenic purpura. (Page No: 371)**",
+            "Difference between iron deficiency anaemia and haemolytic anaemia. (Page No: 334)",
+            "Peripheral smear in thalassemia. (Page No: 362)",
+            "Thalassemia Major. (Page No: 360)",
+            "Indications for bone marrow examination in children. (Page No: 784)",
+            "Platelet Transfusion. (Page No: 773)",
+            "Acute Idiopathic thrombocytopenia purpura. (Page No: 371)",
+            "DD for Child with epistaxis. (Page No: 388)",
+            "DD of Cervical lymphadenitis. (Page No: 628)",
+            "Peripheral smear study in diagnosis of hematological disorders. (Page No: 352)",
+            "Iron deficiency Anaemia. (Page No: 364)",
+            "Treatment of infective endocarditis. (Page No: 468)",
+            "Sickle cell crisis. (Page No: 364)",
+            "Management of Thalassemia. (Page No: 362)"
+          ]
+        }
+      }
     }
   }
 };
