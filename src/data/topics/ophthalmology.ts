@@ -175,6 +175,42 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "glaucoma": {
+      name: "Glaucoma",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What are the causes of gradual loss of vision? Define glaucoma. Describe the clinical features, investigations and treatment of primary open angle glaucoma (POAG). (Page No: 215)****",
+            "What are the causes of sudden painful loss of vision? Describe the signs, symptoms and management of acute angle closure glaucoma. (Page No: 223)******",
+            "What is the differential diagnosis of a red eye? Describe the management of acute angle closure glaucoma. (Page No: 150, 229)***",
+            "What is buphthalmos? (Page No: 212)",
+            "What are the clinical features and management of chronic simple glaucoma? (Page No: 215)",
+            "What are the signs, symptoms and differential diagnosis of acute congestive glaucoma? (Page No: 105, 229)",
+            "What are the different stages of acute congestive glaucoma? Describe the management of each stage. (Page No: NA)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is lens induced glaucoma? (Page No: 231)*****",
+            "What are the clinical features and management of congenital glaucoma? (Page No: 212)**",
+            "What is buphthalmos? (Page No: 212)**",
+            "What is the medical treatment of primary open angle glaucoma? (Page No: 223)**",
+            "What is iris bombe? (Page No: 225)**",
+            "What is the management of an acute congestive glaucomatous attack? (Page No: 221)**",
+            "What is the management of absolute glaucoma? (Page No: 230)**",
+            "Describe the circulation of aqueous humor. (Page No: 208)",
+            "What is chronic simple glaucoma? (Page No: 215)",
+            "What is Seidel's scotoma? (Page No: 219)",
+            "Describe the field changes in chronic simple glaucoma with diagrams. (Page No: 221)",
+            "What are the field defects in primary open angle glaucoma? (Page No: 220)",
+            "Acute congestive glaucoma. (Page No: 228)",
+            "Mechanism of secondary glaucoma in iridocyclitis. (Page No: 150)"
+          ]
+        }
+      }
     }
   }
 };
