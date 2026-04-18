@@ -346,6 +346,28 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "orbital-and-ocular-injuries": {
+      name: "Orbital and ocular injuries",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Effect of blunt injury to eye. Discuss traumatic cataract. (Page No: 408, 409)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is Orbital Cellulitis? (Page No: 390)******",
+            "What is Sympathetic Ophthalmitis? (Page No: 416)******",
+            "What is a Cherry Red Spot? (Page No: 410)***",
+            "What is Thyroid Eye Disease? (Page No: 395)",
+            "What is Iridodialysis? (Page No: 409)",
+            "What is Chalcosts? (Page No: 413)"
+          ]
+        }
+      }
     }
   }
 };
