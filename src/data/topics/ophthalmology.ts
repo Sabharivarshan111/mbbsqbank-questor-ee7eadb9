@@ -368,6 +368,24 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "ocular-therapeutics": {
+      name: "Ocular therapeutics",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What are Anti-glaucoma drugs? (Page No: 439)**",
+            "What are the uses of Lasers in Ophthalmology? (Page No: 441)**",
+            "What are Viscoelastics? (Page No: 437)",
+            "What is Cryotherapy in Ophthalmology? (Page No: 444)",
+            "What is an Indirect Ophthalmoscope? (Page No: 557)",
+            "What is a Retinal Function Test? (Page No: 186)",
+            "What is Timolol Maleate? (Page No: 431)",
+            "What are the uses of Fluorescein in Ophthalmology? (Page No: 439)"
+          ]
+        }
+      }
     }
   }
 };
