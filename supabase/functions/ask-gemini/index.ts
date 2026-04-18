@@ -379,9 +379,10 @@ serve(async (req) => {
     logWithTimestamp(`[${requestId}] Request types: isTripleTap=${isTripleTap}, isMCQRequest=${explicitMCQRequest}, isImportantQuestionsRequest=${explicitImportantQRequest}, isNeedingClarification=${isNeedingClarification}`);
     
     const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!apiKey) {
-      logWithTimestamp(`[${requestId}] GEMINI_API_KEY not set in environment variables`);
+    if (!apiKey && !LOVABLE_API_KEY) {
+      logWithTimestamp(`[${requestId}] No AI API keys set in environment variables`);
       return new Response(
         JSON.stringify({ error: "API key configuration error" }),
         {
@@ -391,10 +392,12 @@ serve(async (req) => {
       );
     }
 
-    // Create a client instance
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // Use Gemini 2.0 Flash - the correct model name
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // Create a client instance for direct Gemini fallback (only if key available)
+    const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+    // Direct Gemini API fallback model (used only if Lovable Gateway fails)
+    const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) : null;
+    // Primary model via Lovable AI Gateway - cheapest/highest free quota
+    const LOVABLE_MODEL = "google/gemini-2.5-flash-lite";
 
     // Extract the actual question content without any prefix
     const actualQuestion = isTripleTap ? prompt.replace(/Triple-tapped:|triple-tapped:/i, "").trim() : prompt;
