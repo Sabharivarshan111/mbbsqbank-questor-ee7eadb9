@@ -324,6 +324,28 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "lacrimal-apparatus": {
+      name: "Lacrimal apparatus",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Etiology, clinical features and treatment of chronic dacryocystitis. (Page No: 377)**"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Describe the layers and functions of the tear film. (Page No: 370)***",
+            "Describe the anatomy of the lacrimal drainage system. (Page No: 370)",
+            "What is Dry eye? (Page No: 371)",
+            "What is Congenital dacryocystitis? (Page No: 376)",
+            "What is Acute dacryocystitis? (Page No: 377)",
+            "What is the Treatment of chronic dacryocystitis? (Page No: 378)"
+          ]
+        }
+      }
     }
   }
 };
