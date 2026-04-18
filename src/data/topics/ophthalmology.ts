@@ -386,6 +386,34 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "systemic-and-community": {
+      name: "Systemic and community",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe the causes of night blindness and the management of keratomalacia. (Page No: 308, 450)",
+            "What are the common causes of blindness? Write about the National Programme for Control of Blindness. (Page No: 462, 464)",
+            "What are the ocular manifestations of common neurological disorders? (Page No: 313)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What is VISION 2020? (Page No: 466)*****",
+            "What are the ocular manifestations, prophylaxis, and management of Vitamin A deficiency? (Page No: 449, 451)*****",
+            "What is Nyctalopia/Night Blindness? (Page No: 308)****",
+            "What is Xerophthalmia? (Page No: 449)**",
+            "What is Keratomalacia? (Page No: 450)**",
+            "What is NPCBVI? (Page No: 464)**",
+            "What are the common causes of blindness in India? (Page No: 462)",
+            "What are the types of blindness and its WHO definition? (Page No: 460)",
+            "What is the WHO classification of Vitamin A deficiency? (Page No: 450)",
+            "What is Eye Banking and its functions? (Page No: 470)"
+          ]
+        }
+      }
     }
   }
 };
