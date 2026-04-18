@@ -718,6 +718,24 @@ export const obstetricsGynaecologyData = {
           ]
         }
       }
+    },
+    "imaging-and-procedures": {
+      name: "Imaging and procedures",
+      subtopics: {
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Hysterosalphingogram. (Page No: 089)******",
+            "Fractional curettage. (Page No: 630)*****",
+            "Hysteroscopy. (Page No: 654)****",
+            "Laparoscopy in Gynaecology. (Page No: 651)**",
+            "Ultrasound in gynaecology. (Page No: 081)",
+            "Indications for hysteroscopy. (Page No: 654)**",
+            "Course of Ureter in female pelvis and its vulnerable point of injury during surgery. (Page No: 456)",
+            "D&C (Note: Dilatation and curettage). (Page No: 629)"
+          ]
+        }
+      }
     }
   }
 };
