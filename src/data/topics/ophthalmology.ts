@@ -116,6 +116,35 @@ export const ophthalmologyData = {
           ]
         }
       }
+    },
+    "diseases-of-uveal-tract": {
+      name: "Diseases of uveal tract",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Acute iridocyclitis - etiology, clinical features, differential diagnosis and management. (Page No: 146)********",
+            "DDx for acute red eye, clinical feature and management of acute anterior uveitis. (Page No: 146, 150)**",
+            "Anterior uveitis - signs, symptoms, management. (Page No: 146)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "What are keratic precipitates? (Page No: 146)******",
+            "How is uveitis classified? Describe the management of acute iridocyclitis. (Page No: 146, 151)**",
+            "What is the intraocular pressure in iridocyclitis? (Page No: 149)**",
+            "What is evisceration? What are two indications for it? (Page No: 164)**",
+            "What is endophthalmitis? (Page No: 161)***********",
+            "What is an aqueous flare? (Page No: 147)",
+            "What are ring synechiae? (Page No: 148)",
+            "What are posterior synechiae? (Page No: 147)",
+            "What are the causes of a red eye? (Page No: NA)",
+            "What are the clinical features and management of granulomatous uveitis? (Page No: 145)",
+            "What is hypertensive iridocyclitis? (Page No: 149)"
+          ]
+        }
+      }
     }
   }
 };
