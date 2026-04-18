@@ -253,6 +253,55 @@ export const entData = {
           ]
         }
       }
+    },
+    "larynx-and-trachea": {
+      name: "Larynx and trachea",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "What is stridor? Enumerate the causes of stridor. Describe briefly the management and modalities of stridor. (Page No: 345)*****",
+            "What are the causes of stridor in children? Discuss the types, procedure and complication of Tracheostomy. (Page No: 345, 369)*****",
+            "Enumerate the causes of childhood stridor. Write briefly about the indications and complications of tracheostomy. (Page No: 345)****",
+            "A. Enumerate the causes of stridor in children. B. 50 year old smoker with hoarseness and stridor- DDA. C. Surgical management of stridor for this patient, its procedure and its complications. (Page No: 345)**",
+            "Discuss the etiology, pathology and management of Carcinoma of Larynx. (Page No: 358)**",
+            "Describe briefly the indications, operative technique and complications of tracheostomy. (Page No: 369)**",
+            "What is stridor? How do you classify stridor? Describe the causes of stridor in a child and its management. (Page No: 345)",
+            "What are the causes of stridor in children? Discuss in detail the management of foreign body in airway. (Page No: 345, 375)",
+            "What are the causes of hoarseness of voice in a male aged 55 years? How do you proceed with investigation? Write the role of microlaryngeal surgery in papilloma larynx. (Page No: NA)",
+            "A male patient aged 60 years, chronic smoker, comes with hoarseness of voice of 1 year duration. How do you investigate and treat him? (Page No: NA)",
+            "Write an essay on the operative procedure of Tracheostomy, its complications and types of tracheostomy tubes. Briefly discuss the functions and indications of tracheostomy. (Page No: 369)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Describe Vocal cord nodules. (Page No: 352)*******",
+            "Describe Acute epiglottitis. (Page No: 338)***",
+            "What is Stridor? (Page No: 345)***",
+            "What is a Tracheostomy? (Page No: NA)***",
+            "Describe Foreign bodies in ENT. (Page No: 375)***",
+            "What is Croup? (Page No: 339)**",
+            "What is a Singer's Nodule? (Page No: 352)**",
+            "Describe Multiple papillomatosis. (Page No: 356)**",
+            "What are the Functions of the larynx? (Page No: 335)",
+            "Describe Acute supraglottitis laryngitis. (Page No: 338)",
+            "What is Reinke's space? (Page No: 334)",
+            "Describe the anatomy of the Larynx. (Page No: 334)",
+            "Describe TB Larynx. (Page No: 342)",
+            "What is Vocal cord paralysis? (Page No: 345)",
+            "What are the causes and implications of Left vocal cord paralysis? (Page No: 348)",
+            "What is Bilateral abductor palsy? (Page No: 349)",
+            "Describe the theories on the position of the vocal cord in Vocal cord paralysis. (Page No: 349)",
+            "Describe Benign tumors of the larynx. (Page No: 352)",
+            "What is a Vocal cord polyp? (Page No: 353)",
+            "What is Laryngeal papilloma? (Page No: 356)",
+            "What is the TNM classification for Larynx cancer? (Page No: 358)",
+            "What is Functional aphonia? (Page No: 366)",
+            "Describe Bronchial foreign bodies. (Page No: 377)"
+          ]
+        }
+      }
     }
   }
 };
