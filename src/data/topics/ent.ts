@@ -100,6 +100,96 @@ export const entData = {
           ]
         }
       }
+    },
+    "nose": {
+      name: "Nose",
+      subtopics: {
+        "essay": {
+          name: "Essay",
+          questions: [
+            "Describe briefly the classification, etiology, pathology, symptoms, signs and management of cancer of maxilla. (Page No: 241)*****",
+            "What are the causes of epistaxis? Describe the clinical features and management of Juvenile Nasopharyngeal Angiofibroma. (Page No: 205)*****",
+            "Enumerate in detail the various causes of epistaxis. How will you manage epistaxis in a 6 year old child? (Page No: 205)***",
+            "Enumerate the causes, clinical features and management of Atrophic Rhinitis. (Page No: 178)**",
+            "Discuss the etiopathology of malignant tumors of maxilla. Add a note on investigations and its surgical management. (Page No: 341)**",
+            "Describe the etiopathogenesis, clinical features and management of a patient with nasopharyngeal carcinoma. (Page No: 341)**",
+            "Describe the anatomy of the lateral wall of nose. Describe the types and management of nasal polyps. (Page No: 200)",
+            "Clinical features and management of Deviated nasal septum. (Page No: 170)",
+            "Describe the etiology, clinical features and management of Rhinosporidiosis. (Page No: 185)",
+            "Enumerate the causes of Unilateral nasal obstruction. Describe the signs, symptoms and management of any one of them. (Page No: 170)",
+            "Enumerate the causes of epistaxis. Describe the management of epistaxis. (Page No: 205)",
+            "Discuss the etiology, clinical features, management and complications of Acute frontal sinusitis. (Page No: 224)",
+            "Discuss the etiology, clinical features and management of Chronic maxillary sinusitis. (Page No: 228)",
+            "A 50 year old male patient presented with bleeding and a fleshy mass from nasal cavity. Write the DDx and investigations required to diagnose. Add a note on chemotherapy and surgical treatment of carcinoma of maxilla. (Page No: 341)",
+            "Describe the anatomy of nasopharynx. Write in detail the etiology, pathology, clinical features and treatment of NP fibroma. (Page No: NA)",
+            "Discuss the etiology, spread, clinical presentation and management of juvenile nasopharyngeal angiofibroma. (Page No: NA)"
+          ]
+        },
+        "short-notes": {
+          name: "Short Notes",
+          questions: [
+            "Describe the etiology, clinical features and management of Antrochoanal polyp. (Page No: 200)********",
+            "Describe Rhinosporidiosis. (Page No: 185)******",
+            "What is the management of Atrophic rhinitis? (Page No: 178)*****",
+            "What is Functional Endoscopic Sinus Surgery (FESS)? (Page No: 494)****",
+            "Describe Rhinoscleroma. (Page No: 181)****",
+            "What is a Rhinolith? (Page No: 189)****",
+            "Describe a Nasal polyp. (Page No: 200)****",
+            "What is the Osteomeatal complex? (Page No: NA)***",
+            "Describe Ethmoidal polyposis. (Page No: 201)***",
+            "What is a Septal hematoma? (Page No: 173)***",
+            "What is Nasal myiasis? (Page No: 189)***",
+            "What is Choanal Atresia? (Page No: 191)***",
+            "Describe Vasomotor rhinitis. (Page No: 198)***",
+            "What is Rhinophyma? (Page No: 166)**",
+            "What is a Septoplasty? (Page No: 473)**",
+            "What is the Nasal cycle? (Page No: 162)**",
+            "Describe the Lateral wall of the nasal cavity. (Page No: 156)**",
+            "What is Seasonal allergic Rhinitis? (Page No: 194)**",
+            "What is Allergic Rhinitis? (Page No: 194)**",
+            "What is a Le-Fort's fracture? (Page No: 215)**",
+            "What is the Cottle test? (Page No: 172)**",
+            "What is Epistaxis? (Page No: 205)**",
+            "What is an Oro-antral fistula? (Page No: 217)**",
+            "What is a Nasal septal perforation? (Page No: 174)**",
+            "What is Juvenile Nasopharyngeal Angiofibroma? (Page No: 279)**",
+            "What is the management of Juvenile angiofibroma? (Page No: 279)",
+            "What is a Deviated nasal septum? (Page No: 171)",
+            "Describe the Physiology of the nose. (Page No: 162)",
+            "What is Atrophic Rhinitis? (Page No: 178)",
+            "What is the Mucous blanket of the nose? (Page No: 163)",
+            "What is the Middle meatus? (Page No: 157)",
+            "What is the Hiatus semilunaris? (Page No: 157)",
+            "What is the difference between an antrochoanal polyp and an ethmoidal polyp? (Page No: 202)",
+            "What is Little's area? (Page No: 207)",
+            "What is Wegner's granulomatosis? (Page No: 178)",
+            "What is Anterior nasal packing? (Page No: 208)",
+            "What is a Nasal bone fracture? (Page No: 211)",
+            "What is a Blowout fracture? (Page No: 206)",
+            "What is Diagnostic Nasal Endoscopy? (Page No: 475)",
+            "What is the Muccelliary clearance mechanism? (Page No: 163)",
+            "What is Acute frontal sinusitis? (Page No: 224)",
+            "What is Fungal polyposis? (Page No: 220)",
+            "Discuss the difference between SMR and septoplasty. (Page No: 474)",
+            "What is Fungal sinusitis? (Page No: 229)",
+            "What is Invasive fungal sinusitis? (Page No: 229)",
+            "What is Rhinomanometry? (Page No: NA)",
+            "What is a Frontal Mucocele? (Page No: 231)",
+            "What are the Orbital complications of sinusitis? (Page No: 233)",
+            "What is the Classification of carcinoma maxilla? (Page No: 231)",
+            "What is the Etiology of carcinoma maxilla? (Page No: 241)",
+            "What is a Pleomorphic adenoma? (Page No: 263)",
+            "What is CSF Rhinorrhoea? (Page No: 191)",
+            "What are the modes of spread and clinical features of Juvenile Nasopharyngeal Angiofibroma? (Page No: 279)",
+            "What is Rhinitis caseosa? (Page No: 180)",
+            "What is a Nasopharyngeal fibroma? (Page No: 279)",
+            "What is an Antral wash? (Page No: 465)",
+            "What is a Nasal cholesteatoma? (Page No: NA)",
+            "What is Allergic fungal sinusitis? (Page No: 229)",
+            "What is Rhinocerebral Phycomycosis? (Page No: 186)"
+          ]
+        }
+      }
     }
   }
 };
