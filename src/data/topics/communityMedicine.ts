@@ -57,6 +57,280 @@ export const communityMedicineData = {
             ]
           }
         },
+        "environment-and-health": {
+          name: "ENVIRONMENT & HEALTH",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. Air Pollution? Source of air pollution, strategies regarding the preventive measures of air pollution in our country ** (Aug 2008, Feb 2020) [Pg 859,860]",
+              "2. What is water pollution? Write in detail about water related diseases. * (Feb 2009) [Pg 837]",
+              "3. Define sewage. Enlist the various methods of disposal of sewage in unsewered areas. Discuss briefly about water seal latrine. * (Feb 2012) [Pg 888,884]",
+              "4. Explain the methods of refuse disposal. * (Feb 2013) [Pg 881]",
+              "5. Discuss in detail about the Integrated Vector control? * (Feb 2014) [Pg 320]",
+              "6. What are health hazards of improper solid waste disposal? Explain in detail the various methods of solid waste management. * (Aug 2016) [Pg 880,881]",
+              "7. List the water related diseases. How is water purified on a large scale? * (Feb 2017) [Pg 837,838]",
+              "8. Define refuse. Enumerate the health hazards due to solid wastes. Discuss the various sources, collection and methods of disposal of solid wastes. * (Feb 22) [Pg 880]",
+              "9. Mode of transmission – Arboviral disease? Arthropod control? * [Pg:894]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Swimming pool sanitation. *** (Aug 2014, Aug 2017, Feb 2022) [Pg 855]",
+              "2. Sanitation barrier ** (Feb, Aug 2010) [Pg 883]",
+              "3. Oxidation pond. ** (Feb 2016, Feb '23) [Pg 891]",
+              "4. Principles of chlorination ** (Feb 2015, Aug 2022) [Pg 841]",
+              "5. Surveillance of drinking water quality. ** (Aug 2015, Apr 2022) [Pg 852]",
+              "6. Discuss the sources and hazards of indoor air pollution ** (Aug2019, Sep 2021) [Pg 863]",
+              "7. Healthful school environment * (Aug 2008) [Pg 658]",
+              "8. Types of ventilation * (Feb 2009) [Pg 866]",
+              "9. Control of noise pollution. * (Aug 2009) [Pg 870]",
+              "10. Soakage pit * (Feb 2010) [Pg 836]",
+              "11. Refuse disposal methods in rural areas. * (Aug 2010) [Pg 881]",
+              "12. Methods of disposal of solid wastes. * (Feb 2011) [Pg 881]",
+              "13. Purification of water on large scale. * (Aug 2010) [Pg 838]",
+              "14. Causes and effects of global warming. * (Feb 2011) [Pg 875]",
+              "15. Integrated approach in vector control. * (Aug 2011) [Pg 320]",
+              "16. Hazards of environmental pollution * (Feb 2012)",
+              "17. Overcrowding * (Feb 2012) [Pg 879]",
+              "18. What are the sources of water pollution? How do they affect health? * (Aug 2012) [Pg 837]",
+              "19. Control of scabies. * (Aug 2013) [Pg 908]",
+              "20. Enlist the major air pollutants and describe measures to control it. * (Aug 2014) [Pg 860,865]",
+              "21. Discuss the effects of atmospheric pressure on health. * (Aug 2014) [Pg 873]",
+              "22. Non auditory effects of noise pollution * (Feb 2015) [Pg 869]",
+              "23. Health hazards of health care wastes. * (Aug 2017) [Pg 916]",
+              "24. Describe the design and working of a septic tank. * (Aug 2018) [Pg 886]",
+              "25. Enlist the minimum standards of housing in an urban area. * (Feb 2019) [Pg 878]",
+              "26. Describe the attributes of a sanitary well. * (Aug 2019) [Pg 836]",
+              "27. Enlist the principal methods of refuse disposal. Describe the method used in metropolitan cities and highlight the environmental hazards associated with it. * (Aug 2019) [Pg 881]",
+              "28. Enumerate the indicators of housing. * (Feb 2020) [Pg 879]",
+              "29. Discuss the small scale measures that can be practiced for making water potable. * (Nov 2020) [Pg 843]",
+              "30. Suitable measures of portable water supply to rural areas. *",
+              "31. Rapid sand filter feature. * [Pg:840]",
+              "32. Free residual chlorine. * [Pg:842]",
+              "33. Disinfection wells * [Pg:844]",
+              "34. Bacteriological standards of drinking water. * [Pg:849]",
+              "35. Hardness of water. * [Pg:853]",
+              "36. Defluoridation. * [Pg:854]",
+              "37. Comfort zones. * [Pg:859]",
+              "38. Indices of thermal comfort * [Pg:859]",
+              "39. Prevention, control, indicators of air pollution. * [Pg:865]",
+              "40. Heat stroke. * [Pg:874]",
+              "41. Green house effect and global warming. * [Pg:875]",
+              "42. Inter-relation between housing and health. * [Pg:878]",
+              "43. Housing standards. * [Pg:878]",
+              "44. Incineration * [Pg:881]",
+              "45. Composting * [Pg:882]",
+              "46. Sanitary methods of disposal of sewage in rural areas. *",
+              "47. Biochemical Oxygen Demand. * [Pg:889]",
+              "48. Secondary treatment of sewage. * [Pg:890]",
+              "49. Biological transmission of arthropod borne diseases. * [Pg:894]",
+              "50. Enumerate arthropods of medical importance and discuss integrated vector control. * [Pg:893]",
+              "51. Mosquito control measures. * [Pg:898]",
+              "52. Sandfly * [Pg:901]",
+              "53. Cyclops * [Pg:908]",
+              "54. Paris green * [Pg:911]",
+              "55. Anti-rodent measures. * [Pg:912]"
+            ]
+          }
+        },
+        "communication-for-health-education": {
+          name: "COMMUNICATION FOR HEALTH EDUCATION",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. a) Define health education. Discuss in detail various principles of health education (Feb 2012) b) Discuss in details the principles of health education *** (Feb 2010, Aug 2010) [pg no 985]",
+              "2. a) Describe the methods of health education to groups of people (Group approach) (Aug 2013). b) Describe the methods of health education to groups of people with their merits and demerits ** (Feb 2015) [pg no 991]",
+              "3. Discuss the various methods in health communication. * (Aug. 2017) [pg no 983]",
+              "4. Define 'Motivation' in health education. Enumerate the methods used in individual approach and group approach of health education. * (Feb 2020) [pg no 984,991]",
+              "5. Define health education. Discuss various methods used in delivering health education? * (Feb 2021) [pg no 985]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Barriers of communication *** (Feb 2011, Aug 2012, Aug 2022) [pg no 984]",
+              "2. Behaviour change communication and its uses. ** (Feb 2019, Feb 2022)",
+              "3. Content of Health Education ** (Aug 2011, Aug 2019) [pg no 988]",
+              "4. Barriers of health education. * (Aug 2015) [pg no",
+              "5. Types of communication * (Feb 2013) [pg no 983]",
+              "6. Health education Vs Health propaganda * (Feb 2016) [pg no 987]",
+              "7. Models of Health Education * (Feb 2014) [pg no 987]",
+              "8. Principles of health education * (Aug 2016) [pg no 989]",
+              "9. Discuss 'workshop' as a method of education * (Aug 2014) [pg no 993]",
+              "10. Discuss qualitative and quantitative methods of health education * (Feb 2010) [pg no 985]",
+              "11. Mention four approaches to health education. * (Feb 2017) [pg no 986]",
+              "12. Approach to health education. * (Feb 2023) [pg no 986]",
+              "13. Group discussion * [Pg:992]",
+              "14. Roleplay and workshop * [Pg:993]"
+            ]
+          }
+        },
+        "nutrition-and-health": {
+          name: "NUTRITION AND HEALTH",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. Discuss in detail the causes, detrimental effects and various preventive Measures of nutritional anaemia. * (Feb 2012) [Pg:756]",
+              "2. Epidemiology and prevention of Nutritional anemia. Add a note Anaemia Mukt Bharat.? * (Feb 2022) [Pg:756,775]",
+              "3. Discuss in detail the problem of nutritional anemia, its causes, detrimental effects and intervention? * (Feb 2023) [Pg:756]",
+              "4. Describe in detail about assessment of nutritional status of community <5 yr. child)? * (Aug 2011) [Pg:762]",
+              "5. What is nutritional assessment? Write in detail how you would assess the Nutritional status of a community. * (Feb 2016) [Pg:762]",
+              "6. Describe in detail the various community nutrition programs in India. * (Aug 2016) [Pg:753]",
+              "7. Give an account of commonly occurring food toxicants in India and their prevention. * (Aug 2010) [Pg:771]",
+              "8. Define malnutrition, specify its problems. Describe the etiology and preventions and control measures for the same. * (Aug 2009) [Pg:754]",
+              "9. Mention the various health problems of the school child. Discuss in detail about the objectives and aspects of school health service. * (Aug 2017) [pg no.657]",
+              "10. What are the common causes for under five year mortality in India? How will you classify and treat diarrhea at the community level. Add a note on home available fluid. * (Aug 2018) [Pg no. 652, 263, 269]",
+              "11. What is the statutory body which regulates the food quality and safety in India? What is food fortification and common food fortification permitted? Add a note on food additives? * (Aug 2019) [Pg: 772, 773]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Iodine deficiency disorders control programs ** (Aug 2013, Feb 2015) [Pg:723]",
+              "2. Iodine deficiency disorders and its control. ** (Aug. 2017, Aug 2022) [Pg:758]",
+              "3. Endemic fluorosis ** (Aug 2011, Feb 2013) [Pg:758]",
+              "4. Food fortification ** (Feb 2012, Aug 2014) [Pg:773]",
+              "5. Health problems in urban slums ** (Feb 2010, Aug 2010)",
+              "6. Prevention and control of Lathyrism ** (Feb 2010, Feb 2012) [Pg:759]",
+              "7. Nutritional anemia * (Aug 2009) [Pg:756]",
+              "8. Lathyrism * (Feb 2010) [Pg:759]",
+              "9. Gomez' classification. * (Aug 2012)",
+              "10. Clinical manifestations of malnutrition * (Feb 2010) [Pg: 755]",
+              "11. Diet surveys * (Feb 2010) [Pg: 764]",
+              "12. Diabetic diet * (Aug 2010) [Pg:729]",
+              "13. Pasteurization milk * (Feb 2011) [Pg:769]",
+              "14. Factors affecting energy requirements * (Feb 2012) [pg no.748]",
+              "15. Prevention of Xerophthalmia * (Feb 2012) [pg no.756]",
+              "16. Epidemic Dropsy * (Aug 2016) [pg no.772]",
+              "17. Nutritional factors in cardiovascular disease. * (Feb 2017) [pg no.760]",
+              "18. Balanced diet. * (Feb 2017) [pg no.751]",
+              "19. Trans fatty acids. * (Aug. 2017) [pg no.758]",
+              "20. Enumerate the strategies of 'National Nutritional Policy'. * (Feb 2018)",
+              "21. Iodine Deficiency Disorders (IDD) with reference to pregnancy and infancy. * (Aug 2018) [pg no.739, 724]",
+              "22. Name water soluble vitamins and write about the deficiency manifestation of thiamine * (Aug. 2018) [pg no. 730, 733]",
+              "23. Prevention of Food Adulteration Act. * (Aug. 2017) [pg no. 773]",
+              "24. Explain the anemia control programme. * (Feb 2020) [pg no. 775]",
+              "25. Discuss about inclusion of WHOLE CEREALS in diet? * (Aug. 2020) [pg no 741]",
+              "26. Surveillance measures at ports for control of infectious disease. * (Aug 2020)",
+              "27. Food toxicants? * (Feb 2021) [Pg:771]",
+              "28. Evaluate Mid-day meal programme? * (Feb 2023) [Pg:776]"
+            ]
+          }
+        },
+        "occupational-health": {
+          name: "OCCUPATIONAL HEALTH",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. Classify the various occupational diseases. Discuss the measures for prevention of occupational diseases. ** (Feb 2016, Feb 2023) [Pg 932,939]",
+              "2. Define Pneumoconiosis. Explain the various measures for prevention of occupational diseases. * (Aug 2010) [Pg 933,939]",
+              "3. Enlist the occupational pneumoconiosis. Describe the pathogenesis, clinical features and prevention of silicosis. * (Aug 2018) [Pg 933]",
+              "4. Classify occupational diseases. Epidemiology and prevention of pneumoconiosis. * (Feb 2022) [Pg 932,933]",
+              "5. Social security? Measures provided to factory workers? Benefits under ESI scheme. * [Pg:817,943]",
+              "6. Social security? Its measures for organised sectors. * [Pg:817]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Lead poisoning and its prevention. ***** (Aug 2009, Feb 2011, Aug 2014, Feb 2017, Aug 2022) [Pg 934,935]",
+              "2. Occupational cancers and prevention **** (Aug 2014, Aug 2017, Sep 2021, Apr 2022) [Pg 935]",
+              "3. Benefits of ESI Scheme *** (Feb 2010, Feb 2014, Feb 2018) [Pg 943]",
+              "4. Sickness Absenteeism ** (Feb 2012, Aug 2014) [Pg 937]",
+              "5. Occupational hazards of agricultural workers. ** (Aug 2013, Aug 2016) [Pg 936]",
+              "6. Occupational health * (Feb 2010) [Pg 930,945]",
+              "7. Describe respiratory diseases common among farmers with Causes, prevention and control. * (Aug 2012) [Pg 934]",
+              "8. Silicosis. * (Feb 2014) [Pg 933]",
+              "9. Discuss the effects and control of noise pollution * (Aug 2018) [Pg 870]",
+              "10. What are the health problems due to industrialization? * (Feb 2020) [Pg 937]",
+              "11. Maternity leave under the ESI act – Discuss eligibility, rationale and benefits. * (Nov 2020) [Pg 945]",
+              "12. What are the sources and effects of radiation? * (Feb 2023) [Pg 936]",
+              "13. Anthracosis * [Pg:933]",
+              "14. Bagassosis * [Pg:934]",
+              "15. Asbestosis * [Pg:934]",
+              "16. The factories act * [Pg:942]",
+              "17. Ergonomics * [Pg:930]"
+            ]
+          }
+        },
+        "medicine-and-social-science": {
+          name: "MEDICINE & SOCIAL SCIENCE",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. Discuss the cultural factors affecting health. * (Aug 2018) [Pg 801]",
+              "2. What is basic model of nuclear family? Discuss the various cultural factors in and disease. * (Feb 2013) [Pg 798,801]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Medical social worker ***** (Feb 2010, Aug 2011, Aug 2012, Feb 2017, Feb 2023) [Pg.817]",
+              "2. Role of family in health and disease *** (Feb 2011, Aug 2017, Aug 2022) [Pg.787]",
+              "3. Acculturation *** (Aug 2009, Feb 2010, Feb 2015) [Pg. 808]",
+              "4. Types of learning. ** (Feb 2016, Feb 2021) [Pg.792]",
+              "5. Social security for industrial workers. * (Feb 2017) [Pg.792]",
+              "6. What are the preventive measures applicable for child labour? * (Feb 2020) [Pg.799]",
+              "7. Cultural factors in health and disease * (Aug 2016) [Pg.801]",
+              "8. Défense mechanisms identified by psychologists. * (Feb 2014) [Pg.793]",
+              "9. What is consumer protection act? * (Aug 2010) [Pg.809]",
+              "10. Art of interview * (Feb 2015) [Pg.810]",
+              "11. Operational Research * (Aug 2013) [Pg.811]",
+              "12. Drug addiction * (Aug 2009) [Pg.812]",
+              "13. Enlist the rights of the Patient * (Aug 2014) [Pg.810]"
+            ]
+          }
+        },
+        "mental-health": {
+          name: "MENTAL HEALTH",
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Crucial points in the life cycle of man *** (Aug 2009, Aug 2011, Aug 2012) [Pg:959]",
+              "2. Prevention of drug dependence ** (Aug 2013, Aug 2015) [Pg:965]",
+              "3. Warning signals of poor mental health * (Feb 2013) [Pg:958]",
+              "4. Causes of mental ill health * (Feb 2011) [Pg:959]",
+              "5. Factors associated with high risk for drug abuse * (Feb 2014) [Pg:965]",
+              "6. Comprehensive mental health action plan * [Pg:956]",
+              "7. Prevention of drug dependence and alcoholism * [Pg:965]"
+            ]
+          }
+        },
+        "health-information-and-medical-statistics": {
+          name: "HEALTH INFORMATION & MEDICAL STATISTICS",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. What is sampling? Explain random sampling methods with suitable examples. ** (Aug 2012, Aug 2015) [Pg no 977]",
+              "2. Define health information. Describe various source of health information. * [Pg no 967-971]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Chi-Square test **** (Aug 2009, Feb 2012,2014, Feb 2020) [Pg no 980]",
+              "2. sampling methods **** (Aug 2008, Feb 2011, Feb 2012, Feb 2023) [Pg no 978]",
+              "3. Population surveys ** (Aug 2013,2015) [Pg no 970]",
+              "4. Tests of significance. ** (Feb 2018, Feb 2022) [Pg no 978]",
+              "5. Enlist the probability sampling methods. Elaborate on any two methods. * (Feb 2019) [Pg no 977]",
+              "6. Standard deviation * (Feb 2009) [Pg no 976]",
+              "7. Histogram * (Feb 2010) [Pg no 973]",
+              "8. Sampling error. * (Aug 2010) [Pg no 978]",
+              "9. Presentation of statistical data. * (Feb 2011) [Pg no 927]",
+              "10. Medical record linkage * (Aug 2010) [Pg no 970]",
+              "11. Normal distribution * (Feb 2011) [Pg no 977]",
+              "12. Measures of central tendency. * (Feb 2013) [Pg no 975]",
+              "13. Population surveys as a source of health information * (Feb 2013) [Pg no 970]",
+              "14. Standard normal curve * (Aug 2014) [Pg no 977]",
+              "15. Measures of dispersion * (Feb 2015) [Pg no 976]",
+              "16. Sources of health information. * (Feb 2017) [Pg no 968]",
+              "17. Histogram. * (Aug 2017) [Pg no 973]",
+              "18. Correlation and regression. * (Sep 2021) [Pg no 980]",
+              "19. Census * (Aug 2022) [Pg no 968]"
+            ]
+          }
+        },
         "principles-methods-epidemiology": {
           name: "PRINCIPLES & METHODS OF EPIDEMIOLOGY",
           essay: {
@@ -135,6 +409,48 @@ export const communityMedicineData = {
             ]
           }
         },
+        "hospital-waste-management": {
+          name: "HOSPITAL WASTE MANAGEMENT",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. Health care waste-Hazards and methods of disposal? * [Pg:916]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Biomedical waste management * (Feb 2016) [Pg 919]",
+              "2. Safe injection practices * (Feb 2016)",
+              "3. Define the categories, colour coding and containers used in biomedical waste management? * (Feb 2020) [Pg 919]",
+              "4. Explain biomedical waste management of wastes associated with COVID disease.? * (Aug 2020) [Pg 920]",
+              "5. Health hazards of healthcare waste? * (Feb 2023) [Pg 916]"
+            ]
+          }
+        },
+        "2nd-paper-questions-in-1st-paper": {
+          name: "2ND PAPER QUESTIONS ASKED IN 1ST PAPER UNIVERSITY EXAM",
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Barriers of communications * (Aug 2008)",
+              "2. Dietary goals. * (Aug 2008)",
+              "3. Mid day Meal Programme. * (Aug 2008)",
+              "4. Group discussion. * (Feb 2009)",
+              "5. Aflatoxins. * (Feb 2009)",
+              "6. Child guidance clinic * (Feb 2009)",
+              "7. Functions of world health organization. * (Aug 2009)",
+              "8. Approach to health education. * (Aug 2009)",
+              "9. Health Hazards of health-care waste. * (Aug 2013)",
+              "10. Types of health care delivery system in India * (Feb 2015)"
+            ]
+          }
+        }
+      }
+    },
+    "paper-2": {
+      name: "Paper 2",
+      subtopics: {
         "epidemiology-of-communicable-diseases": {
           name: "EPIDEMIOLOGY OF COMMUNICABLE DISEASES",
           essay: {
@@ -239,322 +555,6 @@ export const communityMedicineData = {
               "15. Enumerate the measures to combat obesity. * (Feb 2023) [pg no 454]",
               "16. Tracking BP * [pg:427]",
               "17. Warning signs of cancer * [pg:438]"
-            ]
-          }
-        },
-        "health-programmes": {
-          name: "HEALTH PROGRAMMES [SDG & MDG]",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. What is National vector-borne disease control programme? Describe and discuss National Anti-Malarial Programme. * (Aug 2009) [pg no 472]",
-              "2. What are the objectives of Revised National Tuberculosis Control Programme? How are diagnosis, categorization and treatment of tuberculosis done according to RNTCP? * (Feb 2017) [pg no 485]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Vitamin A prophylaxis programme * (Feb 2009) [Pg no:756]",
-              "2. Describe the various strategies used in national vector borne diseases control programme * (Feb 2020) [pg no 472]"
-            ]
-          }
-        },
-        "environment-and-health": {
-          name: "ENVIRONMENT & HEALTH",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. Air Pollution? Source of air pollution, strategies regarding the preventive measures of air pollution in our country ** (Aug 2008, Feb 2020) [Pg 859,860]",
-              "2. What is water pollution? Write in detail about water related diseases. * (Feb 2009) [Pg 837]",
-              "3. Define sewage. Enlist the various methods of disposal of sewage in unsewered areas. Discuss briefly about water seal latrine. * (Feb 2012) [Pg 888,884]",
-              "4. Explain the methods of refuse disposal. * (Feb 2013) [Pg 881]",
-              "5. Discuss in detail about the Integrated Vector control? * (Feb 2014) [Pg 320]",
-              "6. What are health hazards of improper solid waste disposal? Explain in detail the various methods of solid waste management. * (Aug 2016) [Pg 880,881]",
-              "7. List the water related diseases. How is water purified on a large scale? * (Feb 2017) [Pg 837,838]",
-              "8. Define refuse. Enumerate the health hazards due to solid wastes. Discuss the various sources, collection and methods of disposal of solid wastes. * (Feb 22) [Pg 880]",
-              "9. Mode of transmission – Arboviral disease? Arthropod control? * [Pg:894]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Swimming pool sanitation. *** (Aug 2014, Aug 2017, Feb 2022) [Pg 855]",
-              "2. Sanitation barrier ** (Feb, Aug 2010) [Pg 883]",
-              "3. Oxidation pond. ** (Feb 2016, Feb '23) [Pg 891]",
-              "4. Principles of chlorination ** (Feb 2015, Aug 2022) [Pg 841]",
-              "5. Surveillance of drinking water quality. ** (Aug 2015, Apr 2022) [Pg 852]",
-              "6. Discuss the sources and hazards of indoor air pollution ** (Aug2019, Sep 2021) [Pg 863]",
-              "7. Healthful school environment * (Aug 2008) [Pg 658]",
-              "8. Types of ventilation * (Feb 2009) [Pg 866]",
-              "9. Control of noise pollution. * (Aug 2009) [Pg 870]",
-              "10. Soakage pit * (Feb 2010) [Pg 836]",
-              "11. Refuse disposal methods in rural areas. * (Aug 2010) [Pg 881]",
-              "12. Methods of disposal of solid wastes. * (Feb 2011) [Pg 881]",
-              "13. Purification of water on large scale. * (Aug 2010) [Pg 838]",
-              "14. Causes and effects of global warming. * (Feb 2011) [Pg 875]",
-              "15. Integrated approach in vector control. * (Aug 2011) [Pg 320]",
-              "16. Hazards of environmental pollution * (Feb 2012)",
-              "17. Overcrowding * (Feb 2012) [Pg 879]",
-              "18. What are the sources of water pollution? How do they affect health? * (Aug 2012) [Pg 837]",
-              "19. Control of scabies. * (Aug 2013) [Pg 908]",
-              "20. Enlist the major air pollutants and describe measures to control it. * (Aug 2014) [Pg 860,865]",
-              "21. Discuss the effects of atmospheric pressure on health. * (Aug 2014) [Pg 873]",
-              "22. Non auditory effects of noise pollution * (Feb 2015) [Pg 869]",
-              "23. Health hazards of health care wastes. * (Aug 2017) [Pg 916]",
-              "24. Describe the design and working of a septic tank. * (Aug 2018) [Pg 886]",
-              "25. Enlist the minimum standards of housing in an urban area. * (Feb 2019) [Pg 878]",
-              "26. Describe the attributes of a sanitary well. * (Aug 2019) [Pg 836]",
-              "27. Enlist the principal methods of refuse disposal. Describe the method used in metropolitan cities and highlight the environmental hazards associated with it. * (Aug 2019) [Pg 881]",
-              "28. Enumerate the indicators of housing. * (Feb 2020) [Pg 879]",
-              "29. Discuss the small scale measures that can be practiced for making water potable. * (Nov 2020) [Pg 843]",
-              "30. Suitable measures of portable water supply to rural areas. *",
-              "31. Rapid sand filter feature. * [Pg:840]",
-              "32. Free residual chlorine. * [Pg:842]",
-              "33. Disinfection wells * [Pg:844]",
-              "34. Bacteriological standards of drinking water. * [Pg:849]",
-              "35. Hardness of water. * [Pg:853]",
-              "36. Defluoridation. * [Pg:854]",
-              "37. Comfort zones. * [Pg:859]",
-              "38. Indices of thermal comfort * [Pg:859]",
-              "39. Prevention, control, indicators of air pollution. * [Pg:865]",
-              "40. Heat stroke. * [Pg:874]",
-              "41. Green house effect and global warming. * [Pg:875]",
-              "42. Inter-relation between housing and health. * [Pg:878]",
-              "43. Housing standards. * [Pg:878]",
-              "44. Incineration * [Pg:881]",
-              "45. Composting * [Pg:882]",
-              "46. Sanitary methods of disposal of sewage in rural areas. *",
-              "47. Biochemical Oxygen Demand. * [Pg:889]",
-              "48. Secondary treatment of sewage. * [Pg:890]",
-              "49. Biological transmission of arthropod borne diseases. * [Pg:894]",
-              "50. Enumerate arthropods of medical importance and discuss integrated vector control. * [Pg:893]",
-              "51. Mosquito control measures. * [Pg:898]",
-              "52. Sandfly * [Pg:901]",
-              "53. Cyclops * [Pg:908]",
-              "54. Paris green * [Pg:911]",
-              "55. Anti-rodent measures. * [Pg:912]"
-            ]
-          }
-        },
-        "occupational-health": {
-          name: "OCCUPATIONAL HEALTH",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. Classify the various occupational diseases. Discuss the measures for prevention of occupational diseases. ** (Feb 2016, Feb 2023) [Pg 932,939]",
-              "2. Define Pneumoconiosis. Explain the various measures for prevention of occupational diseases. * (Aug 2010) [Pg 933,939]",
-              "3. Enlist the occupational pneumoconiosis. Describe the pathogenesis, clinical features and prevention of silicosis. * (Aug 2018) [Pg 933]",
-              "4. Classify occupational diseases. Epidemiology and prevention of pneumoconiosis. * (Feb 2022) [Pg 932,933]",
-              "5. Social security? Measures provided to factory workers? Benefits under ESI scheme. * [Pg:817,943]",
-              "6. Social security? Its measures for organised sectors. * [Pg:817]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Lead poisoning and its prevention. ***** (Aug 2009, Feb 2011, Aug 2014, Feb 2017, Aug 2022) [Pg 934,935]",
-              "2. Occupational cancers and prevention **** (Aug 2014, Aug 2017, Sep 2021, Apr 2022) [Pg 935]",
-              "3. Benefits of ESI Scheme *** (Feb 2010, Feb 2014, Feb 2018) [Pg 943]",
-              "4. Sickness Absenteeism ** (Feb 2012, Aug 2014) [Pg 937]",
-              "5. Occupational hazards of agricultural workers. ** (Aug 2013, Aug 2016) [Pg 936]",
-              "6. Occupational health * (Feb 2010) [Pg 930,945]",
-              "7. Describe respiratory diseases common among farmers with Causes, prevention and control. * (Aug 2012) [Pg 934]",
-              "8. Silicosis. * (Feb 2014) [Pg 933]",
-              "9. Discuss the effects and control of noise pollution * (Aug 2018) [Pg 870]",
-              "10. What are the health problems due to industrialization? * (Feb 2020) [Pg 937]",
-              "11. Maternity leave under the ESI act – Discuss eligibility, rationale and benefits. * (Nov 2020) [Pg 945]",
-              "12. What are the sources and effects of radiation? * (Feb 2023) [Pg 936]",
-              "13. Anthracosis * [Pg:933]",
-              "14. Bagassosis * [Pg:934]",
-              "15. Asbestosis * [Pg:934]",
-              "16. The factories act * [Pg:942]",
-              "17. Ergonomics * [Pg:930]"
-            ]
-          }
-        },
-        "health-information-and-medical-statistics": {
-          name: "HEALTH INFORMATION & MEDICAL STATISTICS",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. What is sampling? Explain random sampling methods with suitable examples. ** (Aug 2012, Aug 2015) [Pg no 977]",
-              "2. Define health information. Describe various source of health information. * [Pg no 967-971]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Chi-Square test **** (Aug 2009, Feb 2012,2014, Feb 2020) [Pg no 980]",
-              "2. sampling methods **** (Aug 2008, Feb 2011, Feb 2012, Feb 2023) [Pg no 978]",
-              "3. Population surveys ** (Aug 2013,2015) [Pg no 970]",
-              "4. Tests of significance. ** (Feb 2018, Feb 2022) [Pg no 978]",
-              "5. Enlist the probability sampling methods. Elaborate on any two methods. * (Feb 2019) [Pg no 977]",
-              "6. Standard deviation * (Feb 2009) [Pg no 976]",
-              "7. Histogram * (Feb 2010) [Pg no 973]",
-              "8. Sampling error. * (Aug 2010) [Pg no 978]",
-              "9. Presentation of statistical data. * (Feb 2011) [Pg no 927]",
-              "10. Medical record linkage * (Aug 2010) [Pg no 970]",
-              "11. Normal distribution * (Feb 2011) [Pg no 977]",
-              "12. Measures of central tendency. * (Feb 2013) [Pg no 975]",
-              "13. Population surveys as a source of health information * (Feb 2013) [Pg no 970]",
-              "14. Standard normal curve * (Aug 2014) [Pg no 977]",
-              "15. Measures of dispersion * (Feb 2015) [Pg no 976]",
-              "16. Sources of health information. * (Feb 2017) [Pg no 968]",
-              "17. Histogram. * (Aug 2017) [Pg no 973]",
-              "18. Correlation and regression. * (Sep 2021) [Pg no 980]",
-              "19. Census * (Aug 2022) [Pg no 968]"
-            ]
-          }
-        },
-        "2nd-paper-questions-in-1st-paper": {
-          name: "2ND PAPER QUESTIONS ASKED IN 1ST PAPER UNIVERSITY EXAM",
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Barriers of communications * (Aug 2008)",
-              "2. Dietary goals. * (Aug 2008)",
-              "3. Mid day Meal Programme. * (Aug 2008)",
-              "4. Group discussion. * (Feb 2009)",
-              "5. Aflatoxins. * (Feb 2009)",
-              "6. Child guidance clinic * (Feb 2009)",
-              "7. Functions of world health organization. * (Aug 2009)",
-              "8. Approach to health education. * (Aug 2009)",
-              "9. Health Hazards of health-care waste. * (Aug 2013)",
-              "10. Types of health care delivery system in India * (Feb 2015)"
-            ]
-          }
-        }
-      }
-    },
-    "paper-2": {
-      name: "Paper 2",
-      subtopics: {
-        "nutrition-and-health": {
-          name: "NUTRITION AND HEALTH",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. Discuss in detail the causes, detrimental effects and various preventive Measures of nutritional anaemia. * (Feb 2012) [Pg:756]",
-              "2. Epidemiology and prevention of Nutritional anemia. Add a note Anaemia Mukt Bharat.? * (Feb 2022) [Pg:756,775]",
-              "3. Discuss in detail the problem of nutritional anemia, its causes, detrimental effects and intervention? * (Feb 2023) [Pg:756]",
-              "4. Describe in detail about assessment of nutritional status of community <5 yr. child)? * (Aug 2011) [Pg:762]",
-              "5. What is nutritional assessment? Write in detail how you would assess the Nutritional status of a community. * (Feb 2016) [Pg:762]",
-              "6. Describe in detail the various community nutrition programs in India. * (Aug 2016) [Pg:753]",
-              "7. Give an account of commonly occurring food toxicants in India and their prevention. * (Aug 2010) [Pg:771]",
-              "8. Define malnutrition, specify its problems. Describe the etiology and preventions and control measures for the same. * (Aug 2009) [Pg:754]",
-              "9. Mention the various health problems of the school child. Discuss in detail about the objectives and aspects of school health service. * (Aug 2017) [pg no.657]",
-              "10. What are the common causes for under five year mortality in India? How will you classify and treat diarrhea at the community level. Add a note on home available fluid. * (Aug 2018) [Pg no. 652, 263, 269]",
-              "11. What is the statutory body which regulates the food quality and safety in India? What is food fortification and common food fortification permitted? Add a note on food additives? * (Aug 2019) [Pg: 772, 773]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Iodine deficiency disorders control programs ** (Aug 2013, Feb 2015) [Pg:723]",
-              "2. Iodine deficiency disorders and its control. ** (Aug. 2017, Aug 2022) [Pg:758]",
-              "3. Endemic fluorosis ** (Aug 2011, Feb 2013) [Pg:758]",
-              "4. Food fortification ** (Feb 2012, Aug 2014) [Pg:773]",
-              "5. Health problems in urban slums ** (Feb 2010, Aug 2010)",
-              "6. Prevention and control of Lathyrism ** (Feb 2010, Feb 2012) [Pg:759]",
-              "7. Nutritional anemia * (Aug 2009) [Pg:756]",
-              "8. Lathyrism * (Feb 2010) [Pg:759]",
-              "9. Gomez' classification. * (Aug 2012)",
-              "10. Clinical manifestations of malnutrition * (Feb 2010) [Pg: 755]",
-              "11. Diet surveys * (Feb 2010) [Pg: 764]",
-              "12. Diabetic diet * (Aug 2010) [Pg:729]",
-              "13. Pasteurization milk * (Feb 2011) [Pg:769]",
-              "14. Factors affecting energy requirements * (Feb 2012) [pg no.748]",
-              "15. Prevention of Xerophthalmia * (Feb 2012) [pg no.756]",
-              "16. Epidemic Dropsy * (Aug 2016) [pg no.772]",
-              "17. Nutritional factors in cardiovascular disease. * (Feb 2017) [pg no.760]",
-              "18. Balanced diet. * (Feb 2017) [pg no.751]",
-              "19. Trans fatty acids. * (Aug. 2017) [pg no.758]",
-              "20. Enumerate the strategies of 'National Nutritional Policy'. * (Feb 2018)",
-              "21. Iodine Deficiency Disorders (IDD) with reference to pregnancy and infancy. * (Aug 2018) [pg no.739, 724]",
-              "22. Name water soluble vitamins and write about the deficiency manifestation of thiamine * (Aug. 2018) [pg no. 730, 733]",
-              "23. Prevention of Food Adulteration Act. * (Aug. 2017) [pg no. 773]",
-              "24. Explain the anemia control programme. * (Feb 2020) [pg no. 775]",
-              "25. Discuss about inclusion of WHOLE CEREALS in diet? * (Aug. 2020) [pg no 741]",
-              "26. Surveillance measures at ports for control of infectious disease. * (Aug 2020)",
-              "27. Food toxicants? * (Feb 2021) [Pg:771]",
-              "28. Evaluate Mid-day meal programme? * (Feb 2023) [Pg:776]"
-            ]
-          }
-        },
-        "genetics-and-health": {
-          name: "GENETICS & HEALTH",
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Genetic counselling **** (Aug 2011, Aug 2014, Feb 2015, Feb 2022) [Pg 955]",
-              "2. Prevention of genetic disorders. ** (Aug 2017, Aug 2022) [Pg 954]",
-              "3. Chromosomal Abnormalities * (Feb 2013) [Pg 948]",
-              "4. Factors influence the gene frequencies in human population * (Aug 2013) [Pg 954]",
-              "5. Eugenics * (Aug 2010) [Pg 954]",
-              "6. Explain advantages and dangers of Genetic Engineering. * (Aug 2020) [Pg 947]",
-              "7. Turner's syndrome * [Pg:949]",
-              "8. Sex linked inheritance * [Pg:949]",
-              "9. In utero diagnosis * [Pg:955]"
-            ]
-          }
-        },
-        "medicine-and-social-science": {
-          name: "MEDICINE & SOCIAL SCIENCE",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. Discuss the cultural factors affecting health. * (Aug 2018) [Pg 801]",
-              "2. What is basic model of nuclear family? Discuss the various cultural factors in and disease. * (Feb 2013) [Pg 798,801]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Medical social worker ***** (Feb 2010, Aug 2011, Aug 2012, Feb 2017, Feb 2023) [Pg.817]",
-              "2. Role of family in health and disease *** (Feb 2011, Aug 2017, Aug 2022) [Pg.787]",
-              "3. Acculturation *** (Aug 2009, Feb 2010, Feb 2015) [Pg. 808]",
-              "4. Types of learning. ** (Feb 2016, Feb 2021) [Pg.792]",
-              "5. Social security for industrial workers. * (Feb 2017) [Pg.792]",
-              "6. What are the preventive measures applicable for child labour? * (Feb 2020) [Pg.799]",
-              "7. Cultural factors in health and disease * (Aug 2016) [Pg.801]",
-              "8. Défense mechanisms identified by psychologists. * (Feb 2014) [Pg.793]",
-              "9. What is consumer protection act? * (Aug 2010) [Pg.809]",
-              "10. Art of interview * (Feb 2015) [Pg.810]",
-              "11. Operational Research * (Aug 2013) [Pg.811]",
-              "12. Drug addiction * (Aug 2009) [Pg.812]",
-              "13. Enlist the rights of the Patient * (Aug 2014) [Pg.810]"
-            ]
-          }
-        },
-        "communication-for-health-education": {
-          name: "COMMUNICATION FOR HEALTH EDUCATION",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. a) Define health education. Discuss in detail various principles of health education (Feb 2012) b) Discuss in details the principles of health education *** (Feb 2010, Aug 2010) [pg no 985]",
-              "2. a) Describe the methods of health education to groups of people (Group approach) (Aug 2013). b) Describe the methods of health education to groups of people with their merits and demerits ** (Feb 2015) [pg no 991]",
-              "3. Discuss the various methods in health communication. * (Aug. 2017) [pg no 983]",
-              "4. Define 'Motivation' in health education. Enumerate the methods used in individual approach and group approach of health education. * (Feb 2020) [pg no 984,991]",
-              "5. Define health education. Discuss various methods used in delivering health education? * (Feb 2021) [pg no 985]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Barriers of communication *** (Feb 2011, Aug 2012, Aug 2022) [pg no 984]",
-              "2. Behaviour change communication and its uses. ** (Feb 2019, Feb 2022)",
-              "3. Content of Health Education ** (Aug 2011, Aug 2019) [pg no 988]",
-              "4. Barriers of health education. * (Aug 2015) [pg no",
-              "5. Types of communication * (Feb 2013) [pg no 983]",
-              "6. Health education Vs Health propaganda * (Feb 2016) [pg no 987]",
-              "7. Models of Health Education * (Feb 2014) [pg no 987]",
-              "8. Principles of health education * (Aug 2016) [pg no 989]",
-              "9. Discuss 'workshop' as a method of education * (Aug 2014) [pg no 993]",
-              "10. Discuss qualitative and quantitative methods of health education * (Feb 2010) [pg no 985]",
-              "11. Mention four approaches to health education. * (Feb 2017) [pg no 986]",
-              "12. Approach to health education. * (Feb 2023) [pg no 986]",
-              "13. Group discussion * [Pg:992]",
-              "14. Roleplay and workshop * [Pg:993]"
             ]
           }
         },
@@ -678,50 +678,6 @@ export const communityMedicineData = {
             ]
           }
         },
-        "disaster-management": {
-          name: "DISASTER MANAGEMENT",
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Disaster preparedness ** (Aug 2015, Aug 2016) [Pg 925]",
-              "2. Triage in disaster management ** (Aug 2014, Feb 2018) [Pg 923]"
-            ]
-          }
-        },
-        "hospital-waste-management": {
-          name: "HOSPITAL WASTE MANAGEMENT",
-          essay: {
-            name: "Essay",
-            questions: [
-              "1. Health care waste-Hazards and methods of disposal? * [Pg:916]"
-            ]
-          },
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Biomedical waste management * (Feb 2016) [Pg 919]",
-              "2. Safe injection practices * (Feb 2016)",
-              "3. Define the categories, colour coding and containers used in biomedical waste management? * (Feb 2020) [Pg 919]",
-              "4. Explain biomedical waste management of wastes associated with COVID disease.? * (Aug 2020) [Pg 920]",
-              "5. Health hazards of healthcare waste? * (Feb 2023) [Pg 916]"
-            ]
-          }
-        },
-        "mental-health": {
-          name: "MENTAL HEALTH",
-          "short-notes": {
-            name: "Short Notes",
-            questions: [
-              "1. Crucial points in the life cycle of man *** (Aug 2009, Aug 2011, Aug 2012) [Pg:959]",
-              "2. Prevention of drug dependence ** (Aug 2013, Aug 2015) [Pg:965]",
-              "3. Warning signals of poor mental health * (Feb 2013) [Pg:958]",
-              "4. Causes of mental ill health * (Feb 2011) [Pg:959]",
-              "5. Factors associated with high risk for drug abuse * (Feb 2014) [Pg:965]",
-              "6. Comprehensive mental health action plan * [Pg:956]",
-              "7. Prevention of drug dependence and alcoholism * [Pg:965]"
-            ]
-          }
-        },
         "health-care-of-community": {
           name: "HEALTH CARE OF COMMUNITY",
           essay: {
@@ -751,6 +707,33 @@ export const communityMedicineData = {
             ]
           }
         },
+        "health-programmes": {
+          name: "HEALTH PROGRAMMES [SDG & MDG]",
+          essay: {
+            name: "Essay",
+            questions: [
+              "1. What is National vector-borne disease control programme? Describe and discuss National Anti-Malarial Programme. * (Aug 2009) [pg no 472]",
+              "2. What are the objectives of Revised National Tuberculosis Control Programme? How are diagnosis, categorization and treatment of tuberculosis done according to RNTCP? * (Feb 2017) [pg no 485]"
+            ]
+          },
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Vitamin A prophylaxis programme * (Feb 2009) [Pg no:756]",
+              "2. Describe the various strategies used in national vector borne diseases control programme * (Feb 2020) [pg no 472]"
+            ]
+          }
+        },
+        "disaster-management": {
+          name: "DISASTER MANAGEMENT",
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Disaster preparedness ** (Aug 2015, Aug 2016) [Pg 925]",
+              "2. Triage in disaster management ** (Aug 2014, Feb 2018) [Pg 923]"
+            ]
+          }
+        },
         "international-health": {
           name: "INTERNATIONAL HEALTH",
           "short-notes": {
@@ -767,6 +750,23 @@ export const communityMedicineData = {
               "9. What are the functions of Indian Red Cross Society? * (Feb 2018) [Pg no:1032]",
               "10. What are the international health regulations in use for disease control? * (Feb 2020)",
               "11. Niti Ayog.? * (Feb 2023) [Pg no:1002]"
+            ]
+          }
+        },
+        "genetics-and-health": {
+          name: "GENETICS & HEALTH",
+          "short-notes": {
+            name: "Short Notes",
+            questions: [
+              "1. Genetic counselling **** (Aug 2011, Aug 2014, Feb 2015, Feb 2022) [Pg 955]",
+              "2. Prevention of genetic disorders. ** (Aug 2017, Aug 2022) [Pg 954]",
+              "3. Chromosomal Abnormalities * (Feb 2013) [Pg 948]",
+              "4. Factors influence the gene frequencies in human population * (Aug 2013) [Pg 954]",
+              "5. Eugenics * (Aug 2010) [Pg 954]",
+              "6. Explain advantages and dangers of Genetic Engineering. * (Aug 2020) [Pg 947]",
+              "7. Turner's syndrome * [Pg:949]",
+              "8. Sex linked inheritance * [Pg:949]",
+              "9. In utero diagnosis * [Pg:955]"
             ]
           }
         },
