@@ -115,7 +115,7 @@ const About = () => {
               Created and maintained by <strong>Sabharivarshan S</strong>
             </p>
             <a 
-              href="https://www.instagram.com/_varshan_king/" 
+              href="https://www.instagram.com/_varshann_s?igsh=MW9wdXozOW5yeDRydA==" 
               target="_blank" 
               rel="noopener noreferrer"
             >
