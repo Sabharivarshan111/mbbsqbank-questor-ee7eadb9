@@ -96,7 +96,7 @@ const PrivacyPolicy = () => {
             <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4">8. Contact Us</h2>
             <p>
               If you have questions about this Privacy Policy, please contact us through our{' '}
-              <a href="https://www.instagram.com/_varshan_king/" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/_varshann_s?igsh=MW9wdXozOW5yeDRydA==" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
                 Instagram
               </a>.
             </p>

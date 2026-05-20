@@ -69,7 +69,7 @@ const Index = () => {
             </div>
             Created by{' '}
             <a 
-              href="https://www.instagram.com/_varshan_king/" 
+              href="https://www.instagram.com/_varshann_s?igsh=MW9wdXozOW5yeDRydA==" 
               target="_blank" 
               rel="noopener noreferrer"
               className="transition-all duration-300 animate-pulse text-primary drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] cursor-pointer px-2 py-1 rounded-md border border-transparent border-primary/30 bg-primary/10 hover:animate-none"
