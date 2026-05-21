@@ -1,19 +1,22 @@
 
 import { useState, useEffect } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
+import { CustomThemeDialog } from "./CustomThemeDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, customColors } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
 
   // After mounting, we have access to the theme
   useEffect(() => {
@@ -90,8 +93,28 @@ export function ThemeToggle() {
             <span className="text-[#FF5C8D] font-bold">BP</span>
             <span>Black Pink</span>
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setTheme("custom")}
+          >
+            <span
+              className="h-4 w-4 rounded-full border border-border"
+              style={{ background: `linear-gradient(135deg, ${customColors.background}, ${customColors.primary})` }}
+            />
+            <span>My Theme</span>
+            {theme === "custom" && <span className="ml-auto text-xs">Active</span>}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setCustomOpen(true)}
+          >
+            <Palette className="h-4 w-4" />
+            <span>Create Your Own…</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <CustomThemeDialog open={customOpen} onOpenChange={setCustomOpen} />
     </div>
   );
 }

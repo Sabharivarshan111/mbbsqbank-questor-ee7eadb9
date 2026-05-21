@@ -9,7 +9,8 @@ import { useTheme } from './theme/ThemeProvider';
 import { Button } from './ui/button';
 
 const PomodoroTimer = () => {
-  const { theme } = useTheme();
+  const { theme: rawTheme } = useTheme();
+  const theme: "dark" | "light" | "blackpink" = rawTheme === "custom" ? "dark" : rawTheme;
   const [isVisible, setIsVisible] = useState(true);
   const {
     minutes,
