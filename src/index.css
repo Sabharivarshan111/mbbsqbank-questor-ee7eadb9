@@ -541,3 +541,65 @@
 .blackpink .question-card > * {
   color: #FFDEE2 !important;
 }
+
+/* ============================================
+   Custom theme overrides — re-skin hardcoded
+   light/gray backgrounds with custom CSS vars
+   ============================================ */
+.custom *[class*="bg-white"],
+.custom *[class*="bg-gray-50"],
+.custom *[class*="bg-gray-100"],
+.custom *[class*="bg-gray-200"],
+.custom *[class*="bg-slate-50"],
+.custom *[class*="bg-slate-100"],
+.custom *[class*="bg-zinc-50"],
+.custom *[class*="bg-zinc-100"] {
+  background-color: hsl(var(--card)) !important;
+}
+
+.custom *[class*="bg-gray-300"],
+.custom *[class*="bg-gray-400"],
+.custom *[class*="bg-slate-200"],
+.custom *[class*="bg-slate-300"] {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.custom *[class*="bg-gray-700"],
+.custom *[class*="bg-gray-800"],
+.custom *[class*="bg-gray-900"],
+.custom *[class*="bg-gray-950"],
+.custom *[class*="bg-slate-800"],
+.custom *[class*="bg-slate-900"],
+.custom *[class*="bg-zinc-800"],
+.custom *[class*="bg-zinc-900"],
+.custom *[class*="bg-black"] {
+  background-color: hsl(var(--card)) !important;
+}
+
+.custom *[class*="hover\\:bg-gray-100"]:hover,
+.custom *[class*="hover\\:bg-gray-200"]:hover,
+.custom *[class*="hover\\:bg-gray-700"]:hover,
+.custom *[class*="hover\\:bg-gray-800"]:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.custom *[class*="text-gray-"],
+.custom *[class*="text-slate-"],
+.custom *[class*="text-zinc-"],
+.custom *[class*="text-black"],
+.custom *[class*="text-white"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+.custom *[class*="border-gray-"],
+.custom *[class*="border-slate-"],
+.custom *[class*="border-zinc-"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+.custom ::-webkit-scrollbar-track {
+  background-color: hsl(var(--background));
+}
+.custom ::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary) / 0.5);
+}
