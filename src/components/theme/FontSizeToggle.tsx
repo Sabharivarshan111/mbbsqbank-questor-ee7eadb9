@@ -68,6 +68,7 @@ export function FontSizeToggle() {
       : "bg-white border border-gray-200 hover:bg-gray-100 text-gray-900";
 
   return (
+    <CircleLabel text="FONT SIZE">
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
