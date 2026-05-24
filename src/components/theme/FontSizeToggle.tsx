@@ -116,5 +116,6 @@ export function FontSizeToggle() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    </CircleLabel>
   );
 }
