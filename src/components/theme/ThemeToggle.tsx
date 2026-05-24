@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { CustomThemeDialog } from "./CustomThemeDialog";
+import { CircleLabel } from "./CircleLabel";
 import {
   DropdownMenu,
   DropdownMenuContent,
