@@ -116,6 +116,7 @@ export function ThemeToggle() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </CircleLabel>
       <CustomThemeDialog open={customOpen} onOpenChange={setCustomOpen} />
     </div>
   );
