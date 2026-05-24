@@ -71,7 +71,8 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
 
             // Compute next mode based on current mode
             setMode(currentMode => {
-              const completedMins = minutesForMode(currentMode);
+              // Use the actual session length (handles inline-edited durations)
+              const completedMins = Math.max(1, Math.round(totalTime / 60));
               let nextMode: PomodoroMode = 'focus';
               if (currentMode === 'focus') {
                 setPomodoroCount(prevCount => {

@@ -1,37 +1,49 @@
-# Curved Labels Around Theme & Font Size Buttons
+# Pomodoro Fixes & Live Study Count
 
-You want the two round buttons in the header (theme picker + font size) to have their names ("THEMES" and "FONT SIZE") curving along the top of the circle border, like in your sketch.
+## 1. Bug: "Today focused" reports wrong minutes
 
-## What I'll build
+**Problem:** When you edit the timer inline (e.g. set 1 min), the stats still log the *setting's* focus duration (25 min). In `use-pomodoro-timer.ts`, on completion we call `onComplete(currentMode, nextMode, minutesForMode(currentMode))` — that returns the **settings value**, ignoring inline edits.
 
-A small reusable wrapper `CircleLabel` that renders an SVG `<text>` on a circular `<path>` (using `textPath`) wrapped around each button. The button itself stays exactly as it is — same icon, same dropdown, same click behavior. Only a thin label arcs along the outer edge.
+**Fix:** Pass the actual session length using `totalTime / 60` (the value the timer was started with) instead of `minutesForMode(currentMode)`. This works for both inline edits and settings-driven durations.
 
-- Font size button → label **"FONT SIZE"** curving along the top
-- Theme button → label **"THEMES"** curving along the top
-- Label uses `text-[8px]` (tiny, uppercase, tracked) in `text-muted-foreground` so it adapts to every theme (dark, light, blackpink, custom)
-- Slight extra outer padding (~14–16px) on the wrapper so the curved text doesn't get clipped and doesn't collide with neighboring elements
+## 2. Close (X) button discoverability
 
-## Files to edit
+**Fix:** Add an accessible tooltip + visible micro-label on hover so users learn the X closes the Pomodoro pill.
 
-- `src/components/theme/CircleLabel.tsx` — new wrapper component (SVG ring + textPath, children = the actual button)
-- `src/components/theme/FontSizeToggle.tsx` — wrap `<Button>` trigger with `<CircleLabel text="FONT SIZE">`
-- `src/components/theme/ThemeToggle.tsx` — wrap the theme `<Button>` trigger with `<CircleLabel text="THEMES">`
+- Wrap the X `Button` in `PomodoroTimer.tsx` with shadcn `<Tooltip>` showing "Close Pomodoro timer".
+- Keep existing `aria-label="Hide Pomodoro Timer"` (rename to "Close Pomodoro timer" for consistency).
+- Also add the same tooltip to the floating Timer icon (when hidden) saying "Show Pomodoro timer".
 
-## Technical detail
+No layout change — same round X button, just a hover/long-press tooltip.
 
-```tsx
-// CircleLabel.tsx (sketch)
-<div className="relative inline-flex items-center justify-center p-3">
-  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 60 60">
-    <defs>
-      <path id={id} d="M 6,30 A 24,24 0 0 1 54,30" fill="none" />
-    </defs>
-    <text className="fill-muted-foreground" style={{ fontSize: 7, letterSpacing: 1.5 }}>
-      <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">{text}</textPath>
-    </text>
-  </svg>
-  {children}
-</div>
+## 3. "Studying with N people right now" badge
+
+Show how many users currently have the app open, live.
+
+**Tech:** Supabase Realtime **Presence** (already available via Lovable Cloud — no new deps, no DB tables, no auth required; uses anonymous channel presence).
+
+**New file:** `src/hooks/use-online-presence.ts`
+- Joins a single channel `presence:studying`.
+- Tracks an anonymous key (random id per tab) on mount, untracks on unmount.
+- Returns `onlineCount` updated on `sync` event.
+- Handles reconnects, cleans up on tab close.
+
+**UI:** In `PomodoroTimer.tsx`, add a small badge next to the "Today: …" line:
+
+```
+Today: 1h 20m focused 🔥  •  👥 12 studying now
 ```
 
-No logic changes, no new deps, no theme-token changes. Out of scope: animating the text, adding labels to other buttons.
+Themed using existing `styles.badge`. Hidden if count < 1 or presence fails.
+
+## Files
+
+- `src/hooks/use-pomodoro-timer.ts` — pass real completed minutes
+- `src/components/PomodoroTimer.tsx` — tooltips on X/show buttons, render studying-now count
+- `src/hooks/use-online-presence.ts` — new, Supabase Realtime presence hook
+
+## Out of scope
+
+- Per-subject or per-room presence (just one global "studying" channel)
+- Showing who is online (privacy: count only, no identities)
+- Stats history rewrite for past wrong entries

@@ -10,6 +10,8 @@ import { TimerProgress } from './pomodoro/TimerProgress';
 import { PomodoroSettingsSheet } from './pomodoro/PomodoroSettingsSheet';
 import { useTheme } from './theme/ThemeProvider';
 import { Button } from './ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { toast } from '@/components/ui/use-toast';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
@@ -30,6 +32,7 @@ const PomodoroTimer = () => {
   const [isVisible, setIsVisible] = useState(true);
   const { settings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
+  const { onlineCount } = useOnlinePresence();
 
   const handleComplete = useCallback(
     (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
@@ -142,15 +145,22 @@ const PomodoroTimer = () => {
 
   if (!isVisible) {
     return (
-      <Button
-        onClick={toggleVisibility}
-        className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 rounded-full p-2 shadow-lg z-50 animate-fade-in ${styles.background} ${styles.text}`}
-        size="icon"
-        variant="outline"
-        aria-label="Show Pomodoro Timer"
-      >
-        <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-      </Button>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={toggleVisibility}
+              className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 rounded-full p-2 shadow-lg z-50 animate-fade-in ${styles.background} ${styles.text}`}
+              size="icon"
+              variant="outline"
+              aria-label="Show Pomodoro timer"
+            >
+              <Timer className={`w-5 h-5 ${styles.iconColor}`} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
@@ -222,15 +232,22 @@ const PomodoroTimer = () => {
               }
             />
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleVisibility}
-              className={`h-8 w-8 rounded-full ${styles.button}`}
-              aria-label="Hide Pomodoro Timer"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleVisibility}
+                    className={`h-8 w-8 rounded-full ${styles.button}`}
+                    aria-label="Close Pomodoro timer"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Close Pomodoro timer</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
@@ -243,6 +260,9 @@ const PomodoroTimer = () => {
 
         <div className={`text-center text-[11px] opacity-80 ${styles.text}`}>
           Today: {formatFocusTime(todayMinutes)} focused 🔥
+          {onlineCount > 0 && (
+            <span className="ml-2">• 👥 {onlineCount} studying now</span>
+          )}
         </div>
       </div>
     </div>
