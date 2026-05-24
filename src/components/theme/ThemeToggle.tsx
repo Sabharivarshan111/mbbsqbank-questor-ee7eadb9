@@ -45,6 +45,7 @@ export function ThemeToggle() {
   return (
     <div className="flex items-center gap-2">
       <FontSizeToggle />
+      <CircleLabel text="THEMES">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
