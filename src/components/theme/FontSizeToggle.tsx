@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Type } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { CircleLabel } from "./CircleLabel";
 
 const MIN_FONT_SIZE = 10;
 const MAX_FONT_SIZE = 20;
@@ -67,6 +68,7 @@ export function FontSizeToggle() {
       : "bg-white border border-gray-200 hover:bg-gray-100 text-gray-900";
 
   return (
+    <CircleLabel text="FONT SIZE">
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -114,5 +116,6 @@ export function FontSizeToggle() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    </CircleLabel>
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { CustomThemeDialog } from "./CustomThemeDialog";
+import { CircleLabel } from "./CircleLabel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +45,7 @@ export function ThemeToggle() {
   return (
     <div className="flex items-center gap-2">
       <FontSizeToggle />
+      <CircleLabel text="THEMES">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -114,6 +116,7 @@ export function ThemeToggle() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </CircleLabel>
       <CustomThemeDialog open={customOpen} onOpenChange={setCustomOpen} />
     </div>
   );
