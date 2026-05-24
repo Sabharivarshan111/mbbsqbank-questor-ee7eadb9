@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Type } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { CircleLabel } from "./CircleLabel";
 
 const MIN_FONT_SIZE = 10;
 const MAX_FONT_SIZE = 20;
