@@ -34,6 +34,15 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Lock body scroll when fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isFullscreen]);
 
   // Scroll to bottom when messages change, but not on first load
   useEffect(() => {
