@@ -303,7 +303,8 @@ const PomodoroTimer = () => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.documentElement,
   );
 };
 
