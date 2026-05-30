@@ -7,10 +7,6 @@ import PomodoroTimer from "@/components/PomodoroTimer";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eye } from "lucide-react";
-import { AdBanner } from "@/components/AdBanner";
-import { HeroSection } from "@/components/home/HeroSection";
-import { WhyChooseUs } from "@/components/home/WhyChooseUs";
-import { ExploreMoreSection } from "@/components/home/ExploreMoreSection";
 import { SEOHead } from "@/components/SEOHead";
 
 const Index = () => {
@@ -79,20 +75,6 @@ const Index = () => {
             <span className="font-bold text-xs text-primary/80 animate-bounce">👆 tap my name for a surprise!</span>
           </div>
           
-          {/* Ad Banner */}
-          <AdBanner adSlot="YOUR_AD_SLOT_1" adFormat="horizontal" className="w-full max-w-3xl mb-8" />
-          
-          {/* Hero Section with Static Content - AFTER Question Bank */}
-          <HeroSection />
-          
-          {/* Why Choose Us Section */}
-          <WhyChooseUs />
-          
-          {/* Explore More Resources */}
-          <ExploreMoreSection />
-          
-          {/* Footer Ad Banner */}
-          <AdBanner adSlot="YOUR_AD_SLOT_2" adFormat="horizontal" className="w-full max-w-3xl" />
         </div>
       </div>
       <PomodoroTimer />
