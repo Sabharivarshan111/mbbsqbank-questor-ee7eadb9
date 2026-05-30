@@ -199,11 +199,12 @@ const PomodoroTimer = () => {
               <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
             </Tooltip>
           </TooltipProvider>,
-          document.documentElement,
+          document.body,
         )}
       </>
     );
   }
+
 
 
   const positionStyle: React.CSSProperties = position
@@ -278,12 +279,17 @@ const PomodoroTimer = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setSettingsOpen(true)}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSettingsOpen(true);
+              }}
               className={`h-8 w-8 rounded-full ${styles.button}`}
               aria-label="Pomodoro settings"
             >
               <Settings2 className="h-4 w-4" />
             </Button>
+
 
 
             <TooltipProvider delayDuration={200}>
@@ -320,8 +326,9 @@ const PomodoroTimer = () => {
         </div>
       </div>
     </div>,
-    document.documentElement,
+    document.body,
   );
+
 };
 
 export default PomodoroTimer;

@@ -1,41 +1,24 @@
-# Liquid Glass — Fullscreen overlay + Pomodoro position
+Plan: Fix Pomodoro settings opening in Liquid Glass
 
-Two related symptoms in Liquid Glass (image 2):
-- Tapping the AI chat expand arrow still shows the chat embedded in the page (footer + page content visible below), not fullscreen.
-- The Pomodoro mini-circle ends up inside the page footer area instead of pinned to the viewport bottom-center like every other theme.
+Root cause
+- The Pomodoro pill is still being portaled directly into `document.documentElement` (`<html>`), which creates invalid DOM (`div` as a child of `html`) and can break stacking/event behavior in Liquid Glass on mobile WebView.
+- The settings button also sits inside the draggable pill wrapper, so touch/drag handling can interfere with a normal tap in Liquid Glass.
 
-Both point to the same root cause: in Liquid Glass an ancestor of these `position: fixed` elements is creating a new containing block, so `inset-0` / `bottom-10 left-1/2` resolve against that ancestor instead of the viewport. The Index page tree is `<div className="min-h-screen ... overflow-x-hidden relative">` and the liquid-glass theme adds `html.liquid-glass body { position: relative; overflow-x: hidden }` plus animation `filter: blur(8px)→blur(0)` on body, which on mobile Chrome turns body into a containing block for fixed children. So the AI fullscreen overlay falls back into normal flow and the Pomodoro pill scrolls with the page.
+Implementation
+1. Update `src/components/PomodoroTimer.tsx`
+   - Stop portaling Pomodoro UI into `document.documentElement`.
+   - Portal the pill/mini-circle into `document.body` instead, matching normal app/modal behavior.
+   - Keep the same fixed bottom-center positioning and existing high z-index for the pill.
+   - Always render the controlled `<PomodoroSettingsSheet />` outside the pill portal so the sheet can stay mounted independently.
+   - When settings opens, hide the pill/mini-circle across all themes until the sheet closes.
+   - Add explicit tap handling on the gear button (`stopPropagation`) so the drag wrapper cannot swallow the settings tap.
 
-The fix is to bypass that ancestor entirely for both floating UIs and harden their positioning.
+2. Update only if needed: `src/components/pomodoro/PomodoroSettingsSheet.tsx`
+   - Ensure the controlled `open` / `onOpenChange` path renders the sheet content without requiring `SheetTrigger`.
+   - Keep the existing settings UI, labels, sliders, and behavior unchanged.
 
-## 1. AI Chat — render fullscreen overlay through a portal mounted on `documentElement`
-
-In `src/components/AiChat.tsx`:
-- Replace the current `createPortal(..., document.body)` with `createPortal(..., document.documentElement)` so even body-level filter/transform/overflow rules cannot scope it.
-- Wrapper styling: `position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 2147483000; isolation: isolate;` plus a solid Liquid Glass background (`bg-[hsl(var(--background))]` not transparent gradient, and a separate inner blurred layer for the frosted look) — guarantees the page content is visually covered even if fixed semantics drift.
-- Keep `document.body.style.overflow = 'hidden'` while open (already in place).
-- Inner card: `flex-1 min-h-0` instead of `h-full` so it stretches to the wrapper regardless of flex/percentage quirks.
-
-## 2. Pomodoro pill — portal it too, and lock its position
-
-In `src/components/PomodoroTimer.tsx`:
-- Wrap both the expanded pill and the minimized circle in `createPortal(..., document.documentElement)` so they always sit at the top of the layer tree.
-- Force positioning with inline style instead of Tailwind classes: `position: fixed; left: 50%; bottom: max(2.5rem, env(safe-area-inset-bottom) + 1rem); transform: translateX(-50%); z-index: 2147483000;` (drop the `transform -translate-x-1/2` Tailwind classes that combine with the drag offset logic).
-- The drag-position branch keeps its existing inline `left/top` override; only the default branch changes.
-- The minimized state's small circle uses the exact same positioning logic, so the closed mini button always lands in the same spot as in Dark/Blackpink/Custom themes.
-
-## 3. Defensive: stop Liquid Glass body fade-in from creating a containing block
-
-In `src/index.css`, the `liquid-fade-in` keyframes use `filter: blur(8px) → blur(0)` on `body`. Even if it's only 600ms, on slow mobile devices this can still be active during the first paint of the Pomodoro pill and bake in a wrong containing block. Change the animation to apply to `html.liquid-glass body::after` (a transparent overlay pseudo-element) instead of `body` itself, keeping the same visual fade without ever touching body's filter property. No color or look change — the fade-in feels identical.
-
-## Out of scope
-
-- No changes to Liquid Glass colors, tokens, gradients, palettes, fonts, or spacing.
-- No changes to AI logic, timer logic, drag/long-press behavior, or visibility persistence.
-- No changes to other themes — they keep their exact current positioning and visuals.
-
-## Files edited
-
-- `src/components/AiChat.tsx` — portal target + solid overlay + inner sizing
-- `src/components/PomodoroTimer.tsx` — portal wrap + inline fixed positioning for pill and mini circle
-- `src/index.css` — move `liquid-fade-in` from `body` to `body::after`
+3. Validate
+   - Liquid Glass: tapping the gear opens the bottom settings sheet visibly.
+   - Pill disappears while settings are open and returns after closing.
+   - Dark, light, and blackpink themes keep the same behavior.
+   - Console no longer shows the invalid `div` inside `html` warning from Pomodoro.
