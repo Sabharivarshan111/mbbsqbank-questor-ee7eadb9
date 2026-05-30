@@ -10,7 +10,7 @@ interface TimerControlsProps {
   resetTimer: () => void;
   waterCount: number;
   setWaterCount: React.Dispatch<React.SetStateAction<number>>;
-  theme: "dark" | "light" | "blackpink";
+  theme: "dark" | "light" | "blackpink" | "liquid-glass";
 }
 
 export const TimerControls: React.FC<TimerControlsProps> = ({

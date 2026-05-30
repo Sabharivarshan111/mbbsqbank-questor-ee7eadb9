@@ -15,7 +15,7 @@ interface TimerDisplayProps {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   handleSubmit: (e?: React.FormEvent) => void;
   inputRef: React.RefObject<HTMLInputElement>;
-  theme: "dark" | "light" | "blackpink";
+  theme: "dark" | "light" | "blackpink" | "liquid-glass";
 }
 
 export const TimerDisplay: React.FC<TimerDisplayProps> = ({
