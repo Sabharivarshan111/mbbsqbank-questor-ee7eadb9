@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
 import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
@@ -155,14 +156,23 @@ const PomodoroTimer = () => {
         ? 'text-violet-400'
         : styles.text;
 
+  const fixedDefaultStyle: React.CSSProperties = {
+    position: 'fixed',
+    left: '50%',
+    bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
+    transform: 'translateX(-50%)',
+    zIndex: 2147483000,
+  };
+
   if (!isVisible) {
-    return (
+    return createPortal(
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               onClick={toggleVisibility}
-              className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 rounded-full p-2 shadow-lg z-50 animate-fade-in ${styles.background} ${styles.text}`}
+              style={fixedDefaultStyle}
+              className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
               size="icon"
               variant="outline"
               aria-label="Show Pomodoro timer"
@@ -172,20 +182,21 @@ const PomodoroTimer = () => {
           </TooltipTrigger>
           <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
         </Tooltip>
-      </TooltipProvider>
+      </TooltipProvider>,
+      document.documentElement,
     );
   }
 
   const positionStyle: React.CSSProperties = position
-    ? { left: position.x, top: position.y, bottom: 'auto', transform: 'none' }
-    : {};
+    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000 }
+    : fixedDefaultStyle;
 
-  return (
+  return createPortal(
     <div
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 ${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] z-50 animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
@@ -292,7 +303,8 @@ const PomodoroTimer = () => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.documentElement,
   );
 };
 

@@ -274,12 +274,29 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   if (isFullscreen) {
     return createPortal(
       <div
-        style={{ height: '100dvh', width: '100vw' }}
-        className={`fixed inset-0 z-[9999] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl" : "bg-background/95 backdrop-blur-sm"}`}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100dvh',
+          zIndex: 2147483000,
+          isolation: 'isolate',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+        className={`flex flex-col p-2 ${isLiquid ? "bg-[hsl(var(--background))]" : "bg-background"}`}
       >
-        {content}
+        {isLiquid && (
+          <div
+            aria-hidden
+            style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}
+            className="bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl"
+          />
+        )}
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          {content}
+        </div>
       </div>,
-      document.body,
+      document.documentElement,
     );
   }
 

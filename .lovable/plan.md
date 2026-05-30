@@ -1,46 +1,41 @@
-# Fix Liquid Glass Theme — AI Chat Fullscreen & Pomodoro Pill
+# Liquid Glass — Fullscreen overlay + Pomodoro position
 
-Two visual/behavior bugs only in the Liquid Glass theme. Both stay UI-only and don't touch any logic. The Liquid Glass color palette itself is preserved exactly.
+Two related symptoms in Liquid Glass (image 2):
+- Tapping the AI chat expand arrow still shows the chat embedded in the page (footer + page content visible below), not fullscreen.
+- The Pomodoro mini-circle ends up inside the page footer area instead of pinned to the viewport bottom-center like every other theme.
 
-## 1. AI Chat — expand arrow doesn't go fullscreen
+Both point to the same root cause: in Liquid Glass an ancestor of these `position: fixed` elements is creating a new containing block, so `inset-0` / `bottom-10 left-1/2` resolve against that ancestor instead of the viewport. The Index page tree is `<div className="min-h-screen ... overflow-x-hidden relative">` and the liquid-glass theme adds `html.liquid-glass body { position: relative; overflow-x: hidden }` plus animation `filter: blur(8px)→blur(0)` on body, which on mobile Chrome turns body into a containing block for fixed children. So the AI fullscreen overlay falls back into normal flow and the Pomodoro pill scrolls with the page.
 
-**Cause:** The fullscreen wrapper uses `bg-background/95` (white in Liquid Glass), and the inner `Card` keeps its hardcoded dark `bg-gray-950/70` styling. The container renders, but the card visually doesn't read as fullscreen — it looks like a floating panel on a near-white sheet (matches the second screenshot exactly).
+The fix is to bypass that ancestor entirely for both floating UIs and harden their positioning.
 
-**Fix in `src/components/AiChat.tsx`:**
-- Detect `theme === "liquid-glass"` and add a third `cardClassName` / `headerClassName` / `titleClassName` / `clearButtonClassName` branch using glass tokens (`bg-card/70`, `border-border/50`, `backdrop-blur-xl`, `text-foreground`, etc.) so the card actually fills and blends inside the white fullscreen overlay.
-- Switch the fullscreen wrapper background to a theme-aware gradient: in Liquid Glass use a soft `bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl`; in dark/blackpink keep current `bg-background/95`.
-- Keep `h-full` / `flex flex-col` layout intact so the inner card stretches to fill.
+## 1. AI Chat — render fullscreen overlay through a portal mounted on `documentElement`
 
-No state machine, no event wiring changes — the click already toggles correctly; this is purely a visibility/contrast fix.
+In `src/components/AiChat.tsx`:
+- Replace the current `createPortal(..., document.body)` with `createPortal(..., document.documentElement)` so even body-level filter/transform/overflow rules cannot scope it.
+- Wrapper styling: `position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 2147483000; isolation: isolate;` plus a solid Liquid Glass background (`bg-[hsl(var(--background))]` not transparent gradient, and a separate inner blurred layer for the frosted look) — guarantees the page content is visually covered even if fixed semantics drift.
+- Keep `document.body.style.overflow = 'hidden'` while open (already in place).
+- Inner card: `flex-1 min-h-0` instead of `h-full` so it stretches to the wrapper regardless of flex/percentage quirks.
 
-## 2. Pomodoro Pill — Liquid Glass styling + minimize parity
+## 2. Pomodoro pill — portal it too, and lock its position
 
-**Cause:** `PomodoroTimer.tsx` collapses Liquid Glass into the plain `dark` style (`bg-black border-white`), which looks like a black slab on a white page and the close/minimize button inherits Liquid Glass global button overrides that wash it out.
+In `src/components/PomodoroTimer.tsx`:
+- Wrap both the expanded pill and the minimized circle in `createPortal(..., document.documentElement)` so they always sit at the top of the layer tree.
+- Force positioning with inline style instead of Tailwind classes: `position: fixed; left: 50%; bottom: max(2.5rem, env(safe-area-inset-bottom) + 1rem); transform: translateX(-50%); z-index: 2147483000;` (drop the `transform -translate-x-1/2` Tailwind classes that combine with the drag offset logic).
+- The drag-position branch keeps its existing inline `left/top` override; only the default branch changes.
+- The minimized state's small circle uses the exact same positioning logic, so the closed mini button always lands in the same spot as in Dark/Blackpink/Custom themes.
 
-**Fix in `src/components/PomodoroTimer.tsx`:**
-- Stop forcing Liquid Glass into `dark`. Add a real `liquid-glass` branch to `getThemeStyles()`:
-  - `background`: `bg-gradient-to-br from-white/70 via-white/55 to-blue-100/50 border border-white/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(31,38,135,0.18)]` (the "guardian gradient" frosted look)
-  - `text`: `text-slate-900`
-  - `button`: `border-slate-900/30 text-slate-900 hover:bg-white/70`
-  - `iconColor`: `text-slate-900`
-  - `badge`: `bg-white/60 text-slate-800 border-white/70`
-- Pass a new `theme` value through to child components. To keep `TimerDisplay` / `TimerControls` / `TimerProgress` type-safe without a big refactor, extend their `theme` union to include `"liquid-glass"` and add a matching style branch in each (mirrors the existing dark/light/blackpink switches). Same look as the pill: white frosted with soft blue accents.
-- Minimized floating button: when `!isVisible`, currently renders `bg-black text-white`. Add the Liquid Glass branch so the small floating button uses the same frosted gradient + dark icon, matching the pill so it visually integrates and stays tappable.
-- No logic changes to drag/long-press, visibility persistence, or timer state — only `getThemeStyles()` + per-child style maps.
+## 3. Defensive: stop Liquid Glass body fade-in from creating a containing block
+
+In `src/index.css`, the `liquid-fade-in` keyframes use `filter: blur(8px) → blur(0)` on `body`. Even if it's only 600ms, on slow mobile devices this can still be active during the first paint of the Pomodoro pill and bake in a wrong containing block. Change the animation to apply to `html.liquid-glass body::after` (a transparent overlay pseudo-element) instead of `body` itself, keeping the same visual fade without ever touching body's filter property. No color or look change — the fade-in feels identical.
 
 ## Out of scope
 
-- No changes to Liquid Glass color tokens in `index.css`.
-- No changes to question-bank, badges, or any other component.
-- No changes to timer/audio/drag behavior.
+- No changes to Liquid Glass colors, tokens, gradients, palettes, fonts, or spacing.
+- No changes to AI logic, timer logic, drag/long-press behavior, or visibility persistence.
+- No changes to other themes — they keep their exact current positioning and visuals.
 
-## Technical notes
+## Files edited
 
-Files edited:
-- `src/components/AiChat.tsx`
-- `src/components/PomodoroTimer.tsx`
-- `src/components/pomodoro/TimerDisplay.tsx`
-- `src/components/pomodoro/TimerControls.tsx`
-- `src/components/pomodoro/TimerProgress.tsx`
-
-All styling done with existing Tailwind utilities + the project's semantic tokens. No new dependencies.
+- `src/components/AiChat.tsx` — portal target + solid overlay + inner sizing
+- `src/components/PomodoroTimer.tsx` — portal wrap + inline fixed positioning for pill and mini circle
+- `src/index.css` — move `liquid-fade-in` from `body` to `body::after`
