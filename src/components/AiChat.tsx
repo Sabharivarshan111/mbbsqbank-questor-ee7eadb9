@@ -1,5 +1,6 @@
 
 import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { RotateCcw, AlertCircle, Clock, WifiOff, Maximize2, Minimize2 } from "lucide-react";
