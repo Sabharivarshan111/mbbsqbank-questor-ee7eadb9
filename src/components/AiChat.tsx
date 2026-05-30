@@ -116,9 +116,10 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     };
   }, [handleSubmitQuestion]);
 
+  const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
   const cardClassName = theme === "blackpink" 
-    ? "backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col h-[390px] shadow-xl" 
-    : "backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col h-[390px] shadow-xl";
+    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl` 
+    : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
 
   const headerClassName = theme === "blackpink"
     ? "px-4 py-2 border-b border-pink-500/30"
