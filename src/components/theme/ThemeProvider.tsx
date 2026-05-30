@@ -61,8 +61,13 @@ function applyCustomTheme(colors: CustomColors) {
   const isDark = bg.l < 50;
   const dir = isDark ? 1 : -1; // direction to derive contrast shades
 
-  const muted = adjust(card, dir * 5);
-  const border = adjust(card, dir * 10);
+  // Ensure card is always visibly distinct from background (min 6% lightness delta)
+  const MIN_DELTA = 6;
+  const cardDelta = (card.l - bg.l) * (isDark ? 1 : -1);
+  const cardAdjusted = cardDelta < MIN_DELTA ? adjust(bg, dir * MIN_DELTA) : card;
+
+  const muted = adjust(cardAdjusted, dir * 5);
+  const border = adjust(cardAdjusted, dir * 14);
   const mutedFg = adjust(fg, -dir * 30);
   const primaryFg = primary.l > 55 ? { h: 0, s: 0, l: 5 } : { h: 0, s: 0, l: 98 };
 
