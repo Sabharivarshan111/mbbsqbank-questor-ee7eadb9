@@ -1,49 +1,32 @@
-# Pomodoro Fixes & Live Study Count
+# Plan: Presence Count + AI Chat Fullscreen Mode
 
-## 1. Bug: "Today focused" reports wrong minutes
+## 1. "Studying now" presence (verify + harden)
 
-**Problem:** When you edit the timer inline (e.g. set 1 min), the stats still log the *setting's* focus duration (25 min). In `use-pomodoro-timer.ts`, on completion we call `onComplete(currentMode, nextMode, minutesForMode(currentMode))` — that returns the **settings value**, ignoring inline edits.
+The `useOnlinePresence` hook is already wired into `PomodoroTimer.tsx` and shows `👥 N studying now` when `onlineCount > 0`. To make sure it always shows (even for the solo user, so they know the feature works):
 
-**Fix:** Pass the actual session length using `totalTime / 60` (the value the timer was started with) instead of `minutesForMode(currentMode)`. This works for both inline edits and settings-driven durations.
+- Change condition from `onlineCount > 0` to always render once `onlineCount >= 1` (the current user counts themselves once subscribed).
+- Add a tiny fallback: if presence hasn't synced yet, show `👥 1 studying now` so it's never empty/confusing.
+- No backend changes; Supabase Realtime presence channel `presence:studying` is anonymous and free.
 
-## 2. Close (X) button discoverability
+## 2. AI Chat fullscreen expand button
 
-**Fix:** Add an accessible tooltip + visible micro-label on hover so users learn the X closes the Pomodoro pill.
+Add a small **expand arrow icon** (like YouTube's fullscreen arrow in the reference image) in the top-right of the AI chat card header, next to the existing "Clear" button.
 
-- Wrap the X `Button` in `PomodoroTimer.tsx` with shadcn `<Tooltip>` showing "Close Pomodoro timer".
-- Keep existing `aria-label="Hide Pomodoro Timer"` (rename to "Close Pomodoro timer" for consistency).
-- Also add the same tooltip to the floating Timer icon (when hidden) saying "Show Pomodoro timer".
-
-No layout change — same round X button, just a hover/long-press tooltip.
-
-## 3. "Studying with N people right now" badge
-
-Show how many users currently have the app open, live.
-
-**Tech:** Supabase Realtime **Presence** (already available via Lovable Cloud — no new deps, no DB tables, no auth required; uses anonymous channel presence).
-
-**New file:** `src/hooks/use-online-presence.ts`
-- Joins a single channel `presence:studying`.
-- Tracks an anonymous key (random id per tab) on mount, untracks on unmount.
-- Returns `onlineCount` updated on `sync` event.
-- Handles reconnects, cleans up on tab close.
-
-**UI:** In `PomodoroTimer.tsx`, add a small badge next to the "Today: …" line:
-
-```
-Today: 1h 20m focused 🔥  •  👥 12 studying now
-```
-
-Themed using existing `styles.badge`. Hidden if count < 1 or presence fails.
-
-## Files
-
-- `src/hooks/use-pomodoro-timer.ts` — pass real completed minutes
-- `src/components/PomodoroTimer.tsx` — tooltips on X/show buttons, render studying-now count
-- `src/hooks/use-online-presence.ts` — new, Supabase Realtime presence hook
+**File:** `src/components/AiChat.tsx`
+- Add `Maximize2` icon from `lucide-react` (diagonal arrows, matches the reference).
+- Add local state `isFullscreen` toggled by the button.
+- When `isFullscreen` is true, render the chat `<Card>` inside a fixed-position overlay (`fixed inset-0 z-[60]`) that fills the viewport, with a `Minimize2` button to exit.
+- When not fullscreen, render exactly as today (height `h-[390px]`).
+- Use a portal-free approach: just conditionally swap the outer wrapper classes — keeps all existing chat state, messages, input, scroll behavior intact.
+- Themed for `blackpink` / dark / light using existing `theme` variable.
+- Tooltip on the button: "Open fullscreen" / "Exit fullscreen".
+- Mobile-friendly: in fullscreen, header sticky, input pinned to bottom (safe-area aware via `pb-[env(safe-area-inset-bottom)]`).
 
 ## Out of scope
+- A separate route/page for chat.
+- Persisting fullscreen preference.
+- Per-room presence or showing user identities.
 
-- Per-subject or per-room presence (just one global "studying" channel)
-- Showing who is online (privacy: count only, no identities)
-- Stats history rewrite for past wrong entries
+## Files touched
+- `src/components/AiChat.tsx` — add fullscreen toggle + button.
+- `src/components/PomodoroTimer.tsx` — always render presence badge (small tweak).
