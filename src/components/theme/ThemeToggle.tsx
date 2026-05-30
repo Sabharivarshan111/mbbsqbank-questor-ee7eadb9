@@ -38,7 +38,7 @@ export function ThemeToggle() {
       case "blackpink":
         return "bg-black text-pink-500 border-pink-500/30 hover:bg-pink-950/30";
       case "liquid-glass":
-        return "bg-white/10 text-white border-white/20 backdrop-blur-xl hover:bg-white/20";
+        return "text-slate-700 border-white/60 bg-gradient-to-br from-white/80 via-sky-100/60 to-violet-100/60 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_4px_16px_rgba(120,150,200,0.25)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_22px_rgba(120,150,200,0.35)]";
       case "custom":
         return "border-border hover:opacity-90";
       default:
