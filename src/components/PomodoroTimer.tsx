@@ -165,9 +165,19 @@ const PomodoroTimer = () => {
     );
   }
 
+  const pillRef = useRef<HTMLDivElement>(null);
+  const { position, isDragging, handlers } = useLongPressDrag(pillRef);
+
+  const positionStyle: React.CSSProperties = position
+    ? { left: position.x, top: position.y, bottom: 'auto', transform: 'none' }
+    : {};
+
   return (
     <div
-      className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 ${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] z-50 animate-fade-in`}
+      ref={pillRef}
+      {...handlers}
+      style={positionStyle}
+      className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 ${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] z-50 animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       <div className="space-y-2">
         {/* Mode + cycle badge row */}
