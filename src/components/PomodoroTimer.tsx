@@ -182,6 +182,8 @@ const PomodoroTimer = () => {
     />
   );
 
+  const floatingPortalRoot = theme === 'liquid-glass' ? document.documentElement : document.body;
+
   if (settingsOpen) {
     return settingsSheet;
   }
@@ -207,7 +209,7 @@ const PomodoroTimer = () => {
               <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
             </Tooltip>
           </TooltipProvider>,
-          document.body,
+          floatingPortalRoot,
         )}
       </>
     );
@@ -335,7 +337,7 @@ const PomodoroTimer = () => {
         </div>
       </div>
     </div>,
-    document.body,
+    floatingPortalRoot,
   );
 
 };
