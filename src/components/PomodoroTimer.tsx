@@ -151,6 +151,12 @@ const PomodoroTimer = () => {
 
   const styles = getThemeStyles();
 
+  const portalStyleReset: React.CSSProperties = {
+    animation: theme === 'liquid-glass' ? 'none' : undefined,
+    transition: 'none',
+    willChange: 'auto',
+  };
+
   const modeAccent =
     mode === 'short'
       ? 'text-sky-400'
@@ -160,12 +166,22 @@ const PomodoroTimer = () => {
 
   const fixedDefaultStyle: React.CSSProperties = {
     position: 'fixed',
-    left: '50%',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: 'max-content',
+    maxWidth: '95vw',
     bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
-    transform: 'translateX(-50%)',
+    transform: 'none',
     zIndex: 2147483000,
-    transition: 'none',
-    willChange: 'auto',
+    ...portalStyleReset,
+  };
+
+  const miniCircleStyle: React.CSSProperties = {
+    ...fixedDefaultStyle,
+    width: '2.5rem',
+    height: '2.5rem',
   };
 
 
@@ -176,6 +192,8 @@ const PomodoroTimer = () => {
       onResetCycle={resetCycle}
     />
   );
+
+  const floatingPortalRoot = theme === 'liquid-glass' ? document.documentElement : document.body;
 
   if (settingsOpen) {
     return settingsSheet;
@@ -190,8 +208,8 @@ const PomodoroTimer = () => {
               <TooltipTrigger asChild>
                 <Button
                   onClick={toggleVisibility}
-                  style={fixedDefaultStyle}
-                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
+                  style={miniCircleStyle}
+                  className={`rounded-full p-2 shadow-lg ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} ${styles.background} ${styles.text}`}
                   size="icon"
                   variant="outline"
                   aria-label="Show Pomodoro timer"
@@ -202,7 +220,7 @@ const PomodoroTimer = () => {
               <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
             </Tooltip>
           </TooltipProvider>,
-          document.body,
+          floatingPortalRoot,
         )}
       </>
     );
@@ -211,7 +229,7 @@ const PomodoroTimer = () => {
 
 
   const positionStyle: React.CSSProperties = position
-    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000, transition: 'none', willChange: 'auto' }
+    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000, ...portalStyleReset }
     : fixedDefaultStyle;
 
 
@@ -220,7 +238,7 @@ const PomodoroTimer = () => {
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
@@ -330,7 +348,7 @@ const PomodoroTimer = () => {
         </div>
       </div>
     </div>,
-    document.body,
+    floatingPortalRoot,
   );
 
 };
