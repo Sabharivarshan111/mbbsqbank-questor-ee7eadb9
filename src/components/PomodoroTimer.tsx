@@ -168,9 +168,6 @@ const PomodoroTimer = () => {
     );
   }
 
-  const pillRef = useRef<HTMLDivElement>(null);
-  const { position, isDragging, handlers } = useLongPressDrag(pillRef);
-
   const positionStyle: React.CSSProperties = position
     ? { left: position.x, top: position.y, bottom: 'auto', transform: 'none' }
     : {};
