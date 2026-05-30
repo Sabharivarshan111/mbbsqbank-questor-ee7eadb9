@@ -872,10 +872,16 @@ html.liquid-glass ::-webkit-scrollbar-thumb:hover {
   background: hsl(220 10% 50% / 0.5);
 }
 
-html.liquid-glass body {
-  animation: liquid-fade-in 600ms cubic-bezier(0.32, 0.72, 0, 1);
+html.liquid-glass body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: hsl(0 0% 100%);
+  animation: liquid-fade-in 600ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 @keyframes liquid-fade-in {
-  from { opacity: 0; filter: blur(8px); }
-  to   { opacity: 1; filter: blur(0); }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
