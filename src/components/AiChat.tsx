@@ -2,7 +2,8 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { RotateCcw, AlertCircle, Clock, WifiOff } from "lucide-react";
+import { RotateCcw, AlertCircle, Clock, WifiOff, Maximize2, Minimize2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessageItem } from "./chat/ChatMessageItem";
 import { EmptyChatState } from "./chat/EmptyChatState";
@@ -33,6 +34,15 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Lock body scroll when fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isFullscreen]);
 
   // Scroll to bottom when messages change, but not on first load
   useEffect(() => {
@@ -106,9 +116,10 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     };
   }, [handleSubmitQuestion]);
 
+  const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
   const cardClassName = theme === "blackpink" 
-    ? "backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col h-[390px] shadow-xl" 
-    : "backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col h-[390px] shadow-xl";
+    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl` 
+    : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
 
   const headerClassName = theme === "blackpink"
     ? "px-4 py-2 border-b border-pink-500/30"
@@ -122,7 +133,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
     : "h-8 px-2 text-gray-400 hover:text-white";
 
-  return (
+  const content = (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -133,19 +144,38 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
         <CardHeader className={headerClassName}>
           <CardTitle className={titleClassName}>
             <span>Medical Assistant</span>
-            {messages.length > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleClearChat}
-                className={clearButtonClassName}
-              >
-                <RotateCcw className="h-4 w-4 mr-1" />
-                Clear
-              </Button>
-            )}
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleClearChat}
+                  className={clearButtonClassName}
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Clear
+                </Button>
+              )}
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsFullscreen(v => !v)}
+                      className={`h-8 w-8 ${theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : "text-gray-400 hover:text-white"}`}
+                      aria-label={isFullscreen ? "Exit fullscreen" : "Open fullscreen"}
+                    >
+                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{isFullscreen ? "Exit fullscreen" : "Open fullscreen"}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </CardTitle>
         </CardHeader>
+        
         
         <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
           <div className="flex-grow overflow-y-auto p-4 space-y-4">
@@ -230,4 +260,15 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       </Card>
     </motion.div>
   );
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col p-2 pb-[env(safe-area-inset-bottom)]">
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 };
+
