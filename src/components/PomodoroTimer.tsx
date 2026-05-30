@@ -106,6 +106,9 @@ const PomodoroTimer = () => {
     localStorage.setItem('pomodoroVisible', isVisible.toString());
   }, [isVisible]);
 
+  const pillRef = useRef<HTMLDivElement>(null);
+  const { position, isDragging, handlers } = useLongPressDrag(pillRef);
+
   const toggleVisibility = () => setIsVisible(prev => !prev);
 
   const getThemeStyles = () => {
