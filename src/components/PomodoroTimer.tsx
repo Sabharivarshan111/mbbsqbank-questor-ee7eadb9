@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
 import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
@@ -13,6 +13,7 @@ import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { toast } from '@/components/ui/use-toast';
+import { useLongPressDrag } from '@/hooks/use-long-press-drag';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
