@@ -29,10 +29,7 @@ const MODE_EMOJI: Record<PomodoroMode, string> = {
 
 const PomodoroTimer = () => {
   const { theme: rawTheme } = useTheme();
-  const isLiquid = rawTheme === 'liquid-glass';
-  // Child timer components only know dark/light/blackpink — map liquid-glass + custom to dark.
-  const theme: 'dark' | 'light' | 'blackpink' =
-    rawTheme === 'custom' || rawTheme === 'liquid-glass' ? 'dark' : rawTheme;
+  const theme: 'dark' | 'light' | 'blackpink' = rawTheme === 'custom' || rawTheme === 'liquid-glass' ? 'dark' : rawTheme;
   const [isVisible, setIsVisible] = useState(true);
   const { settings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
@@ -115,16 +112,6 @@ const PomodoroTimer = () => {
   const toggleVisibility = () => setIsVisible(prev => !prev);
 
   const getThemeStyles = () => {
-    if (isLiquid) {
-      return {
-        background:
-          'bg-white/55 backdrop-blur-2xl saturate-150 border border-white/40 shadow-[0_8px_32px_hsl(220_20%_40%/0.18),inset_0_1px_0_hsl(0_0%_100%/0.7)]',
-        text: 'text-foreground',
-        button: 'border-white/50 text-foreground hover:bg-white/60',
-        iconColor: 'text-foreground',
-        badge: 'bg-white/60 text-foreground border-white/50',
-      };
-    }
     if (theme === 'blackpink') {
       return {
         background: 'bg-black border border-pink-500',

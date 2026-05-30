@@ -117,30 +117,21 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   }, [handleSubmitQuestion]);
 
   const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
-  const isLiquid = theme === "liquid-glass";
-  const cardClassName = isLiquid
-    ? `backdrop-blur-2xl bg-white/55 border border-white/40 flex flex-col ${baseHeight} shadow-[0_8px_32px_hsl(220_20%_40%/0.15)] text-foreground`
-    : theme === "blackpink"
-      ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl`
-      : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
+  const cardClassName = theme === "blackpink" 
+    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl` 
+    : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
 
-  const headerClassName = isLiquid
-    ? "px-4 py-2 border-b border-white/40"
-    : theme === "blackpink"
-      ? "px-4 py-2 border-b border-pink-500/30"
-      : "px-4 py-2 border-b border-gray-800";
+  const headerClassName = theme === "blackpink"
+    ? "px-4 py-2 border-b border-pink-500/30"
+    : "px-4 py-2 border-b border-gray-800";
 
-  const titleClassName = isLiquid
-    ? "text-lg flex items-center justify-between text-foreground"
-    : theme === "blackpink"
-      ? "text-lg flex items-center justify-between text-pink-400"
-      : "text-lg flex items-center justify-between text-white";
+  const titleClassName = theme === "blackpink"
+    ? "text-lg flex items-center justify-between text-pink-400"
+    : "text-lg flex items-center justify-between text-white";
 
-  const clearButtonClassName = isLiquid
-    ? "h-8 px-2 text-foreground/70 hover:text-foreground"
-    : theme === "blackpink"
-      ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
-      : "h-8 px-2 text-gray-400 hover:text-white";
+  const clearButtonClassName = theme === "blackpink"
+    ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
+    : "h-8 px-2 text-gray-400 hover:text-white";
 
   const content = (
     <motion.div 
@@ -172,7 +163,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsFullscreen(v => !v)}
-                      className={`h-8 w-8 ${isLiquid ? "text-foreground/70 hover:text-foreground" : theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : "text-gray-400 hover:text-white"}`}
+                      className={`h-8 w-8 ${theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : "text-gray-400 hover:text-white"}`}
                       aria-label={isFullscreen ? "Exit fullscreen" : "Open fullscreen"}
                     >
                       {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -257,7 +248,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
           </div>
         </CardContent>
         
-        <CardFooter className={isLiquid ? "p-3 pt-2 border-t border-white/40" : theme === "blackpink" ? "p-3 pt-2 border-t border-pink-500/30" : "p-3 pt-2 border-t border-gray-800"}>
+        <CardFooter className={theme === "blackpink" ? "p-3 pt-2 border-t border-pink-500/30" : "p-3 pt-2 border-t border-gray-800"}>
           <ChatInput
             prompt={prompt}
             setPrompt={setPrompt}
@@ -272,7 +263,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
 
   if (isFullscreen) {
     return (
-      <div className={`fixed inset-0 z-[60] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-background/80 backdrop-blur-xl" : "bg-background/95 backdrop-blur-sm"}`}>
+      <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col p-2 pb-[env(safe-area-inset-bottom)]">
         {content}
       </div>
     );
