@@ -9,6 +9,9 @@ import {
 import SubtopicAccordion from "./SubtopicAccordion";
 import { Topic } from "./QuestionBank";
 import { useState, useEffect } from "react";
+import CountBadge from "./question-bank/CountBadge";
+import { countQuestions } from "@/lib/question-count";
+
 
 interface TopicAccordionProps {
   topicKey: string;
@@ -46,9 +49,10 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
       className="animate-fade-in transition-all duration-300 text-gray-800 dark:text-gray-200"
     >
       <AccordionTrigger className="px-4 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-1">
           <IconComponent className={`h-6 w-6 ${iconClass}`} />
           <h3 className="text-xl md:text-2xl font-semibold">{topic.name}</h3>
+          <CountBadge count={countQuestions(topic, activeTab)} tab={activeTab} />
         </div>
       </AccordionTrigger>
       <AccordionContent>
