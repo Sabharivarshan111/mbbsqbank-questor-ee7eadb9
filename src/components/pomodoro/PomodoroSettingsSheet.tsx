@@ -18,8 +18,10 @@ import { playSound, vibrationSupported, primeAudio } from '@/lib/timer-sounds';
 import type { SoundPreset } from '@/lib/timer-sounds';
 
 interface Props {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   onResetCycle?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
@@ -29,7 +31,7 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
   { value: 'off', label: 'Off' },
 ];
 
-export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle }) => {
+export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, open, onOpenChange }) => {
   const { settings, update } = usePomodoroSettings();
   const vibeOk = vibrationSupported();
 
@@ -38,9 +40,12 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle }
     playSound(settings.sound, settings.volume);
   };
 
+  const isControlled = open !== undefined;
+
   return (
-    <Sheet>
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      {!isControlled && trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
+
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2">

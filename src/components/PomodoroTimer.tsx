@@ -32,6 +32,8 @@ const PomodoroTimer = () => {
   const { theme: rawTheme } = useTheme();
   const theme: 'dark' | 'light' | 'blackpink' | 'liquid-glass' = rawTheme === 'custom' ? 'dark' : (rawTheme as any);
   const [isVisible, setIsVisible] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   const { settings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
   const { onlineCount } = useOnlinePresence();
@@ -164,28 +166,45 @@ const PomodoroTimer = () => {
     zIndex: 2147483000,
   };
 
+  const settingsSheet = (
+    <PomodoroSettingsSheet
+      open={settingsOpen}
+      onOpenChange={setSettingsOpen}
+      onResetCycle={resetCycle}
+    />
+  );
+
+  if (settingsOpen) {
+    return settingsSheet;
+  }
+
   if (!isVisible) {
-    return createPortal(
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={toggleVisibility}
-              style={fixedDefaultStyle}
-              className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
-              size="icon"
-              variant="outline"
-              aria-label="Show Pomodoro timer"
-            >
-              <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>,
-      document.documentElement,
+    return (
+      <>
+        {createPortal(
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={toggleVisibility}
+                  style={fixedDefaultStyle}
+                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
+                  size="icon"
+                  variant="outline"
+                  aria-label="Show Pomodoro timer"
+                >
+                  <Timer className={`w-5 h-5 ${styles.iconColor}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>,
+          document.documentElement,
+        )}
+      </>
     );
   }
+
 
   const positionStyle: React.CSSProperties = position
     ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000 }
@@ -256,19 +275,16 @@ const PomodoroTimer = () => {
               theme={theme}
             />
 
-            <PomodoroSettingsSheet
-              onResetCycle={resetCycle}
-              trigger={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={`h-8 w-8 rounded-full ${styles.button}`}
-                  aria-label="Pomodoro settings"
-                >
-                  <Settings2 className="h-4 w-4" />
-                </Button>
-              }
-            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSettingsOpen(true)}
+              className={`h-8 w-8 rounded-full ${styles.button}`}
+              aria-label="Pomodoro settings"
+            >
+              <Settings2 className="h-4 w-4" />
+            </Button>
+
 
             <TooltipProvider delayDuration={200}>
               <Tooltip>
