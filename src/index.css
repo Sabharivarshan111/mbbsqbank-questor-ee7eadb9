@@ -716,6 +716,9 @@ html.liquid-glass {
   --input: 220 13% 88%;
   --ring: 211 100% 50%;
   --radius: 1rem;
+  background-color: hsl(var(--background));
+  overflow-x: hidden;
+  min-height: 100%;
 }
 
 html.liquid-glass body {
@@ -727,9 +730,9 @@ html.liquid-glass body {
   letter-spacing: -0.01em;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  position: relative;
-  overflow-x: hidden;
+  min-height: 100dvh;
 }
+
 
 html.liquid-glass h1,
 html.liquid-glass h2,
