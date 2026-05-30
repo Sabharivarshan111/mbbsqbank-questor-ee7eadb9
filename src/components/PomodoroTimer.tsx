@@ -128,6 +128,14 @@ const PomodoroTimer = () => {
         iconColor: 'text-white',
         badge: 'bg-white/10 text-white border-white/30',
       };
+    } else if (theme === 'liquid-glass') {
+      return {
+        background: 'bg-gradient-to-br from-white/75 via-white/55 to-blue-100/55 border border-white/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(31,38,135,0.18)]',
+        text: 'text-slate-900',
+        button: 'border-slate-900/30 text-slate-900 hover:bg-white/70',
+        iconColor: 'text-slate-900',
+        badge: 'bg-white/60 text-slate-800 border-white/70',
+      };
     }
     return {
       background: 'bg-white border border-gray-300',
