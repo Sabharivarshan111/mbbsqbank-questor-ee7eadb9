@@ -83,4 +83,9 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
   );
 };
 
+const TopicBadge = ({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
+  const { done, total } = useProgressCount(topic, activeTab);
+  return <CountBadge count={total} done={done} tab={activeTab} />;
+};
+
 export default TopicAccordion;

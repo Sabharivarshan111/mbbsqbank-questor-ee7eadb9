@@ -106,4 +106,9 @@ const SubtopicAccordion = ({ subtopicKey, subtopic, isExpanded = false, activeTa
   );
 };
 
+const SubtopicBadge = ({ subtopic, activeTab }: { subtopic: SubTopic; activeTab: "essay" | "short-notes" }) => {
+  const { done, total } = useProgressCount(subtopic, activeTab);
+  return <CountBadge count={total} done={done} tab={activeTab} />;
+};
+
 export default SubtopicAccordion;
