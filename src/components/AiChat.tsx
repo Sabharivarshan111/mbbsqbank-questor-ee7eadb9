@@ -272,7 +272,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
 
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col p-2 pb-[env(safe-area-inset-bottom)]">
+      <div className={`fixed inset-0 z-[60] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-background/80 backdrop-blur-xl" : "bg-background/95 backdrop-blur-sm"}`}>
         {content}
       </div>
     );
