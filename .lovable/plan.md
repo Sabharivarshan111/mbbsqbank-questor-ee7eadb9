@@ -1,27 +1,31 @@
-# Plan: Always-visible Essay/Short-Notes tab pill + Search bar in all themes
+## Plan
 
-Both issues share the same root cause: in Liquid Glass and Custom ("My Theme"), the active TabsTrigger uses `bg-background` and the search Input uses `bg-gray-100 dark:bg-gray-800/50`, which collapse into the page background. Fix is purely presentational — add a guaranteed surface color, border, radius, and shadow scoped to these two themes. No structure changes; Light/Dark/Black Pink stay exactly as they are.
+**1. Style "MEDICOS ZONE study material" button in Custom themes & Liquid Glass**
 
-## 1. Active tab pill — `src/index.css`
-Add scoped rules so the active TabsTrigger always has a visible filled container.
+Currently `getExtraButtonClass()` in `src/components/QuestionBank.tsx` only handles `blackpink` and default (light/dark) — in Custom and Liquid Glass themes the button uses hardcoded `bg-blue-600`/`bg-gray-100` which clashes with user-picked colors.
 
-- `html.liquid-glass [role="tablist"]` → frosted shell: `background: hsl(0 0% 100% / 0.55); backdrop-filter: blur(20px) saturate(160%); border: 1px solid hsl(220 13% 85% / 0.6); border-radius: 0.75rem; box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.7), 0 4px 14px hsl(220 30% 40% / 0.08);`
-- `html.liquid-glass [role="tab"][data-state="active"]` → solid white pill: `background: hsl(0 0% 100%) !important; color: hsl(220 25% 15%) !important; border-radius: 0.5rem; box-shadow: 0 1px 2px hsl(220 30% 40% / 0.15), 0 4px 10px hsl(220 30% 40% / 0.1);`
-- `html.custom [role="tablist"]` → `background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 0.75rem;`
-- `html.custom [role="tab"][data-state="active"]` → `background: hsl(var(--card)) !important; color: hsl(var(--card-foreground)) !important; box-shadow: 0 1px 2px hsl(0 0% 0% / 0.25), 0 4px 10px hsl(0 0% 0% / 0.15); border-radius: 0.5rem;`
+Add scoped CSS in `src/index.css` (alongside existing `html.custom [role="tablist"]` rules) targeting the Extras button via a new class `extras-tab-button` added to the button in `QuestionBank.tsx`:
 
-Fallback when `--card` is too close to `--background` is already enforced by the `MIN_DELTA = 6` step in `applyCustomTheme` (previous change), so the active pill will visibly separate from the page in every custom palette.
+- `html.custom .extras-tab-button` → inactive: `background: hsl(var(--card))`, `color: hsl(var(--card-foreground))`, `border: 1px solid hsl(var(--border))`
+- `html.custom .extras-tab-button[data-active="true"]` → active: `background: hsl(var(--background))`, `color: hsl(var(--foreground))`, `border: 1px solid hsl(var(--border))`, shadow matching active tab
+- `html.liquid-glass .extras-tab-button` → frosted inactive (translucent white + blur + border)
+- `html.liquid-glass .extras-tab-button[data-active="true"]` → solid white pill with shadow (matches active tab style)
 
-## 2. Search bar pill — `src/index.css`
-Override the hard-coded `bg-gray-100 dark:bg-gray-800/50` in `SearchBar.tsx` only for these two themes, preserving the existing `h-14 rounded-full` shape.
+In `QuestionBank.tsx`:
+- Add `extras-tab-button` className and `data-active={activeTab === "extras"}` attribute to the button
+- Keep existing `getExtraButtonClass()` logic for blackpink/default themes (CSS overrides via `!important` for custom/liquid-glass)
 
-- `html.liquid-glass .search-input` → `background: hsl(0 0% 100% / 0.7) !important; backdrop-filter: blur(20px) saturate(160%); border: 1px solid hsl(220 13% 85% / 0.7) !important; box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.8), 0 6px 18px hsl(220 30% 40% / 0.08); color: hsl(220 25% 15%);`
-- `html.liquid-glass .search-icon` → `color: hsl(220 20% 40%);`
-- `html.custom .search-input` → `background: hsl(var(--card)) !important; border: 1px solid hsl(var(--border)) !important; color: hsl(var(--card-foreground)); box-shadow: 0 2px 8px hsl(0 0% 0% / 0.15);`
+Also apply matching surface to `ExtrasContent.tsx` panel in custom/liquid-glass via existing token-based classes — replace hardcoded `bg-gray-50 dark:bg-gray-900` fallback with `bg-card` when theme is custom/liquid-glass (or add CSS rule `html.custom .extras-panel { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); }`).
 
-Both keep `rounded-full` from the existing className, so the pill shape matches Light/Dark.
+**2. Replace surprise text in footer**
 
-## Out of scope
-- No JSX/component refactor — Tabs/SearchBar markup is unchanged so the Light Theme keeps its exact current look.
-- No changes to Dark, Light, or Black Pink rules.
-- No changes to year-badge, accordions, AI chat, Pomodoro, or data.
+In `src/pages/Index.tsx`, change:
+```
+👆 tap my name for a surprise!
+```
+to:
+```
+👆 tap my name to report any issues!
+```
+
+No other changes. No data, accordions, AI chat, Pomodoro changes.
