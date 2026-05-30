@@ -11,7 +11,7 @@ import TypeAccordion from "./TypeAccordion";
 import { SubTopic } from "./QuestionBank";
 import { useState, useEffect } from "react";
 import CountBadge from "./question-bank/CountBadge";
-import { countQuestions } from "@/lib/question-count";
+import { useProgressCount } from "@/hooks/use-progress-count";
 
 
 
@@ -58,7 +58,7 @@ const SubtopicAccordion = ({ subtopicKey, subtopic, isExpanded = false, activeTa
             <BookOpen className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           )}
           <h4 className="text-lg md:text-xl font-medium">{subtopic.name}</h4>
-          <CountBadge count={countQuestions(subtopic, activeTab)} tab={activeTab} />
+          <SubtopicBadge subtopic={subtopic} activeTab={activeTab} />
         </div>
       </AccordionTrigger>
       <AccordionContent>
