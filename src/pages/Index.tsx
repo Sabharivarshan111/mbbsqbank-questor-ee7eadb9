@@ -83,10 +83,3 @@ const Index = () => {
 };
 
 export default Index;
-      </div>
-      <PomodoroTimer />
-    </div>
-  );
-};
-
-export default Index;
