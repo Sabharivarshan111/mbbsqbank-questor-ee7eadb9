@@ -52,7 +52,9 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
         <div className="flex items-center space-x-3 flex-1">
           <IconComponent className={`h-6 w-6 ${iconClass}`} />
           <h3 className="text-xl md:text-2xl font-semibold">{topic.name}</h3>
-          <CountBadge count={countQuestions(topic, activeTab)} tab={activeTab} />
+          <span className="year-count-badge">
+            <CountBadge count={countQuestions(topic, activeTab)} tab={activeTab} />
+          </span>
         </div>
       </AccordionTrigger>
       <AccordionContent>
