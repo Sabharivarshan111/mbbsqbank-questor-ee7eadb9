@@ -117,21 +117,30 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   }, [handleSubmitQuestion]);
 
   const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
-  const cardClassName = theme === "blackpink" 
-    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl` 
-    : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
+  const isLiquid = theme === "liquid-glass";
+  const cardClassName = isLiquid
+    ? `backdrop-blur-2xl bg-white/55 border border-white/40 flex flex-col ${baseHeight} shadow-[0_8px_32px_hsl(220_20%_40%/0.15)] text-foreground`
+    : theme === "blackpink"
+      ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl`
+      : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
 
-  const headerClassName = theme === "blackpink"
-    ? "px-4 py-2 border-b border-pink-500/30"
-    : "px-4 py-2 border-b border-gray-800";
+  const headerClassName = isLiquid
+    ? "px-4 py-2 border-b border-white/40"
+    : theme === "blackpink"
+      ? "px-4 py-2 border-b border-pink-500/30"
+      : "px-4 py-2 border-b border-gray-800";
 
-  const titleClassName = theme === "blackpink"
-    ? "text-lg flex items-center justify-between text-pink-400"
-    : "text-lg flex items-center justify-between text-white";
+  const titleClassName = isLiquid
+    ? "text-lg flex items-center justify-between text-foreground"
+    : theme === "blackpink"
+      ? "text-lg flex items-center justify-between text-pink-400"
+      : "text-lg flex items-center justify-between text-white";
 
-  const clearButtonClassName = theme === "blackpink"
-    ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
-    : "h-8 px-2 text-gray-400 hover:text-white";
+  const clearButtonClassName = isLiquid
+    ? "h-8 px-2 text-foreground/70 hover:text-foreground"
+    : theme === "blackpink"
+      ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
+      : "h-8 px-2 text-gray-400 hover:text-white";
 
   const content = (
     <motion.div 
