@@ -37,10 +37,17 @@ export function ThemeToggle() {
         return "bg-gray-800 text-white border-gray-700 hover:bg-gray-700";
       case "blackpink":
         return "bg-black text-pink-500 border-pink-500/30 hover:bg-pink-950/30";
+      case "custom":
+        return "border-border hover:opacity-90";
       default:
         return "bg-white text-black border-gray-200 hover:bg-gray-100";
     }
   };
+
+  const customButtonStyle =
+    theme === "custom"
+      ? { backgroundColor: customColors.card, color: customColors.foreground }
+      : undefined;
 
   return (
     <div className="flex items-center gap-2">
@@ -52,9 +59,18 @@ export function ThemeToggle() {
             variant="outline"
             size="icon"
             className={`rounded-full transition-all duration-200 ${getButtonClass()}`}
+            style={customButtonStyle}
           >
             {theme === "dark" && <Moon className="h-4 w-4" />}
             {theme === "light" && <Sun className="h-4 w-4" />}
+            {theme === "custom" && (
+              <span
+                className="h-4 w-4 rounded-full border border-border"
+                style={{
+                  background: `linear-gradient(135deg, ${customColors.background}, ${customColors.primary})`,
+                }}
+              />
+            )}
             {theme === "blackpink" && (
               <svg
                 width="16"
