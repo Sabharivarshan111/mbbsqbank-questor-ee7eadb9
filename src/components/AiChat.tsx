@@ -260,4 +260,15 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       </Card>
     </motion.div>
   );
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col p-2 pb-[env(safe-area-inset-bottom)]">
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 };
+
