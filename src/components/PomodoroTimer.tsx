@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
 import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
