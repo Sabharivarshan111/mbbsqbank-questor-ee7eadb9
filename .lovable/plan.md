@@ -1,20 +1,29 @@
-## Hide year-level count badge until expanded
+# Plan: Theme polish + Pomodoro pill reset
 
-Year accordions (First/Second/Third/Final Year) currently show the total count badge always. Hide it when collapsed, show it only when the year is expanded. Subject/subtopic badges inside remain unchanged.
+## 1. Liquid Glass theme dot in the Themes menu
+**File:** `src/components/theme/ThemeToggle.tsx`
+- Currently the Liquid Glass option shows a plain white circle.
+- Replace its swatch with a frosted-glass preview: a small circle using `backdrop-blur`, soft white→blue radial gradient, subtle inner highlight + ring (matches the Apple liquid-glass aesthetic).
+- Add the same gradient "halo pill" treatment around the main Themes toggle button when liquid-glass is active (similar to how Light theme already shows a soft ring), so the trigger circle looks consistent with the rest of the theme.
 
-### Change — `src/components/TopicAccordion.tsx`
-- Add a marker class `year-count-badge` to the `<CountBadge />` wrapper at line 55 (wrap it in a `<span className="year-count-badge">`).
+## 2. Custom ("My Theme") — missing card/search box
+**File:** `src/components/theme/ThemeProvider.tsx` (`applyCustomTheme`)
+- Right now when card color is very close to background, the "MEDICOS ZONE study material" panel and search input visually disappear (images 2 and 3 show this).
+- Adjust the derivation so `--card`, `--secondary`, `--muted`, `--input`, `--border` always step a minimum delta (~6–10% lightness) away from `--background`, regardless of how close the user's chosen card hex is to the background. This guarantees the tab pill, search field, and study-material card stay visible in any custom palette.
+- No change to user-chosen primary/foreground/background hexes themselves.
 
-### Change — `src/index.css`
-- Add a small global rule:
-  ```css
-  [data-state="closed"] > .year-count-badge,
-  [data-state="closed"] .year-count-badge {
-    display: none;
-  }
-  ```
-  Scoped via the `data-state` attribute Radix puts on the `AccordionItem` / trigger, so the badge only renders when its enclosing year accordion is open. Subtopic badges (rendered inside `SubtopicAccordion`) are unaffected because they don't carry the `year-count-badge` class.
+## 3. Liquid Glass — search box + tab pill visibility
+**File:** `src/index.css` (inside `html.liquid-glass` block)
+- Add explicit glass styling for `input`, `[role="tablist"]`, and the study-material header card so they show a frosted white surface with a soft border (matches the light-theme pill look the user references).
+- Specifically: translucent white background (`hsl(0 0% 100% / 0.7)`), `backdrop-filter: blur(20px) saturate(160%)`, 1px border `hsl(220 13% 85% / 0.6)`, subtle inset highlight on top edge.
 
-### Out of scope
-- No change to `SubtopicAccordion`, `TypeAccordion`, or `countQuestions` logic.
-- No backend / data changes.
+## 4. Pomodoro pill — reset position on reload
+**File:** `src/components/PomodoroTimer.tsx` + `src/hooks/use-long-press-drag.ts`
+- Today the dragged position persists across reloads (stored in localStorage by the drag hook).
+- On mount, clear the stored position key so the pill always renders at its default `bottom-10 left-1/2` spot.
+- Drag-to-move still works during the session; only the *persisted* position is cleared on every fresh load/open.
+- If the hook doesn't currently persist (need to confirm by reading `use-long-press-drag.ts`), this step becomes a no-op and the pill already resets — will verify during implementation.
+
+## Out of scope
+- No changes to year-badge logic, accordion behavior, AI chat, data, or routing.
+- No changes to Dark / Light / Black Pink themes.

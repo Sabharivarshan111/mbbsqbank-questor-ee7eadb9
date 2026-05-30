@@ -30,7 +30,12 @@ function clamp(p: Position, w: number, h: number): Position {
 }
 
 export function useLongPressDrag(elRef: React.RefObject<HTMLElement>) {
-  const [position, setPosition] = useState<Position | null>(() => loadPosition());
+  // Always start fresh: clear any persisted position from a previous session
+  // so the pill returns to its default spot on every reload / app open.
+  if (typeof window !== 'undefined') {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }
+  const [position, setPosition] = useState<Position | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const timerRef = useRef<number | null>(null);
