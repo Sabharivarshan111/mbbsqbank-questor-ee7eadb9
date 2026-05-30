@@ -610,6 +610,53 @@
 }
 
 /* ============================================================
+   Always-visible tab pill + search bar in Liquid Glass & Custom
+   ============================================================ */
+html.liquid-glass [role="tablist"] {
+  background: hsl(0 0% 100% / 0.55) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid hsl(220 13% 85% / 0.6);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.7), 0 4px 14px hsl(220 30% 40% / 0.08);
+}
+html.liquid-glass [role="tab"][data-state="active"] {
+  background: hsl(0 0% 100%) !important;
+  color: hsl(220 25% 15%) !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px hsl(220 30% 40% / 0.15), 0 4px 10px hsl(220 30% 40% / 0.1);
+}
+html.liquid-glass .search-input {
+  background: hsl(0 0% 100% / 0.7) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid hsl(220 13% 85% / 0.7) !important;
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.8), 0 6px 18px hsl(220 30% 40% / 0.08);
+  color: hsl(220 25% 15%);
+}
+html.liquid-glass .search-icon {
+  color: hsl(220 20% 40%) !important;
+}
+
+html.custom [role="tablist"] {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+}
+html.custom [role="tab"][data-state="active"] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.25), 0 4px 10px hsl(0 0% 0% / 0.15);
+}
+html.custom .search-input {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 2px 8px hsl(0 0% 0% / 0.15);
+}
+
+/* ============================================================
    LIQUID GLASS THEME — Apple-style frosted glassmorphism
    Scoped entirely under html.liquid-glass for clean reversibility
    ============================================================ */
