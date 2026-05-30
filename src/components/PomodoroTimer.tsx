@@ -151,6 +151,12 @@ const PomodoroTimer = () => {
 
   const styles = getThemeStyles();
 
+  const portalStyleReset: React.CSSProperties = {
+    animation: 'none',
+    transition: 'none',
+    willChange: 'auto',
+  };
+
   const modeAccent =
     mode === 'short'
       ? 'text-sky-400'
@@ -164,8 +170,7 @@ const PomodoroTimer = () => {
     bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
     transform: 'translateX(-50%)',
     zIndex: 2147483000,
-    transition: 'none',
-    willChange: 'auto',
+    ...portalStyleReset,
   };
 
 
@@ -191,7 +196,7 @@ const PomodoroTimer = () => {
                 <Button
                   onClick={toggleVisibility}
                   style={fixedDefaultStyle}
-                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
+                  className={`rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
                   size="icon"
                   variant="outline"
                   aria-label="Show Pomodoro timer"
@@ -211,7 +216,7 @@ const PomodoroTimer = () => {
 
 
   const positionStyle: React.CSSProperties = position
-    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000, transition: 'none', willChange: 'auto' }
+    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000, ...portalStyleReset }
     : fixedDefaultStyle;
 
 
@@ -220,7 +225,7 @@ const PomodoroTimer = () => {
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
