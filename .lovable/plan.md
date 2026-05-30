@@ -1,29 +1,27 @@
-# Plan: Theme polish + Pomodoro pill reset
+# Plan: Always-visible Essay/Short-Notes tab pill + Search bar in all themes
 
-## 1. Liquid Glass theme dot in the Themes menu
-**File:** `src/components/theme/ThemeToggle.tsx`
-- Currently the Liquid Glass option shows a plain white circle.
-- Replace its swatch with a frosted-glass preview: a small circle using `backdrop-blur`, soft white→blue radial gradient, subtle inner highlight + ring (matches the Apple liquid-glass aesthetic).
-- Add the same gradient "halo pill" treatment around the main Themes toggle button when liquid-glass is active (similar to how Light theme already shows a soft ring), so the trigger circle looks consistent with the rest of the theme.
+Both issues share the same root cause: in Liquid Glass and Custom ("My Theme"), the active TabsTrigger uses `bg-background` and the search Input uses `bg-gray-100 dark:bg-gray-800/50`, which collapse into the page background. Fix is purely presentational — add a guaranteed surface color, border, radius, and shadow scoped to these two themes. No structure changes; Light/Dark/Black Pink stay exactly as they are.
 
-## 2. Custom ("My Theme") — missing card/search box
-**File:** `src/components/theme/ThemeProvider.tsx` (`applyCustomTheme`)
-- Right now when card color is very close to background, the "MEDICOS ZONE study material" panel and search input visually disappear (images 2 and 3 show this).
-- Adjust the derivation so `--card`, `--secondary`, `--muted`, `--input`, `--border` always step a minimum delta (~6–10% lightness) away from `--background`, regardless of how close the user's chosen card hex is to the background. This guarantees the tab pill, search field, and study-material card stay visible in any custom palette.
-- No change to user-chosen primary/foreground/background hexes themselves.
+## 1. Active tab pill — `src/index.css`
+Add scoped rules so the active TabsTrigger always has a visible filled container.
 
-## 3. Liquid Glass — search box + tab pill visibility
-**File:** `src/index.css` (inside `html.liquid-glass` block)
-- Add explicit glass styling for `input`, `[role="tablist"]`, and the study-material header card so they show a frosted white surface with a soft border (matches the light-theme pill look the user references).
-- Specifically: translucent white background (`hsl(0 0% 100% / 0.7)`), `backdrop-filter: blur(20px) saturate(160%)`, 1px border `hsl(220 13% 85% / 0.6)`, subtle inset highlight on top edge.
+- `html.liquid-glass [role="tablist"]` → frosted shell: `background: hsl(0 0% 100% / 0.55); backdrop-filter: blur(20px) saturate(160%); border: 1px solid hsl(220 13% 85% / 0.6); border-radius: 0.75rem; box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.7), 0 4px 14px hsl(220 30% 40% / 0.08);`
+- `html.liquid-glass [role="tab"][data-state="active"]` → solid white pill: `background: hsl(0 0% 100%) !important; color: hsl(220 25% 15%) !important; border-radius: 0.5rem; box-shadow: 0 1px 2px hsl(220 30% 40% / 0.15), 0 4px 10px hsl(220 30% 40% / 0.1);`
+- `html.custom [role="tablist"]` → `background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 0.75rem;`
+- `html.custom [role="tab"][data-state="active"]` → `background: hsl(var(--card)) !important; color: hsl(var(--card-foreground)) !important; box-shadow: 0 1px 2px hsl(0 0% 0% / 0.25), 0 4px 10px hsl(0 0% 0% / 0.15); border-radius: 0.5rem;`
 
-## 4. Pomodoro pill — reset position on reload
-**File:** `src/components/PomodoroTimer.tsx` + `src/hooks/use-long-press-drag.ts`
-- Today the dragged position persists across reloads (stored in localStorage by the drag hook).
-- On mount, clear the stored position key so the pill always renders at its default `bottom-10 left-1/2` spot.
-- Drag-to-move still works during the session; only the *persisted* position is cleared on every fresh load/open.
-- If the hook doesn't currently persist (need to confirm by reading `use-long-press-drag.ts`), this step becomes a no-op and the pill already resets — will verify during implementation.
+Fallback when `--card` is too close to `--background` is already enforced by the `MIN_DELTA = 6` step in `applyCustomTheme` (previous change), so the active pill will visibly separate from the page in every custom palette.
+
+## 2. Search bar pill — `src/index.css`
+Override the hard-coded `bg-gray-100 dark:bg-gray-800/50` in `SearchBar.tsx` only for these two themes, preserving the existing `h-14 rounded-full` shape.
+
+- `html.liquid-glass .search-input` → `background: hsl(0 0% 100% / 0.7) !important; backdrop-filter: blur(20px) saturate(160%); border: 1px solid hsl(220 13% 85% / 0.7) !important; box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.8), 0 6px 18px hsl(220 30% 40% / 0.08); color: hsl(220 25% 15%);`
+- `html.liquid-glass .search-icon` → `color: hsl(220 20% 40%);`
+- `html.custom .search-input` → `background: hsl(var(--card)) !important; border: 1px solid hsl(var(--border)) !important; color: hsl(var(--card-foreground)); box-shadow: 0 2px 8px hsl(0 0% 0% / 0.15);`
+
+Both keep `rounded-full` from the existing className, so the pill shape matches Light/Dark.
 
 ## Out of scope
-- No changes to year-badge logic, accordion behavior, AI chat, data, or routing.
-- No changes to Dark / Light / Black Pink themes.
+- No JSX/component refactor — Tabs/SearchBar markup is unchanged so the Light Theme keeps its exact current look.
+- No changes to Dark, Light, or Black Pink rules.
+- No changes to year-badge, accordions, AI chat, Pomodoro, or data.
