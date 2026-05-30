@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
 import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
@@ -13,6 +13,7 @@ import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { toast } from '@/components/ui/use-toast';
+import { useLongPressDrag } from '@/hooks/use-long-press-drag';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
@@ -164,10 +165,28 @@ const PomodoroTimer = () => {
     );
   }
 
+  const pillRef = useRef<HTMLDivElement>(null);
+  const { position, isDragging, handlers } = useLongPressDrag(pillRef);
+
+  const positionStyle: React.CSSProperties = position
+    ? { left: position.x, top: position.y, bottom: 'auto', transform: 'none' }
+    : {};
+
   return (
     <div
-      className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 ${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] z-50 animate-fade-in`}
+      ref={pillRef}
+      {...handlers}
+      style={positionStyle}
+      className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 ${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] z-50 animate-fade-in select-none touch-none transition-[transform,box-shadow] ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
+      {isDragging && (
+        <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
+          <div className="absolute inset-0 backdrop-blur-2xl bg-white/20 dark:bg-white/10 border border-white/40 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(255,255,255,0.15)]" />
+          <span className="relative text-xs font-medium tracking-wide text-foreground/90 drop-shadow-sm animate-pulse">
+            ✦ Drag me anywhere ✦
+          </span>
+        </div>
+      )}
       <div className="space-y-2">
         {/* Mode + cycle badge row */}
         <div className="flex items-center justify-between text-[11px]">
