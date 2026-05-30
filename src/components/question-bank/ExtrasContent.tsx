@@ -22,7 +22,7 @@ const ExtrasContent = ({ driveLink = "https://drive.google.com/drive/folders/1FT
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center min-h-[400px] p-6 ${theme === "blackpink" ? "bg-black border border-[#FF5C8D]/30" : "bg-gray-50 dark:bg-gray-900"} rounded-lg`}>
+    <div className={`extras-panel flex flex-col items-center justify-center min-h-[400px] p-6 ${theme === "blackpink" ? "bg-black border border-[#FF5C8D]/30" : "bg-gray-50 dark:bg-gray-900"} rounded-lg`}>
       <div className="text-center max-w-md space-y-6">
         <h3 className={`text-2xl font-bold ${theme === "blackpink" ? "text-[#FF5C8D]" : "text-gray-900 dark:text-white"} mb-2`}>
           MEDICOS ZONE study material
