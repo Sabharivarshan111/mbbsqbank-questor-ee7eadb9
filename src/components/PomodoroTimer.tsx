@@ -166,11 +166,22 @@ const PomodoroTimer = () => {
 
   const fixedDefaultStyle: React.CSSProperties = {
     position: 'fixed',
-    left: '50%',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: 'max-content',
+    maxWidth: '95vw',
     bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
-    transform: 'translateX(-50%)',
+    transform: 'none',
     zIndex: 2147483000,
     ...portalStyleReset,
+  };
+
+  const miniCircleStyle: React.CSSProperties = {
+    ...fixedDefaultStyle,
+    width: '2.5rem',
+    height: '2.5rem',
   };
 
 
@@ -197,7 +208,7 @@ const PomodoroTimer = () => {
               <TooltipTrigger asChild>
                 <Button
                   onClick={toggleVisibility}
-                  style={fixedDefaultStyle}
+                  style={miniCircleStyle}
                   className={`rounded-full p-2 shadow-lg ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} ${styles.background} ${styles.text}`}
                   size="icon"
                   variant="outline"
