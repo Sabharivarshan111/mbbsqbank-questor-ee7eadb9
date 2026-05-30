@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-type Theme = "dark" | "light" | "blackpink" | "custom";
+type Theme = "dark" | "light" | "blackpink" | "custom" | "liquid-glass";
 
 export type CustomColors = {
   background: string; // hex
@@ -101,7 +101,7 @@ function clearCustomTheme() {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved && ["dark", "light", "blackpink", "custom"].includes(saved)) return saved;
+    if (saved && ["dark", "light", "blackpink", "custom", "liquid-glass"].includes(saved)) return saved;
     return "dark";
   });
 
@@ -116,7 +116,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem("theme", theme);
     const root = window.document.documentElement;
-    root.classList.remove("light", "dark", "blackpink", "custom");
+    root.classList.remove("light", "dark", "blackpink", "custom", "liquid-glass");
     root.classList.add(theme);
 
     if (theme === "custom") {

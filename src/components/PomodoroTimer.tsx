@@ -29,7 +29,7 @@ const MODE_EMOJI: Record<PomodoroMode, string> = {
 
 const PomodoroTimer = () => {
   const { theme: rawTheme } = useTheme();
-  const theme: 'dark' | 'light' | 'blackpink' = rawTheme === 'custom' ? 'dark' : rawTheme;
+  const theme: 'dark' | 'light' | 'blackpink' = rawTheme === 'custom' || rawTheme === 'liquid-glass' ? 'dark' : rawTheme;
   const [isVisible, setIsVisible] = useState(true);
   const { settings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();

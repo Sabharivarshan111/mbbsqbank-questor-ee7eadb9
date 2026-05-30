@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Moon, Sun, Palette } from "lucide-react";
+import { Moon, Sun, Palette, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
@@ -37,6 +37,8 @@ export function ThemeToggle() {
         return "bg-gray-800 text-white border-gray-700 hover:bg-gray-700";
       case "blackpink":
         return "bg-black text-pink-500 border-pink-500/30 hover:bg-pink-950/30";
+      case "liquid-glass":
+        return "bg-white/10 text-white border-white/20 backdrop-blur-xl hover:bg-white/20";
       case "custom":
         return "border-border hover:opacity-90";
       default:
@@ -63,6 +65,7 @@ export function ThemeToggle() {
           >
             {theme === "dark" && <Moon className="h-4 w-4" />}
             {theme === "light" && <Sun className="h-4 w-4" />}
+            {theme === "liquid-glass" && <Sparkles className="h-4 w-4" />}
             {theme === "custom" && (
               <span
                 className="h-4 w-4 rounded-full border border-border"
@@ -110,6 +113,18 @@ export function ThemeToggle() {
           >
             <span className="text-[#FF5C8D] font-bold">BP</span>
             <span>Black Pink</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setTheme("liquid-glass")}
+            style={{
+              fontFamily: '-apple-system, "SF Pro Display", "SF Pro", BlinkMacSystemFont, "Helvetica Neue", sans-serif',
+              fontWeight: 700,
+            }}
+          >
+            <span className="relative inline-flex items-center justify-center h-4 w-4 rounded-md border border-white/30 bg-white/20 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]" />
+            <span>Liquid Glass</span>
+            <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-400 to-pink-400 text-white tracking-wide">NEW</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
