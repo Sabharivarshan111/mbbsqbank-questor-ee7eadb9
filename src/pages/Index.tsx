@@ -72,7 +72,7 @@ const Index = () => {
             >
               Sabharivarshan S
             </a>{' '}
-            <span className="font-bold text-xs text-primary/80 animate-bounce">👆 tap my name for a surprise!</span>
+            <span className="font-bold text-xs text-primary/80 animate-bounce">👆 tap my name to report any issues!</span>
           </div>
           
         </div>
