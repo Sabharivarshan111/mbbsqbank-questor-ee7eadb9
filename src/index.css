@@ -609,23 +609,23 @@
    Scoped entirely under html.liquid-glass for clean reversibility
    ============================================================ */
 html.liquid-glass {
-  --background: 220 30% 6%;
-  --foreground: 0 0% 98%;
-  --card: 220 25% 12%;
-  --card-foreground: 0 0% 98%;
-  --popover: 220 25% 14%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 211 100% 60%;
+  --background: 0 0% 98%;
+  --foreground: 220 15% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 15% 12%;
+  --primary: 211 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 20% 18%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 220 20% 16%;
-  --muted-foreground: 220 10% 70%;
-  --accent: 280 60% 55%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 220 15% 20%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 10% 40%;
+  --accent: 211 100% 50%;
   --accent-foreground: 0 0% 100%;
-  --border: 0 0% 100%;
-  --input: 0 0% 100%;
-  --ring: 211 100% 60%;
+  --border: 220 13% 88%;
+  --input: 220 13% 88%;
+  --ring: 211 100% 50%;
   --radius: 1rem;
 }
 
@@ -637,6 +637,7 @@ html.liquid-glass body {
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.01em;
   background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   position: relative;
   overflow-x: hidden;
 }
@@ -653,7 +654,7 @@ html.liquid-glass h6 {
   letter-spacing: -0.02em;
 }
 
-/* Animated drifting gradient background */
+/* Subtle drifting gradient background — light mode */
 html.liquid-glass body::before {
   content: "";
   position: fixed;
@@ -661,10 +662,10 @@ html.liquid-glass body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 30%, hsl(211 100% 55% / 0.35), transparent 45%),
-    radial-gradient(circle at 80% 20%, hsl(280 80% 60% / 0.30), transparent 45%),
-    radial-gradient(circle at 60% 80%, hsl(330 90% 65% / 0.30), transparent 45%),
-    radial-gradient(circle at 30% 70%, hsl(180 80% 55% / 0.25), transparent 45%);
+    radial-gradient(circle at 20% 30%, hsl(211 100% 70% / 0.14), transparent 50%),
+    radial-gradient(circle at 80% 20%, hsl(280 80% 75% / 0.12), transparent 50%),
+    radial-gradient(circle at 60% 80%, hsl(330 90% 80% / 0.12), transparent 50%),
+    radial-gradient(circle at 30% 70%, hsl(180 80% 75% / 0.10), transparent 50%);
   filter: blur(60px) saturate(140%);
   animation: liquid-drift 32s ease-in-out infinite alternate;
 }
@@ -676,7 +677,7 @@ html.liquid-glass body::before {
   100% { transform: translate(2%, 2%) rotate(4deg) scale(1.1); }
 }
 
-/* Glass surface treatment for shadcn primitives */
+/* Glass surface treatment for shadcn primitives — light tint */
 html.liquid-glass .bg-card,
 html.liquid-glass .bg-popover,
 html.liquid-glass .bg-secondary,
@@ -688,39 +689,59 @@ html.liquid-glass [role="listbox"],
 html.liquid-glass [role="tooltip"] {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  background-color: hsl(var(--card) / 0.55) !important;
-  border: 1px solid hsl(0 0% 100% / 0.12) !important;
+  background-color: hsl(0 0% 100% / 0.65) !important;
+  border: 1px solid hsl(220 13% 80% / 0.4) !important;
   box-shadow:
-    0 8px 32px hsl(0 0% 0% / 0.4),
-    inset 0 1px 0 hsl(0 0% 100% / 0.08) !important;
+    0 8px 32px hsl(220 20% 40% / 0.12),
+    inset 0 1px 0 hsl(0 0% 100% / 0.6) !important;
 }
 
-/* Buttons (outline/ghost/secondary become glass; primary keeps tint) */
+/* Buttons: glass for non-primary */
 html.liquid-glass button:not(.bg-primary):not([data-state="checked"]):not(.bg-destructive) {
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
 html.liquid-glass .bg-background {
-  background-color: hsl(var(--background) / 0.6) !important;
+  background-color: hsl(0 0% 100% / 0.7) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
-/* Inputs */
+/* Inputs — light frosted */
 html.liquid-glass input,
 html.liquid-glass textarea,
 html.liquid-glass select {
   backdrop-filter: blur(12px) saturate(160%);
   -webkit-backdrop-filter: blur(12px) saturate(160%);
-  background-color: hsl(0 0% 100% / 0.06) !important;
-  border-color: hsl(0 0% 100% / 0.15) !important;
+  background-color: hsl(0 0% 100% / 0.7) !important;
+  border-color: hsl(220 13% 80% / 0.5) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-/* Accordion items get subtle glass + border */
+/* Tabs — readable active pill */
+html.liquid-glass [role="tablist"] {
+  background-color: hsl(220 14% 94% / 0.7) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid hsl(220 13% 85% / 0.6) !important;
+}
+
+html.liquid-glass [role="tab"] {
+  color: hsl(var(--muted-foreground)) !important;
+  background-color: transparent !important;
+}
+
+html.liquid-glass [role="tab"][data-state="active"] {
+  background-color: hsl(0 0% 100% / 0.95) !important;
+  color: hsl(var(--foreground)) !important;
+  box-shadow: 0 2px 8px hsl(220 20% 40% / 0.12) !important;
+}
+
+/* Accordion items */
 html.liquid-glass [data-radix-collection-item],
 html.liquid-glass [data-state] > [role="region"] {
-  border-color: hsl(0 0% 100% / 0.08) !important;
+  border-color: hsl(220 13% 85% / 0.5) !important;
 }
 
 /* Fluid global transitions */
@@ -733,21 +754,19 @@ html.liquid-glass *::after {
   transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Softer accordion + popover motion */
 html.liquid-glass [data-state="open"],
 html.liquid-glass [data-state="closed"] {
   animation-duration: 350ms !important;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1) !important;
 }
 
-/* Hover lift */
 html.liquid-glass button:hover,
 html.liquid-glass [role="button"]:hover,
 html.liquid-glass .bg-card:hover {
   transform: translateY(-1px);
 }
 
-/* Scrollbar — frosted */
+/* Scrollbar — light frosted */
 html.liquid-glass ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -756,15 +775,14 @@ html.liquid-glass ::-webkit-scrollbar-track {
   background: transparent;
 }
 html.liquid-glass ::-webkit-scrollbar-thumb {
-  background: hsl(0 0% 100% / 0.15);
+  background: hsl(220 10% 50% / 0.3);
   border-radius: 999px;
   backdrop-filter: blur(8px);
 }
 html.liquid-glass ::-webkit-scrollbar-thumb:hover {
-  background: hsl(0 0% 100% / 0.25);
+  background: hsl(220 10% 50% / 0.5);
 }
 
-/* Initial theme fade-in */
 html.liquid-glass body {
   animation: liquid-fade-in 600ms cubic-bezier(0.32, 0.72, 0, 1);
 }
