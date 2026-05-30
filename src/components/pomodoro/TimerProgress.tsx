@@ -6,7 +6,7 @@ interface TimerProgressProps {
   progressPercentage: number;
   totalTime: number;
   waterCount: number;
-  theme: "dark" | "light" | "blackpink";
+  theme: "dark" | "light" | "blackpink" | "liquid-glass";
 }
 
 export const TimerProgress: React.FC<TimerProgressProps> = ({
