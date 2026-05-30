@@ -272,13 +272,14 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   );
 
   if (isFullscreen) {
-    return (
+    return createPortal(
       <div
-        style={{ height: '100dvh' }}
+        style={{ height: '100dvh', width: '100vw' }}
         className={`fixed inset-0 z-[9999] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl" : "bg-background/95 backdrop-blur-sm"}`}
       >
         {content}
-      </div>
+      </div>,
+      document.body,
     );
   }
 
