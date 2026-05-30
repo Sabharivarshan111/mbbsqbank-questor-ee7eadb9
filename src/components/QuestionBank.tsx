@@ -109,7 +109,8 @@ const QuestionBank = () => {
         <div className="w-full mb-4">
           <button 
             onClick={() => setActiveTab("extras")}
-            className={`w-full py-3 text-lg font-medium rounded-lg ${getExtraButtonClass()} transition-colors`}
+            data-active={activeTab === "extras"}
+            className={`extras-tab-button w-full py-3 text-lg font-medium rounded-lg ${getExtraButtonClass()} transition-colors`}
           >
             {theme === "blackpink" && activeTab === "extras" && (
               <span className="relative">
