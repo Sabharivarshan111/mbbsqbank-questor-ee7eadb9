@@ -10,7 +10,7 @@ import SubtopicAccordion from "./SubtopicAccordion";
 import { Topic } from "./QuestionBank";
 import { useState, useEffect } from "react";
 import CountBadge from "./question-bank/CountBadge";
-import { countQuestions } from "@/lib/question-count";
+import { useProgressCount } from "@/hooks/use-progress-count";
 
 
 interface TopicAccordionProps {
@@ -53,7 +53,7 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
           <IconComponent className={`h-6 w-6 ${iconClass}`} />
           <h3 className="text-xl md:text-2xl font-semibold">{topic.name}</h3>
           <span className="year-count-badge">
-            <CountBadge count={countQuestions(topic, activeTab)} tab={activeTab} />
+            <TopicBadge topic={topic} activeTab={activeTab} />
           </span>
         </div>
       </AccordionTrigger>
@@ -81,6 +81,11 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
       </AccordionContent>
     </AccordionItem>
   );
+};
+
+const TopicBadge = ({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
+  const { done, total } = useProgressCount(topic, activeTab);
+  return <CountBadge count={total} done={done} tab={activeTab} />;
 };
 
 export default TopicAccordion;

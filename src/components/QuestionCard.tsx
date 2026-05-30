@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/components/theme/ThemeProvider';
+import { QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
 
 interface QuestionCardProps {
   question: string;
@@ -34,6 +35,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   
   useEffect(() => {
     localStorage.setItem(questionId, isCompleted.toString());
+    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
   }, [isCompleted, questionId]);
   
   // Clean up timeout on unmount
@@ -216,7 +218,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
                   )}
                 </span>
               </div>
-              <p className={`whitespace-pre-wrap ${getTextClass()}`}>
+              <p className={`whitespace-pre-wrap ${getTextClass()} ${isCompleted ? 'line-through opacity-60' : ''}`}>
                 {getCleanQuestionText(question)}
               </p>
               
