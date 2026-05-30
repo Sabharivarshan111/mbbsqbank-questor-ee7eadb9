@@ -147,7 +147,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="w-full h-full flex flex-col ai-chat-section"
+      className={`w-full ${isFullscreen ? 'flex-1 min-h-0' : 'h-full'} flex flex-col ai-chat-section`}
     >
       <Card className={cardClassName}>
         <CardHeader className={headerClassName}>
