@@ -257,7 +257,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
           </div>
         </CardContent>
         
-        <CardFooter className={theme === "blackpink" ? "p-3 pt-2 border-t border-pink-500/30" : "p-3 pt-2 border-t border-gray-800"}>
+        <CardFooter className={isLiquid ? "p-3 pt-2 border-t border-white/40" : theme === "blackpink" ? "p-3 pt-2 border-t border-pink-500/30" : "p-3 pt-2 border-t border-gray-800"}>
           <ChatInput
             prompt={prompt}
             setPrompt={setPrompt}
