@@ -75,9 +75,9 @@ function applyCustomTheme(colors: CustomColors) {
   const set = (k: string, v: string) => root.style.setProperty(k, v);
   set("--background", toVar(bg));
   set("--foreground", toVar(fg));
-  set("--card", toVar(card));
+  set("--card", toVar(cardAdjusted));
   set("--card-foreground", toVar(fg));
-  set("--popover", toVar(card));
+  set("--popover", toVar(cardAdjusted));
   set("--popover-foreground", toVar(fg));
   set("--primary", toVar(primary));
   set("--primary-foreground", toVar(primaryFg));
