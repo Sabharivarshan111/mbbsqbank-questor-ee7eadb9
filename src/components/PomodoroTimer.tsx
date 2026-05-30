@@ -260,7 +260,9 @@ const PomodoroTimer = () => {
 
         <div className={`text-center text-[11px] opacity-80 ${styles.text}`}>
           Today: {formatFocusTime(todayMinutes)} focused 🔥
-          <span className="ml-2">• 👥 {Math.max(1, onlineCount)} studying now</span>
+          {onlineCount !== null && onlineCount > 0 && (
+            <span className="ml-2">• 👥 {onlineCount} studying now</span>
+          )}
         </div>
       </div>
     </div>
