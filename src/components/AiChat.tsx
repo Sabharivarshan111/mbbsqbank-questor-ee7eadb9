@@ -1,5 +1,6 @@
 
 import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { RotateCcw, AlertCircle, Clock, WifiOff, Maximize2, Minimize2 } from "lucide-react";
@@ -147,7 +148,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="w-full h-full flex flex-col ai-chat-section"
+      className={`w-full ${isFullscreen ? 'flex-1 min-h-0' : 'h-full'} flex flex-col ai-chat-section`}
     >
       <Card className={cardClassName}>
         <CardHeader className={headerClassName}>
@@ -271,10 +272,14 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   );
 
   if (isFullscreen) {
-    return (
-      <div className={`fixed inset-0 z-[60] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl" : "bg-background/95 backdrop-blur-sm"}`}>
+    return createPortal(
+      <div
+        style={{ height: '100dvh', width: '100vw' }}
+        className={`fixed inset-0 z-[9999] flex flex-col p-2 pb-[env(safe-area-inset-bottom)] ${isLiquid ? "bg-gradient-to-br from-background via-background to-secondary/60 backdrop-blur-2xl" : "bg-background/95 backdrop-blur-sm"}`}
+      >
         {content}
-      </div>
+      </div>,
+      document.body,
     );
   }
 
