@@ -716,6 +716,12 @@ html.liquid-glass {
   --input: 220 13% 88%;
   --ring: 211 100% 50%;
   --radius: 1rem;
+  background-color: hsl(var(--background));
+  min-height: 100dvh;
+}
+
+html.liquid-glass body {
+  min-height: 100dvh;
 }
 
 html.liquid-glass body {
