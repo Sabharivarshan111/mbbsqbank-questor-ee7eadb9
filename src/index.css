@@ -604,6 +604,11 @@
   background-color: hsl(var(--primary) / 0.5);
 }
 
+/* Hide year-level count badge unless the year accordion is expanded */
+[data-state="closed"] .year-count-badge {
+  display: none;
+}
+
 /* ============================================================
    LIQUID GLASS THEME — Apple-style frosted glassmorphism
    Scoped entirely under html.liquid-glass for clean reversibility
