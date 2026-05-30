@@ -117,21 +117,30 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   }, [handleSubmitQuestion]);
 
   const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
-  const cardClassName = theme === "blackpink" 
-    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl` 
-    : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
+  const isLiquid = theme === "liquid-glass";
+  const cardClassName = theme === "blackpink"
+    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl`
+    : isLiquid
+      ? `backdrop-blur-2xl bg-white/60 border-white/60 flex flex-col ${baseHeight} shadow-[0_8px_32px_rgba(31,38,135,0.15)]`
+      : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
 
   const headerClassName = theme === "blackpink"
     ? "px-4 py-2 border-b border-pink-500/30"
-    : "px-4 py-2 border-b border-gray-800";
+    : isLiquid
+      ? "px-4 py-2 border-b border-white/50"
+      : "px-4 py-2 border-b border-gray-800";
 
   const titleClassName = theme === "blackpink"
     ? "text-lg flex items-center justify-between text-pink-400"
-    : "text-lg flex items-center justify-between text-white";
+    : isLiquid
+      ? "text-lg flex items-center justify-between text-slate-900"
+      : "text-lg flex items-center justify-between text-white";
 
   const clearButtonClassName = theme === "blackpink"
     ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
-    : "h-8 px-2 text-gray-400 hover:text-white";
+    : isLiquid
+      ? "h-8 px-2 text-slate-700 hover:text-slate-900"
+      : "h-8 px-2 text-gray-400 hover:text-white";
 
   const content = (
     <motion.div 
