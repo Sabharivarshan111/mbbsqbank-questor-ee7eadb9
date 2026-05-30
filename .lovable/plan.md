@@ -1,26 +1,39 @@
 ## Goal
-Make the Pomodoro pill draggable via long-press, with an Apple "liquid glass" blur effect and a hint label ("Drag anywhere ✦") shown while repositioning. Persist the chosen position.
 
-## Behavior
-- **Trigger:** Long-press (~450ms) anywhere on the pill background (not on buttons/inputs) — works for both touch and mouse. A short tap still operates normal controls.
-- **Drag mode active:**
-  - Pill content becomes blurred (`backdrop-blur-2xl`, reduced opacity, subtle white/refractive border, soft inner highlight — liquid-glass look).
-  - A centered overlay label appears on the pill: "✦ Drag anywhere ✦" (or "Move me anywhere").
-  - Subtle scale-up (1.05) + shadow lift, light haptic vibration on entering drag.
-  - Cursor becomes `grabbing`.
-- **Drag movement:** Follows pointer; clamped within viewport with 8px margin so it never goes off-screen.
-- **Exit drag mode:** On pointer release. Position is saved to `localStorage` (`pomodoroPosition` = `{x, y}`). Next session restores it.
-- **Reset:** Double-tap the mode badge already exists for mode switching — no conflict. If position ever goes out of bounds (window resize), it's re-clamped on mount.
+Display the number of questions inside each subtopic/type header in the question bank accordions, matching whichever tab is active (Essays vs Short Notes). For example, a subtopic containing 9 short notes would show a "9 SHORT" badge when on the Short Notes tab; "2 ESSAY" when on the Essays tab.
+
+## Where the count badges appear
+
+- `TypeAccordion` (leaf — directly wraps essay / short-note arrays): show a badge next to the title with the count for the active tab.
+- `SubtopicAccordion` (mid-level — e.g. "Paper 1", "General"): show an aggregated badge summing counts across all nested types for the active tab.
+- `TopicAccordion` (top — Year / Subject like "Physiology"): also show aggregated count badge for the active tab.
+
+If the count is 0 for the active tab, no badge is rendered (keeps the header clean).
+
+## Badge styling
+
+Small pill, matching the existing app theme (using semantic tokens, not hardcoded colors):
+- Essay tab: amber/orange tinted pill — e.g. `bg-amber-500/15 text-amber-600 dark:text-amber-400`
+- Short Notes tab: indigo/blue tinted pill — e.g. `bg-indigo-500/15 text-indigo-600 dark:text-indigo-400`
+- Format: `{count} ESSAY` or `{count} SHORT`
+- Placed inline after the title text, before the chevron.
 
 ## Implementation
-- Edit `src/components/PomodoroTimer.tsx`:
-  - Replace `fixed bottom-10 left-1/2 -translate-x-1/2` positioning with controlled `left/top` style driven by state, defaulting to bottom-center when no saved position.
-  - Add `usePomodoroDrag` logic inline (or new hook `src/hooks/use-long-press-drag.ts`) handling `pointerdown` → timer → `isDragging` → `pointermove` (with clamping) → `pointerup`.
-  - Add drag-mode className conditional: `backdrop-blur-2xl bg-white/10 dark:bg-white/5 border-white/30 shadow-2xl scale-105` plus a `before:` overlay element with the hint text centered.
-  - Cancel long-press if pointer moves >8px before timer fires (so scrolling/tap works normally).
-  - Prevent long-press from starting when target is `button`, `input`, or inside controls (use `closest()` check).
-- No changes to timer logic, sounds, presence, settings, or other files.
+
+1. **New util** `src/lib/question-count.ts`:
+   - `countQuestions(node, tab)` — recursive walker over the data shape. Handles:
+     - Leaf shape: `{ essay: { questions: [] }, "short-note"/"short-notes": { questions: [] } }`
+     - Nested shape: `{ subtopics: {...} }`
+   - Returns number of questions matching the active tab (`essay` or `short-notes`).
+
+2. **`TypeAccordion.tsx`**: compute count from `type` for `activeTab`, render badge in trigger.
+
+3. **`SubtopicAccordion.tsx`**: compute aggregated count from `subtopic` for `activeTab`, render badge in trigger.
+
+4. **`TopicAccordion.tsx`**: compute aggregated count from `topic` for `activeTab`, render badge in trigger.
+
+5. Small `CountBadge` component (inline or in `src/components/question-bank/CountBadge.tsx`) to keep the three call sites consistent.
 
 ## Out of scope
-- No new dependencies (pure pointer events, no framer-motion needed for this).
-- No changes to theme tokens, other components, or backend.
+
+- No data changes, no MCQ counts (separate flow), no year-range text, no completion (`0/12`) tracking — only adding count badges that reflect the active Essays/Short Notes tab.
