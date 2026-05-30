@@ -164,7 +164,10 @@ const PomodoroTimer = () => {
     bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
     transform: 'translateX(-50%)',
     zIndex: 2147483000,
+    transition: 'none',
+    willChange: 'auto',
   };
+
 
   const settingsSheet = (
     <PomodoroSettingsSheet
@@ -208,8 +211,9 @@ const PomodoroTimer = () => {
 
 
   const positionStyle: React.CSSProperties = position
-    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000 }
+    ? { position: 'fixed', left: position.x, top: position.y, bottom: 'auto', transform: 'none', zIndex: 2147483000, transition: 'none', willChange: 'auto' }
     : fixedDefaultStyle;
+
 
   return createPortal(
     <div
