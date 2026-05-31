@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "orbit-walkthrough-completed";
 const PADDING = 8;
+const CARD_WIDTH = 360;
+const CARD_HEIGHT_ESTIMATE = 240;
+const GAP = 16;
 
 interface Rect {
   top: number;
@@ -20,14 +23,37 @@ export const Walkthrough = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [mounted, setMounted] = useState(false);
+  const lastActionStepRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Delay so target elements (esp. portaled pomodoro) are in DOM
     const t = setTimeout(() => setMounted(true), 600);
     return () => clearTimeout(t);
   }, []);
 
   const step = walkthroughSteps[stepIndex];
+
+  // Fire enter/exit actions for the active step (e.g. open Custom Theme dialog)
+  useEffect(() => {
+    if (!mounted || completed) return;
+    const prevId = lastActionStepRef.current;
+    if (prevId && prevId !== step.id) {
+      const prevStep = walkthroughSteps.find((s) => s.id === prevId);
+      if (prevStep?.action === 'open-custom-theme') {
+        window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
+      }
+    }
+    if (step.action === 'open-custom-theme' && prevId !== step.id) {
+      window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'));
+    }
+    lastActionStepRef.current = step.id;
+  }, [mounted, completed, step]);
+
+  // Cleanup on unmount / completion
+  useEffect(() => {
+    return () => {
+      window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
+    };
+  }, []);
 
   const recompute = useCallback(() => {
     if (!step?.targetSelector) {
@@ -39,8 +65,8 @@ export const Walkthrough = () => {
       setRect(null);
       return;
     }
-    el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-    // Wait a tick for scroll to settle
+    const block: ScrollLogicalPosition = step.placement === 'below' ? 'start' : 'center';
+    el.scrollIntoView({ behavior: "smooth", block, inline: "center" });
     requestAnimationFrame(() => {
       const r = el.getBoundingClientRect();
       setRect({
@@ -56,16 +82,19 @@ export const Walkthrough = () => {
     if (!mounted || completed) return;
     recompute();
     const id = setTimeout(recompute, 350);
+    const id2 = setTimeout(recompute, 700);
     window.addEventListener("resize", recompute);
     window.addEventListener("scroll", recompute, true);
     return () => {
       clearTimeout(id);
+      clearTimeout(id2);
       window.removeEventListener("resize", recompute);
       window.removeEventListener("scroll", recompute, true);
     };
   }, [mounted, completed, recompute]);
 
   const finish = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
     setCompleted(true);
   }, [setCompleted]);
 
@@ -98,66 +127,75 @@ export const Walkthrough = () => {
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
   const vw = typeof window !== "undefined" ? window.innerWidth : 400;
 
-  // Card positioning: prefer below target, else above, else center
+  // Compute card position avoiding overlap with target
+  const clampLeft = (left: number) =>
+    Math.min(Math.max(16, left), vw - CARD_WIDTH - 16);
+
   let cardStyle: React.CSSProperties = {
     position: "fixed",
     left: "50%",
     top: "50%",
     transform: "translate(-50%, -50%)",
-    maxWidth: "min(360px, calc(100vw - 32px))",
+    maxWidth: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
+    width: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
     zIndex: 2147483647,
   };
 
   if (rect) {
     const spaceBelow = vh - (rect.top + rect.height);
     const spaceAbove = rect.top;
-    const cardHeightEstimate = 220;
-    if (spaceBelow >= cardHeightEstimate + 16) {
+    const centerLeft = clampLeft(rect.left + rect.width / 2 - CARD_WIDTH / 2);
+    const fitsBelow = spaceBelow >= CARD_HEIGHT_ESTIMATE + GAP;
+    const fitsAbove = spaceAbove >= CARD_HEIGHT_ESTIMATE + GAP;
+
+    if (fitsBelow) {
       cardStyle = {
         position: "fixed",
-        top: rect.top + rect.height + 16,
-        left: Math.min(
-          Math.max(16, rect.left + rect.width / 2 - 180),
-          vw - 360 - 16,
-        ),
-        maxWidth: "min(360px, calc(100vw - 32px))",
+        top: rect.top + rect.height + GAP,
+        left: centerLeft,
+        maxWidth: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
+        width: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
         zIndex: 2147483647,
       };
-    } else if (spaceAbove >= cardHeightEstimate + 16) {
+    } else if (fitsAbove) {
       cardStyle = {
         position: "fixed",
-        top: rect.top - cardHeightEstimate - 16,
-        left: Math.min(
-          Math.max(16, rect.left + rect.width / 2 - 180),
-          vw - 360 - 16,
-        ),
-        maxWidth: "min(360px, calc(100vw - 32px))",
+        top: rect.top - CARD_HEIGHT_ESTIMATE - GAP,
+        left: centerLeft,
+        maxWidth: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
+        width: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
         zIndex: 2147483647,
       };
     } else {
-      // Fallback: bottom center
+      // Neither side fits comfortably — pick the side with more space so the
+      // card never sits on top of the spotlight target.
+      const top =
+        spaceAbove > spaceBelow
+          ? Math.max(16, rect.top - CARD_HEIGHT_ESTIMATE - GAP)
+          : Math.min(vh - CARD_HEIGHT_ESTIMATE - 16, rect.top + rect.height + GAP);
       cardStyle = {
         position: "fixed",
-        bottom: 24,
-        left: "50%",
-        transform: "translateX(-50%)",
-        maxWidth: "min(360px, calc(100vw - 32px))",
+        top,
+        left: centerLeft,
+        maxWidth: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
+        width: `min(${CARD_WIDTH}px, calc(100vw - 32px))`,
         zIndex: 2147483647,
       };
     }
   }
 
+  const spotlightInteractive = !step.interactive;
+
   const overlay = (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 2147483600 }}
+      style={{ position: "fixed", inset: 0, zIndex: 2147483600, pointerEvents: 'none' }}
       role="dialog"
       aria-modal="true"
       aria-label={step.title}
     >
-      {/* Dim layer with spotlight cutout via box-shadow trick */}
       {rect ? (
         <div
-          onClick={next}
+          onClick={spotlightInteractive ? next : undefined}
           style={{
             position: "fixed",
             top: rect.top,
@@ -169,7 +207,7 @@ export const Walkthrough = () => {
             outline: "2px solid hsl(var(--primary))",
             outlineOffset: 0,
             transition: "all 250ms ease",
-            pointerEvents: "auto",
+            pointerEvents: spotlightInteractive ? "auto" : "none",
           }}
         />
       ) : (
@@ -180,13 +218,13 @@ export const Walkthrough = () => {
             inset: 0,
             background: "hsl(var(--background) / 0.88)",
             backdropFilter: "blur(2px)",
+            pointerEvents: 'auto',
           }}
         />
       )}
 
-      {/* Tooltip card */}
       <div
-        style={cardStyle}
+        style={{ ...cardStyle, pointerEvents: 'auto' }}
         onClick={(e) => e.stopPropagation()}
         className="rounded-2xl border border-border bg-card text-card-foreground shadow-2xl p-5 animate-fade-in"
       >
@@ -210,7 +248,6 @@ export const Walkthrough = () => {
           {step.description}
         </p>
 
-        {/* Progress dots */}
         <div className="flex items-center gap-1 mb-4">
           {walkthroughSteps.map((s, i) => (
             <span

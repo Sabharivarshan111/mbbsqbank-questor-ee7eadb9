@@ -3,6 +3,9 @@ export interface WalkthroughStep {
   title: string;
   description: string;
   targetSelector?: string;
+  action?: 'open-custom-theme';
+  interactive?: boolean;
+  placement?: 'below' | 'above' | 'auto';
 }
 
 export const walkthroughSteps: WalkthroughStep[] = [
@@ -37,8 +40,9 @@ export const walkthroughSteps: WalkthroughStep[] = [
     id: "custom-theme",
     title: "Create Your Own Theme 🎨",
     description:
-      "Open the themes menu and tap 'Create Your Own…' — pick your background, foreground and accent colors with the color pickers, then save. Your theme applies instantly across the whole app.",
-    targetSelector: '[data-tour="theme-toggle"]',
+      "This is the Create-Your-Own-Theme panel. Tap any swatch to pick your background, text, accent and card colors — your theme applies instantly. Tap Next when you're done exploring.",
+    targetSelector: '[data-tour="custom-theme-dialog"]',
+    action: 'open-custom-theme',
   },
   {
     id: "font-size",
@@ -58,8 +62,9 @@ export const walkthroughSteps: WalkthroughStep[] = [
     id: "pomodoro-drag",
     title: "Drag the Timer Anywhere",
     description:
-      "Touch and hold the pill, then drag it wherever you like on your screen — top, bottom, corners, anywhere.",
+      "Touch and hold the pill for a moment, then drag it wherever you like — top, bottom, corners, anywhere. Try it now, then tap Next.",
     targetSelector: '[data-tour="pomodoro-pill"]',
+    interactive: true,
   },
   {
     id: "pomodoro-settings",
@@ -81,5 +86,6 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Found a bug or have feedback? Tap the creator's name in the footer to report any issue directly.",
     targetSelector: '[data-tour="report-issue"]',
+    placement: 'below',
   },
 ];

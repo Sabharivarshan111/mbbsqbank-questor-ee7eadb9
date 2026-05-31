@@ -1,39 +1,37 @@
-## First-Time Walkthrough Tour (Expanded)
+## Walkthrough fixes
 
-A guided onboarding overlay that appears only on the user's very first visit and never again. Persisted in `localStorage` under `orbit-walkthrough-completed`.
+Three targeted fixes to `src/components/walkthrough/Walkthrough.tsx`, `src/components/walkthrough/walkthroughSteps.ts`, and `src/components/theme/ThemeToggle.tsx`. No other features touched.
 
-### How it works
+### 1. "Create Your Own Theme" step actually shows the dialog
 
-- On app mount, check the flag. Missing → show overlay. Finish/skip → set flag → never shows again.
-- Full-screen dim layer with a spotlight cut-out around the target element + tooltip card (title, description, optional GIF-free animated hint icon, and `Skip` / `Back` / `Next`; last step = `Got it!`).
-- Smooth-scrolls the target into view, recomputes rect on resize/scroll.
+Right now the step just highlights the theme icon — the user never sees the "Create Your Own…" option or the color pickers.
 
-### Walkthrough steps (11 screens)
+- Add an optional `action?: 'open-custom-theme'` field on `WalkthroughStep`.
+- Set it on the `custom-theme` step.
+- In `Walkthrough.tsx`, when the active step has `action: 'open-custom-theme'`, dispatch `window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'))` once on entry, and dispatch `'orbit:close-custom-theme'` when the step is left (next/back/skip/finish).
+- In `ThemeToggle.tsx`, add a `useEffect` listening for those two events and toggling `customOpen`. Re-target the step at `[data-tour="custom-theme-dialog"]` placed on the dialog content, so the spotlight lands on the actual color pickers.
 
-1. **Welcome** — Centered card. "Welcome to ORBIT MBBS QBANK — let's take a quick tour."
-2. **Question Bank** — Spotlight QBank section. "Browse thousands of MCQs & short answers across every MBBS subject."
-3. **Expand AI Chat** — Spotlight AiChat panel + its expand button. "Ask any medical question. Tap the expand icon to open AI chat in a bigger view."
-4. **Theme Toggle — Light / Dark / Custom** — Spotlight `ThemeToggle`. "Tap to switch themes. Choose Light, Dark, or open **Custom Theme** to pick your own colors and save it."
-5. **Create Your Own Theme** — Still on ThemeToggle. "Inside Custom Theme, pick background, foreground, and accent colors with the color pickers, then Save — your theme applies instantly."
-6. **Change Font Size** — Spotlight `FontSizeToggle`. "Tap A− / A+ to change font size (small / medium / large) across the whole app."
-7. **Pomodoro Pill** — Spotlight the floating Pomodoro pill. "This is your study timer. Tap once to start/pause."
-8. **Drag the Pill** — Same target. "**Touch and hold**, then drag to move the pill anywhere on screen."
-9. **Pomodoro Settings** — Spotlight the settings (gear) icon on the pill. "Tap the gear to open settings — change focus / break durations, sound, and vibration. Use **Set this configuration** to apply, or **Reset pomodoro cycle** to restore defaults."
-10. **Close the Pomodoro Timer** — Spotlight the close (×) button on the pill. "Tap × to hide the timer. You can bring it back anytime from the page."
-11. **Report an Issue** — Spotlight the creator name pill in the footer ("Sabharivarshan S"). "Found a bug or have feedback? **Tap the creator's name** in the footer to report any issue."
+### 2. User can actually drag the Pomodoro pill during the drag step
 
-Final step → flag saved → overlay unmounts.
+The spotlight cutout currently has `pointerEvents: 'auto'` with `onClick={next}`, which swallows the long-press and drag gestures on the pill.
 
-### Technical details
+- Add optional `interactive?: boolean` to `WalkthroughStep` and set it on the `pomodoro-drag` step.
+- In the spotlight `<div>`, when `step.interactive` is true:
+  - set `pointerEvents: 'none'` (so touches go through to the pill),
+  - remove the `onClick={next}` handler,
+  - keep the visual ring + dim mask via `box-shadow`.
+- The tooltip card stays fully interactive — user advances with the Next button (or arrow key) after trying the drag. Update the step copy to say "Try it now, then tap Next."
 
-- New: `src/components/walkthrough/Walkthrough.tsx` — overlay component. Uses `useLocalStorage('orbit-walkthrough-completed', false)`, `stepIndex` state, looks up target by `data-tour="..."` selector via `getBoundingClientRect()`, renders a fixed `inset-0 z-[100]` layer. Spotlight uses `box-shadow: 0 0 0 9999px hsl(var(--background) / 0.88)` on a rounded rect around the target, plus `ring-2 ring-primary`. Tooltip card auto-flips above/below target based on viewport space (mobile-aware, 384px viewport in mind).
-- New: `src/components/walkthrough/walkthroughSteps.ts` — array of `{ id, title, description, targetSelector?, placement? }`. Steps without a selector render as centered modal (welcome step).
-- Edit `src/pages/Index.tsx`: mount `<Walkthrough />` at the bottom; add `data-tour` attributes to: question bank wrapper (`question-bank`), AI chat wrapper (`ai-chat`), theme toggle (`theme-toggle`), font size toggle (`font-size`), creator-name link (`report-issue`).
-- Edit `src/components/PomodoroTimer.tsx`: add `data-tour="pomodoro-pill"` to the pill root, `data-tour="pomodoro-settings"` to the settings/gear button, `data-tour="pomodoro-close"` to the close button. (If close/settings buttons are inside child components, add the attribute there.)
-- Styling: semantic tokens only — `bg-card text-card-foreground border-border` for tooltip, `bg-primary text-primary-foreground` for primary action, `text-muted-foreground` for Skip. Rounded `2xl`, soft shadow.
-- Accessibility: `role="dialog"`, focus trap on the tooltip card, `Esc` to skip, arrow keys for prev/next.
+### 3. Creator-name link is visible (tooltip stops covering it)
+
+On mobile the target sits at the page bottom, so `recompute` scrolls it to center but the tooltip's fallback position (`bottom: 24`) then sits on top of the highlighted pill, hiding the name.
+
+- In `recompute`, use `block: 'start'` (with a top offset) for steps flagged `placement: 'below'`, and add `placement` to the `report-issue` step so the target lands in the upper third of the viewport.
+- In the card-positioning logic, after picking below/above/fallback, detect if the chosen card rectangle would overlap the spotlight rect (with a 12 px gap). If it would, fall back to the opposite side; if neither side fits, place the card at the top of the viewport instead of the bottom for bottom-anchored targets.
+- This guarantees the tooltip never covers the spotlight target, so "Sabharivarshan S" + the pulse dot are both visible.
 
 ### Out of scope
 
-- No "Replay tour" entry point (per earlier ask: only first time, never again). Easy to add later behind a footer link if you change your mind.
-- No backend storage; per-device only — matches "first install" intent.
+- No changes to Pomodoro logic, themes, or any other features.
+- No new dependencies. No backend.
+- Walkthrough still appears only on first run via the existing `orbit-walkthrough-completed` localStorage key.
