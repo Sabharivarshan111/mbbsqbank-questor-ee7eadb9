@@ -166,14 +166,14 @@ const PomodoroTimer = () => {
 
   const fixedDefaultStyle: React.CSSProperties = {
     position: 'fixed',
-    left: 0,
-    right: 0,
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    left: '50%',
+    right: 'auto',
+    marginLeft: 0,
+    marginRight: 0,
     width: 'max-content',
     maxWidth: '95vw',
     bottom: '2.5rem',
-    transform: 'none',
+    transform: 'translate3d(-50%, 0, 0)',
     zIndex: 2147483000,
     ...portalStyleReset,
   };
