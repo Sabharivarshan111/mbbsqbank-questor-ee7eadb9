@@ -313,7 +313,15 @@ const PomodoroTimer = () => {
     return settingsSheet;
   }
 
-  if (!isVisible) {
+  if (hideEntirely && !settingsOpen) {
+    return null;
+  }
+
+  if (settingsOpen) {
+    return settingsSheet;
+  }
+
+  if (!effectiveVisible) {
     return (
       <>
         {createPortal(
