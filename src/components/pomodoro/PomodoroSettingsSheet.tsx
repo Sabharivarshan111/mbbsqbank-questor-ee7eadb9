@@ -13,7 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { PomodoroSettings } from '@/hooks/use-pomodoro-settings';
+import { defaultPomodoroSettings, type PomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { playSound, vibrationSupported, primeAudio } from '@/lib/timer-sounds';
 import type { SoundPreset } from '@/lib/timer-sounds';
 import { useTheme } from '@/components/theme/ThemeProvider';
