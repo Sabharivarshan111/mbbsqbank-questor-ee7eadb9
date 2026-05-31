@@ -837,6 +837,7 @@ html.liquid-glass [data-state] > [role="region"] {
 }
 
 /* Fluid global transitions */
+.pomodoro-floating-root:not(.pomodoro-floating-dragged),
 .pomodoro-floating-default,
 .pomodoro-timer-container {
   position: fixed !important;
