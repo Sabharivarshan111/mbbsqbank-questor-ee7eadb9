@@ -152,7 +152,6 @@ const PomodoroTimer = () => {
   const styles = getThemeStyles();
 
   const portalStyleReset: React.CSSProperties = {
-    animation: theme === 'liquid-glass' ? 'none' : undefined,
     transition: 'none',
     willChange: 'auto',
   };
