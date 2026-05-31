@@ -179,35 +179,12 @@ const PomodoroTimer = () => {
     ...portalStyleReset,
   };
 
-  const getLiquidViewportStyle = (heightFallback: number): React.CSSProperties => {
-    const viewportWidth = liquidViewport.width || (typeof window !== 'undefined' ? window.innerWidth : 0);
-    const viewportHeight = liquidViewport.height || (typeof window !== 'undefined' ? window.innerHeight : 0);
-    const height = floatingSize.height || heightFallback;
-
-    return {
-      position: 'absolute',
-      left: liquidViewport.x + viewportWidth / 2,
-      top: liquidViewport.y + viewportHeight - height - 40,
-      right: 'auto',
-      bottom: 'auto',
-      marginLeft: 0,
-      marginRight: 0,
-      width: 'max-content',
-      maxWidth: '95vw',
-      transform: 'translateX(-50%)',
-      zIndex: 2147483000,
-      ...portalStyleReset,
-    };
-  };
-
-  const liquidPillDefaultStyle = getLiquidViewportStyle(144);
-  const liquidMiniCircleStyle = getLiquidViewportStyle(40);
-
   const miniCircleStyle: React.CSSProperties = {
-    ...(isLiquidGlass ? liquidMiniCircleStyle : fixedDefaultStyle),
+    ...fixedDefaultStyle,
     width: '2.5rem',
     height: '2.5rem',
   };
+
 
 
   const settingsSheet = (
