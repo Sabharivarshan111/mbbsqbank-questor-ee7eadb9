@@ -876,6 +876,10 @@ html.liquid-glass .pomodoro-floating-mini button:focus-visible {
   transform: none !important;
 }
 
+html.liquid-glass .pomodoro-settings-sheet {
+  transform: none !important;
+}
+
 /* Scrollbar — light frosted */
 html.liquid-glass ::-webkit-scrollbar {
   width: 10px;
