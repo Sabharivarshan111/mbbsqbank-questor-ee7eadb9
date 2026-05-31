@@ -48,7 +48,7 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent data-tour="custom-theme-dialog" className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
           <DialogDescription>
