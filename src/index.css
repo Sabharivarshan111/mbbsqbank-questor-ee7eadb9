@@ -870,7 +870,6 @@ html.liquid-glass .pomodoro-floating-default {
   z-index: 2147483000 !important;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  contain: layout paint;
 }
 
 html.liquid-glass .pomodoro-floating-default button:hover,
