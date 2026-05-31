@@ -24,6 +24,18 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  // Allow the walkthrough to open/close the Create-Your-Own-Theme dialog
+  useEffect(() => {
+    const open = () => setCustomOpen(true);
+    const close = () => setCustomOpen(false);
+    window.addEventListener('orbit:open-custom-theme', open);
+    window.addEventListener('orbit:close-custom-theme', close);
+    return () => {
+      window.removeEventListener('orbit:open-custom-theme', open);
+      window.removeEventListener('orbit:close-custom-theme', close);
+    };
+  }, []);
+
   if (!mounted) {
     return null;
   }
