@@ -1,31 +1,51 @@
-## Root cause
+## Scope
 
-In `src/components/PomodoroTimer.tsx` the pill/mini-circle is currently portaled into `document.documentElement` (the `<html>` element) for the Liquid Glass theme only:
+Edit two files only. Pure UI/presentation. No logic changes. Applies to every theme (Dark / Light / BlackPink / Liquid Glass).
 
-```ts
-const floatingPortalRoot = theme === 'liquid-glass' ? document.documentElement : document.body;
+## 1. `src/pages/Index.tsx` — footer credit block
+
+Current state in screenshot: "Created by [Sabharivarshan S] 👆 tap my name to report any issues!" wraps awkwardly into 2 lines, emoji looks unprofessional, and the name button has no obvious tap affordance against the surrounding text.
+
+Redesign as a single, clean, vertically-stacked, centered block:
+
+```text
+            Created by
+       ┌──────────────────┐
+       │  Sabharivarshan S│   ← clearly-tappable pill button with subtle pulse
+       └──────────────────┘
+        ↑ Tap name to report any issues
 ```
 
-Mounting interactive UI as a direct child of `<html>` (instead of `<body>`) causes two problems on Android WebView in Liquid Glass:
+Concrete changes:
+- Wrap the credit block in a `flex flex-col items-center gap-2` container so "Created by", the name button, and the hint sit on three separate centered lines — never reflow into broken 2-line text.
+- Keep the existing `<a>` to `sabharivarshanprofile.lovable.app` but restyle it as a proper pill button: `inline-flex items-center` , solid `border-primary/40`, `bg-primary/10`, `rounded-full`, `px-4 py-1.5`, `text-primary font-semibold`, `shadow-sm hover:bg-primary/20 hover:scale-[1.02] active:scale-95 transition-all`. Remove the always-on `animate-pulse` and the heavy `drop-shadow`; keep a soft `animate-pulse` only on a tiny dot indicator next to the name (optional) so it doesn't look like the whole label is flashing.
+- Hint line below the button: replace `👆` emoji with a clean Lucide `ArrowUp` icon (`<ArrowUp className="h-3 w-3" />`) rendered inline before the text. Text: `Tap name to report any issues`. Single line, `text-xs text-muted-foreground`, centered. No emojis anywhere.
+- All text uses semantic tokens (`text-muted-foreground`, `text-primary`) — works identically in Dark, Light, BlackPink, and Liquid Glass without per-theme branches.
 
-1. Pointer/click events on the gear button do not reliably trigger React handlers → `setSettingsOpen(true)` never runs → the settings sheet never opens.
-2. The Radix `Sheet` is portaled to `<body>`, so even when it does open it can fall under Liquid Glass's body-level stacking context.
+## 2. Apply the same "whole-row tap highlight" treatment to footer links
 
-Other themes use `document.body` and work correctly — including the bottom-center sheet shown in screenshot 1.
+The user notes that essay / short-note rows in QBank give clear feedback because the entire row darkens on tap, but footer links (Privacy Policy, Terms, About, Study Guides, FAQ) give no such feedback — user can't tell if a tap registered.
 
-## Fix
+In `src/pages/Index.tsx` footer-links row:
+- Change each `<Link>` from inline text to a block-ish tap target: `inline-flex items-center justify-center px-3 py-2 rounded-md text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors`.
+- Wrap them in `flex flex-wrap justify-center gap-1` so they remain centered and wrap cleanly on narrow viewports (the current layout wraps "Terms of Service" and "Study Guides" awkwardly into 2 lines per item — using a flex-wrap row of pill targets fixes both the tap-feedback and the wrap aesthetics in one move).
+- Universal across themes — uses only `accent` / `muted-foreground` / `primary` tokens.
 
-Edit only `src/components/PomodoroTimer.tsx`:
+## 3. `src/components/theme/ThemeToggle.tsx` — remove "NEW" badge on Liquid Glass
 
-1. Always portal the pill and mini-circle into `document.body` (drop the `theme === 'liquid-glass' ? document.documentElement : document.body` branch). This matches every other theme and matches normal Radix/modal behavior.
-2. Keep the existing `fixedDefaultStyle` exactly as-is — `position: fixed; left: 0; right: 0; margin: auto; width: max-content; bottom: max(2.5rem, …)` — so the mini-circle and expanded pill stay pinned bottom-center in every theme, including Liquid Glass.
-3. Keep `portalStyleReset` (`transition: 'none'`, `animation: 'none'` for liquid-glass) so the global `html.liquid-glass *` transition on `transform` does not drift the pill on first paint.
-4. Keep the gear button as today: `onPointerDown stopPropagation` + `onClick stopPropagation` → `setSettingsOpen(true)`, with the early-return `if (settingsOpen) return settingsSheet;` so the pill hides while the sheet is open.
-5. Leave `PomodoroSettingsSheet`, drag logic, visibility persistence, sounds, vibration, theme styles, and `index.css` untouched.
+Line 127 renders a `<span>NEW</span>` gradient badge next to the Liquid Glass theme option in the theme dropdown. Delete that span entirely. No other change to the dropdown.
+
+## Out of scope
+
+- Pomodoro pill / settings sheet — untouched.
+- AiChat, QuestionBank, theme tokens, index.css — untouched.
+- No business logic, no routing, no data changes.
 
 ## Verification
 
-- Liquid Glass: tap the gear in the Pomodoro pill → bottom settings sheet opens exactly like screenshot 1 (durations, alert sound, volume, vibration, reset).
-- Liquid Glass: mini-circle and expanded pill stay anchored bottom-center on first paint, after toggling visibility, and on resize — same as Dark / Light / BlackPink.
-- Long-press drag still moves the pill; tap on gear / close / play / reset still works.
-- Dark, light, blackpink themes unchanged.
+After build:
+1. Footer renders as 3 centered stacked lines: "Created by" / pill-button name / "↑ Tap name to report any issues" — no broken 2-line wraps, no emoji.
+2. Tapping the name pill visibly scales / brightens, then opens the external profile.
+3. Tapping Privacy Policy / Terms / About / Study Guides / FAQ shows an `accent` background flash on press (matches QBank essay-row feedback).
+4. Open the theme dropdown — Liquid Glass option no longer shows the "NEW" badge.
+5. Switch through Dark, Light, BlackPink, Liquid Glass — footer looks identical in structure, only colors adapt via tokens.

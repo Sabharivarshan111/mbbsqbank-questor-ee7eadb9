@@ -124,7 +124,6 @@ export function ThemeToggle() {
           >
             <span className="relative inline-flex items-center justify-center h-4 w-4 rounded-full border border-white/70 bg-gradient-to-br from-white/90 via-sky-200/70 to-violet-200/70 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_2px_6px_rgba(120,150,200,0.35)]" />
             <span>Liquid Glass</span>
-            <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-400 to-pink-400 text-white tracking-wide">NEW</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

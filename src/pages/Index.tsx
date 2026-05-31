@@ -6,7 +6,7 @@ import { AiChat } from "@/components/AiChat";
 import PomodoroTimer from "@/components/PomodoroTimer";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Eye } from "lucide-react";
+import { Eye, ArrowUp } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 
 const Index = () => {
@@ -55,24 +55,30 @@ const Index = () => {
           </div>
           
           {/* Footer with Creator Name */}
-          <div className="w-full text-center text-sm text-muted-foreground mb-8">
-            <div className="flex justify-center gap-4 mb-2">
-              <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-              <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
-              <Link to="/about" className="hover:text-primary transition-colors">About</Link>
-              <Link to="/blog" className="hover:text-primary transition-colors">Study Guides</Link>
-              <Link to="/faq" className="hover:text-primary transition-colors">FAQ</Link>
+          <div className="w-full mb-8 flex flex-col items-center gap-4">
+            <div className="flex flex-wrap justify-center gap-1">
+              <Link to="/privacy-policy" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">Terms of Service</Link>
+              <Link to="/about" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">About</Link>
+              <Link to="/blog" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">Study Guides</Link>
+              <Link to="/faq" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">FAQ</Link>
             </div>
-            Created by{' '}
-            <a 
-              href="https://sabharivarshanprofile.lovable.app/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="transition-all duration-300 animate-pulse text-primary drop-shadow-[0_0_10px_rgba(255,92,141,0.5)] cursor-pointer px-2 py-1 rounded-md border border-transparent border-primary/30 bg-primary/10 hover:animate-none"
-            >
-              Sabharivarshan S
-            </a>{' '}
-            <span className="font-bold text-xs text-primary/80 animate-bounce">👆 tap my name to report any issues!</span>
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-sm text-muted-foreground">Created by</span>
+              <a
+                href="https://sabharivarshanprofile.lovable.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary font-semibold shadow-sm hover:bg-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                Sabharivarshan S
+              </a>
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <ArrowUp className="h-3 w-3" />
+                Tap name to report any issues
+              </span>
+            </div>
           </div>
           
         </div>
