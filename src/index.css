@@ -877,7 +877,6 @@ html.liquid-glass .pomodoro-floating-default {
   z-index: 2147483000 !important;
 }
 
-html.liquid-glass .pomodoro-floating-default,
 html.liquid-glass .pomodoro-floating-mini button,
 html.liquid-glass .pomodoro-floating-mini button:hover,
 html.liquid-glass .pomodoro-floating-mini button:active,
