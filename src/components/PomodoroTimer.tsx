@@ -80,6 +80,7 @@ const PomodoroTimer = () => {
     resetTimer,
     switchMode,
     resetCycle,
+    applyCurrentSettings,
     handleInputChange,
     handleSubmit,
     startEditing,
