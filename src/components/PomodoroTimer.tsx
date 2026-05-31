@@ -259,6 +259,7 @@ const PomodoroTimer = () => {
       open={settingsOpen}
       onOpenChange={setSettingsOpen}
       onResetCycle={resetCycle}
+      onApplyConfig={applyCurrentSettings}
     />
   );
 
