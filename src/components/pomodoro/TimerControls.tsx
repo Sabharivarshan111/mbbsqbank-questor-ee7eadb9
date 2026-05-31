@@ -58,6 +58,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       <Button
         variant="outline"
         size="icon"
+        data-tour="pomodoro-start"
         onClick={(e) => {
           e.stopPropagation();
           toggleTimer();

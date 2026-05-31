@@ -55,8 +55,15 @@ export const walkthroughSteps: WalkthroughStep[] = [
     id: "pomodoro-pill",
     title: "Pomodoro Study Timer",
     description:
-      "This floating pill is your study timer. Tap the play button to start a focus session.",
+      "This floating pill is your study timer. It always stays at the bottom so you can keep track of your focus session from anywhere in the app.",
     targetSelector: '[data-tour="pomodoro-pill"]',
+  },
+  {
+    id: "pomodoro-start",
+    title: "Start a Focus Session ▶️",
+    description:
+      "Tap the round ▶ Play button to begin a 25-minute focus session. The timer counts down and rings when time is up. Tap it again (now showing ⏸) to pause, and tap the ↺ button next to it to reset the current session back to the start.",
+    targetSelector: '[data-tour="pomodoro-start"]',
   },
   {
     id: "pomodoro-drag",

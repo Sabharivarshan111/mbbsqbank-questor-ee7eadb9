@@ -45,6 +45,10 @@ export const Walkthrough = () => {
     if (step.action === 'open-custom-theme' && prevId !== step.id) {
       window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'));
     }
+    // Make sure the full Pomodoro pill is visible for any pomodoro-* step
+    if (step.id.startsWith('pomodoro-')) {
+      window.dispatchEvent(new CustomEvent('orbit:show-pomodoro'));
+    }
     lastActionStepRef.current = step.id;
   }, [mounted, completed, step]);
 
@@ -194,22 +198,43 @@ export const Walkthrough = () => {
       aria-label={step.title}
     >
       {rect ? (
-        <div
-          onClick={spotlightInteractive ? next : undefined}
-          style={{
-            position: "fixed",
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            borderRadius: 14,
-            boxShadow: "0 0 0 9999px hsl(var(--background) / 0.88)",
-            outline: "2px solid hsl(var(--primary))",
-            outlineOffset: 0,
-            transition: "all 250ms ease",
-            pointerEvents: spotlightInteractive ? "auto" : "none",
-          }}
-        />
+        <>
+          {/* Dim layer with a cut-out so the spotlighted element stays bright */}
+          <div
+            onClick={spotlightInteractive ? next : undefined}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "hsl(var(--background) / 0.88)",
+              backdropFilter: "blur(2px)",
+              pointerEvents: spotlightInteractive ? 'auto' : 'none',
+              clipPath: `polygon(
+                0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+                ${rect.left}px ${rect.top}px,
+                ${rect.left}px ${rect.top + rect.height}px,
+                ${rect.left + rect.width}px ${rect.top + rect.height}px,
+                ${rect.left + rect.width}px ${rect.top}px,
+                ${rect.left}px ${rect.top}px
+              )`,
+              transition: "clip-path 250ms ease, background 250ms ease",
+            }}
+          />
+          {/* Outline ring around the spotlighted element (no background) */}
+          <div
+            style={{
+              position: "fixed",
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height,
+              borderRadius: 14,
+              border: "2px solid hsl(var(--primary))",
+              boxShadow: "0 0 0 4px hsl(var(--primary) / 0.25)",
+              pointerEvents: 'none',
+              transition: "all 250ms ease",
+            }}
+          />
+        </>
       ) : (
         <div
           onClick={next}

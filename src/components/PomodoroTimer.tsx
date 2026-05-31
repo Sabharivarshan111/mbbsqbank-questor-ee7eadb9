@@ -110,6 +110,12 @@ const PomodoroTimer = () => {
     localStorage.setItem('pomodoroVisible', isVisible.toString());
   }, [isVisible]);
 
+  useEffect(() => {
+    const onShow = () => setIsVisible(true);
+    window.addEventListener('orbit:show-pomodoro', onShow);
+    return () => window.removeEventListener('orbit:show-pomodoro', onShow);
+  }, []);
+
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
@@ -281,7 +287,7 @@ const PomodoroTimer = () => {
     return (
       <>
         {createPortal(
-          <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
+          <div ref={miniCircleRef} data-tour="pomodoro-pill" style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
