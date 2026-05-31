@@ -112,52 +112,9 @@ const PomodoroTimer = () => {
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
-  const isLiquidGlass = theme === 'liquid-glass';
-  const [liquidViewport, setLiquidViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [floatingSize, setFloatingSize] = useState({ width: 0, height: 0 });
 
   const toggleVisibility = () => setIsVisible(prev => !prev);
 
-  const updateLiquidViewport = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    const viewport = window.visualViewport;
-    setLiquidViewport({
-      x: window.scrollX + (viewport?.offsetLeft ?? 0),
-      y: window.scrollY + (viewport?.offsetTop ?? 0),
-      width: viewport?.width ?? window.innerWidth,
-      height: viewport?.height ?? window.innerHeight,
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!isLiquidGlass) return;
-    updateLiquidViewport();
-    const viewport = window.visualViewport;
-    window.addEventListener('scroll', updateLiquidViewport, { passive: true });
-    window.addEventListener('resize', updateLiquidViewport);
-    viewport?.addEventListener('scroll', updateLiquidViewport);
-    viewport?.addEventListener('resize', updateLiquidViewport);
-    return () => {
-      window.removeEventListener('scroll', updateLiquidViewport);
-      window.removeEventListener('resize', updateLiquidViewport);
-      viewport?.removeEventListener('scroll', updateLiquidViewport);
-      viewport?.removeEventListener('resize', updateLiquidViewport);
-    };
-  }, [isLiquidGlass, updateLiquidViewport]);
-
-  useLayoutEffect(() => {
-    if (!isLiquidGlass) return;
-    const el = isVisible ? pillRef.current : miniCircleRef.current;
-    if (!el) return;
-    const updateSize = () => {
-      const rect = el.getBoundingClientRect();
-      setFloatingSize({ width: rect.width, height: rect.height });
-    };
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [isLiquidGlass, isVisible]);
 
   const getThemeStyles = () => {
     if (theme === 'blackpink') {
