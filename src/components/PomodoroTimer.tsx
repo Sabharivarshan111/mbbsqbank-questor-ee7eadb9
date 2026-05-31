@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from
 import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
-import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
+import { usePomodoroSettings, defaultPomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { usePomodoroStats, formatFocusTime } from '@/hooks/use-pomodoro-stats';
 import { playSound, vibrate, primeAudio } from '@/lib/timer-sounds';
 import { TimerControls } from './pomodoro/TimerControls';
@@ -34,7 +34,7 @@ const PomodoroTimer = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const { settings } = usePomodoroSettings();
+  const { settings, update: updateSettings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
   const { onlineCount } = useOnlinePresence();
 
@@ -254,12 +254,20 @@ const PomodoroTimer = () => {
   };
 
 
+  const handleFactoryReset = useCallback(() => {
+    updateSettings(defaultPomodoroSettings);
+    resetCycle();
+  }, [updateSettings, resetCycle]);
+
   const settingsSheet = (
     <PomodoroSettingsSheet
       open={settingsOpen}
       onOpenChange={setSettingsOpen}
+      settings={settings}
+      update={updateSettings}
       onResetCycle={resetCycle}
       onApplyConfig={applyCurrentSettings}
+      onFactoryReset={handleFactoryReset}
     />
   );
 

@@ -13,15 +13,18 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { usePomodoroSettings, defaultPomodoroSettings } from '@/hooks/use-pomodoro-settings';
+import type { PomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { playSound, vibrationSupported, primeAudio } from '@/lib/timer-sounds';
 import type { SoundPreset } from '@/lib/timer-sounds';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface Props {
   trigger?: React.ReactNode;
+  settings: PomodoroSettings;
+  update: (patch: Partial<PomodoroSettings>) => void;
   onResetCycle?: () => void;
   onApplyConfig?: () => void;
+  onFactoryReset?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -33,9 +36,8 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
   { value: 'off', label: 'Off' },
 ];
 
-export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, onApplyConfig, open, onOpenChange }) => {
+export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings, update, onResetCycle, onApplyConfig, onFactoryReset, open, onOpenChange }) => {
   const { theme } = useTheme();
-  const { settings, update } = usePomodoroSettings();
   const vibeOk = vibrationSupported();
   const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const isLiquidGlass = theme === 'liquid-glass';
@@ -242,8 +244,8 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, 
                 Set this configuration
               </Button>
             )}
-            {onResetCycle && (
-              <Button variant="outline" onClick={onResetCycle}>
+            {onFactoryReset && (
+              <Button variant="outline" onClick={onFactoryReset}>
                 Reset pomodoro cycle
               </Button>
             )}
