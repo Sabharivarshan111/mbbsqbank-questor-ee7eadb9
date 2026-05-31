@@ -116,6 +116,36 @@ const PomodoroTimer = () => {
     return () => window.removeEventListener('orbit:show-pomodoro', onShow);
   }, []);
 
+  // Walkthrough override — does NOT persist to localStorage
+  const [walkthroughOverride, setWalkthroughOverride] = useState<'show' | 'minimize' | 'hide' | null>(null);
+  useEffect(() => {
+    const onShow = () => setWalkthroughOverride('show');
+    const onMin = () => setWalkthroughOverride('minimize');
+    const onHide = () => setWalkthroughOverride('hide');
+    const onClear = () => setWalkthroughOverride(null);
+    const onOpenSettings = () => setSettingsOpen(true);
+    const onCloseSettings = () => setSettingsOpen(false);
+    window.addEventListener('orbit:pomodoro-walkthrough-show', onShow);
+    window.addEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
+    window.addEventListener('orbit:pomodoro-walkthrough-hide', onHide);
+    window.addEventListener('orbit:pomodoro-walkthrough-clear', onClear);
+    window.addEventListener('orbit:open-pomodoro-settings', onOpenSettings);
+    window.addEventListener('orbit:close-pomodoro-settings', onCloseSettings);
+    return () => {
+      window.removeEventListener('orbit:pomodoro-walkthrough-show', onShow);
+      window.removeEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
+      window.removeEventListener('orbit:pomodoro-walkthrough-hide', onHide);
+      window.removeEventListener('orbit:pomodoro-walkthrough-clear', onClear);
+      window.removeEventListener('orbit:open-pomodoro-settings', onOpenSettings);
+      window.removeEventListener('orbit:close-pomodoro-settings', onCloseSettings);
+    };
+  }, []);
+
+  const effectiveVisible = walkthroughOverride
+    ? walkthroughOverride === 'show'
+    : isVisible;
+  const hideEntirely = walkthroughOverride === 'hide';
+
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
