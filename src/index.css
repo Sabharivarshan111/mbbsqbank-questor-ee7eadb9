@@ -868,19 +868,19 @@ html.liquid-glass .pomodoro-floating-root *::after {
 
 html.liquid-glass .pomodoro-floating-root {
   z-index: 2147483000 !important;
-  transform: none !important;
 }
 
 html.liquid-glass .pomodoro-floating-default {
   position: fixed !important;
-  left: 0 !important;
+  left: 50% !important;
   right: 0 !important;
   top: auto !important;
   bottom: 2.5rem !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   width: max-content !important;
   max-width: 95vw !important;
+  transform: translate3d(-50%, 0, 0) !important;
   z-index: 2147483000 !important;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
