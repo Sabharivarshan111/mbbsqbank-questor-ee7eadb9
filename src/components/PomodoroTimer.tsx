@@ -165,26 +165,16 @@ const PomodoroTimer = () => {
         : styles.text;
 
   const fixedDefaultStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: 'fixed',
     left: '50%',
     right: 'auto',
+    top: 'auto',
     marginLeft: 0,
     marginRight: 0,
     width: 'max-content',
     maxWidth: '95vw',
-    bottom: '2.5rem',
+    bottom: 'calc(2.5rem + env(safe-area-inset-bottom, 0px))',
     transform: 'translate3d(-50%, 0, 0)',
-    zIndex: 2147483000,
-    ...portalStyleReset,
-  };
-
-  const floatingViewportStyle: React.CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    width: '100vw',
-    height: '100dvh',
-    pointerEvents: 'none',
-    overflow: 'visible',
     zIndex: 2147483000,
     ...portalStyleReset,
   };
@@ -214,8 +204,7 @@ const PomodoroTimer = () => {
     return (
       <>
         {createPortal(
-          <div className="pomodoro-floating-viewport" style={floatingViewportStyle}>
-            <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-floating-root pomodoro-floating-default pomodoro-floating-mini animate-fade-in pointer-events-auto">
+          <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-fixed-anchor pomodoro-floating-root pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -232,7 +221,6 @@ const PomodoroTimer = () => {
                   <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </div>
           </div>,
           floatingPortalRoot,
         )}
@@ -244,7 +232,7 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: 'absolute',
+        position: 'fixed',
         left: position.x,
         top: position.y,
         bottom: 'auto',
@@ -256,12 +244,11 @@ const PomodoroTimer = () => {
 
 
   return createPortal(
-    <div className="pomodoro-floating-viewport" style={floatingViewportStyle}>
     <div
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} pomodoro-floating-root ${position ? 'pomodoro-floating-dragged' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none pointer-events-auto ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} pomodoro-fixed-anchor pomodoro-floating-root ${position ? 'pomodoro-floating-dragged' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none pointer-events-auto ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
@@ -370,7 +357,6 @@ const PomodoroTimer = () => {
           )}
         </div>
       </div>
-    </div>
     </div>,
     floatingPortalRoot,
   );

@@ -837,6 +837,28 @@ html.liquid-glass [data-state] > [role="region"] {
 }
 
 /* Fluid global transitions */
+.pomodoro-fixed-anchor:not(.pomodoro-floating-dragged),
+.pomodoro-floating-default {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  transform: translate3d(-50%, 0, 0) !important;
+  z-index: 2147483000 !important;
+  width: max-content !important;
+  max-width: 95vw !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.pomodoro-fixed-anchor {
+  contain: layout paint;
+  will-change: auto !important;
+}
+
 html.liquid-glass *,
 html.liquid-glass *::before,
 html.liquid-glass *::after {
@@ -875,7 +897,7 @@ html.liquid-glass .pomodoro-floating-default {
   left: 50% !important;
   right: auto !important;
   top: auto !important;
-  bottom: 2.5rem !important;
+  bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px)) !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
   width: max-content !important;
