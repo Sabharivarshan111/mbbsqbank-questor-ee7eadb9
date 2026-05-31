@@ -858,6 +858,21 @@ html.liquid-glass .bg-card:hover {
   transform: translateY(-1px);
 }
 
+html.liquid-glass .pomodoro-floating-default,
+html.liquid-glass .pomodoro-floating-default *,
+html.liquid-glass .pomodoro-floating-default *::before,
+html.liquid-glass .pomodoro-floating-default *::after {
+  transition-property: background-color, border-color, box-shadow, opacity, backdrop-filter, color !important;
+}
+
+html.liquid-glass .pomodoro-floating-default,
+html.liquid-glass .pomodoro-floating-mini button,
+html.liquid-glass .pomodoro-floating-mini button:hover,
+html.liquid-glass .pomodoro-floating-mini button:active,
+html.liquid-glass .pomodoro-floating-mini button:focus-visible {
+  transform: none !important;
+}
+
 /* Scrollbar — light frosted */
 html.liquid-glass ::-webkit-scrollbar {
   width: 10px;
