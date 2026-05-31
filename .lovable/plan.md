@@ -1,37 +1,46 @@
-## Walkthrough fixes
+## Goal
 
-Three targeted fixes to `src/components/walkthrough/Walkthrough.tsx`, `src/components/walkthrough/walkthroughSteps.ts`, and `src/components/theme/ThemeToggle.tsx`. No other features touched.
+1. Fix: during the walkthrough, the Pomodoro pill is not visible (it gets hidden / dimmed under the overlay), so the pill-related steps point at nothing.
+2. Add a new walkthrough step that explains in detail how to **start** the Pomodoro timer (the play button).
 
-### 1. "Create Your Own Theme" step actually shows the dialog
+Only the walkthrough + Pomodoro presentation layer is touched. Timer logic, themes, and other features are untouched.
 
-Right now the step just highlights the theme icon — the user never sees the "Create Your Own…" option or the color pickers.
+## Root cause of the invisible pill
 
-- Add an optional `action?: 'open-custom-theme'` field on `WalkthroughStep`.
-- Set it on the `custom-theme` step.
-- In `Walkthrough.tsx`, when the active step has `action: 'open-custom-theme'`, dispatch `window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'))` once on entry, and dispatch `'orbit:close-custom-theme'` when the step is left (next/back/skip/finish).
-- In `ThemeToggle.tsx`, add a `useEffect` listening for those two events and toggling `customOpen`. Re-target the step at `[data-tour="custom-theme-dialog"]` placed on the dialog content, so the spotlight lands on the actual color pickers.
+- The Pomodoro pill renders in a portal with `z-index: 2147483000`.
+- The walkthrough overlay container uses `z-index: 2147483600`, and the spotlight `<div>` inside it draws the dim via `box-shadow: 0 0 0 9999px hsl(var(--background) / 0.88)`.
+- Because the spotlight `<div>` stacks **above** the pill, the box-shadow paints over the pill area on many devices (especially mobile with a high DPR) before the cutout takes effect, and the spotlight outline appears empty.
+- The pill can also be hidden (`isVisible=false` persisted in localStorage from a previous session) on a "first-time" walkthrough trigger, leaving only the small circle button — which has no `data-tour` attribute, so the step's target selector fails entirely.
 
-### 2. User can actually drag the Pomodoro pill during the drag step
+## Changes
 
-The spotlight cutout currently has `pointerEvents: 'auto'` with `onClick={next}`, which swallows the long-press and drag gestures on the pill.
+### 1. `src/components/PomodoroTimer.tsx`
+- Add `data-tour="pomodoro-pill"` to the mini-circle (hidden state) button container as well, so the selector resolves even when the user previously hid the pill.
+- Listen for a `orbit:show-pomodoro` window event and call `setIsVisible(true)` so the walkthrough can force the full pill to appear for the pill / drag / settings / close / start steps.
 
-- Add optional `interactive?: boolean` to `WalkthroughStep` and set it on the `pomodoro-drag` step.
-- In the spotlight `<div>`, when `step.interactive` is true:
-  - set `pointerEvents: 'none'` (so touches go through to the pill),
-  - remove the `onClick={next}` handler,
-  - keep the visual ring + dim mask via `box-shadow`.
-- The tooltip card stays fully interactive — user advances with the Next button (or arrow key) after trying the drag. Update the step copy to say "Try it now, then tap Next."
+### 2. `src/components/walkthrough/Walkthrough.tsx`
+- Before resolving the target for any step whose id starts with `pomodoro-`, dispatch `window.dispatchEvent(new CustomEvent('orbit:show-pomodoro'))` so the full pill is mounted.
+- Raise the spotlight so the pill shows **through** the cutout cleanly:
+  - Keep overlay container at `z-index: 2147483600`.
+  - Add an explicit dim layer (`position: fixed; inset: 0; background: hsl(var(--background) / 0.88)`) with `clip-path` cutting out the spotlight rect (rounded), instead of relying on `box-shadow` from the spotlight div. This guarantees the pill area is fully un-dimmed.
+  - The spotlight outline div stays as a thin ring with transparent background and `pointer-events: auto` (or `none` for `interactive` steps), no box-shadow.
+- Keep current behavior for `interactive` (drag) and `action: open-custom-theme` steps.
+- On unmount / finish, no extra cleanup needed for the show event (visibility is user-controlled afterwards).
 
-### 3. Creator-name link is visible (tooltip stops covering it)
+### 3. `src/components/walkthrough/walkthroughSteps.ts`
+- Add a new step **before** `pomodoro-drag` (right after `pomodoro-pill`):
 
-On mobile the target sits at the page bottom, so `recompute` scrolls it to center but the tooltip's fallback position (`bottom: 24`) then sits on top of the highlighted pill, hiding the name.
+```text
+id: "pomodoro-start"
+title: "Start a Focus Session ▶️"
+description: "Tap the round Play button to start the 25-minute focus timer. It will count down and ring when your session is over. Tap the same button (now showing ⏸) to pause, and the ↺ button to reset the current session."
+targetSelector: '[data-tour="pomodoro-start"]'
+```
 
-- In `recompute`, use `block: 'start'` (with a top offset) for steps flagged `placement: 'below'`, and add `placement` to the `report-issue` step so the target lands in the upper third of the viewport.
-- In the card-positioning logic, after picking below/above/fallback, detect if the chosen card rectangle would overlap the spotlight rect (with a 12 px gap). If it would, fall back to the opposite side; if neither side fits, place the card at the top of the viewport instead of the bottom for bottom-anchored targets.
-- This guarantees the tooltip never covers the spotlight target, so "Sabharivarshan S" + the pulse dot are both visible.
+### 4. `src/components/pomodoro/TimerControls.tsx`
+- Add `data-tour="pomodoro-start"` to the Play / Pause `<Button>` so the new step can spotlight it.
 
-### Out of scope
-
-- No changes to Pomodoro logic, themes, or any other features.
-- No new dependencies. No backend.
-- Walkthrough still appears only on first run via the existing `orbit-walkthrough-completed` localStorage key.
+## Out of scope
+- No changes to timer engine, settings, themes, AI chat, question bank, or any backend.
+- No new dependencies.
+- Walkthrough still appears only on first run via the `orbit-walkthrough-completed` localStorage key.
