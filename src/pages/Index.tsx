@@ -86,6 +86,7 @@ const Index = () => {
         </div>
       </div>
       <PomodoroTimer />
+      <Walkthrough />
     </div>
   );
 };
