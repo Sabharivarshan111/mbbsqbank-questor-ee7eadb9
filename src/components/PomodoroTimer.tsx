@@ -178,32 +178,8 @@ const PomodoroTimer = () => {
     ...portalStyleReset,
   };
 
-  const getLiquidViewportStyle = (heightFallback: number): React.CSSProperties => {
-    const viewportWidth = liquidViewport.width || (typeof window !== 'undefined' ? window.innerWidth : 0);
-    const viewportHeight = liquidViewport.height || (typeof window !== 'undefined' ? window.innerHeight : 0);
-    const height = floatingSize.height || heightFallback;
-
-    return {
-      position: 'absolute',
-      left: liquidViewport.x + viewportWidth / 2,
-      top: liquidViewport.y + viewportHeight - height - 40,
-      right: 'auto',
-      bottom: 'auto',
-      marginLeft: 0,
-      marginRight: 0,
-      width: 'max-content',
-      maxWidth: '95vw',
-      transform: 'translateX(-50%)',
-      zIndex: 2147483000,
-      ...portalStyleReset,
-    };
-  };
-
-  const liquidPillDefaultStyle = getLiquidViewportStyle(144);
-  const liquidMiniCircleStyle = getLiquidViewportStyle(40);
-
   const miniCircleStyle: React.CSSProperties = {
-    ...(isLiquidGlass ? liquidMiniCircleStyle : fixedDefaultStyle),
+    ...fixedDefaultStyle,
     width: '2.5rem',
     height: '2.5rem',
   };
@@ -255,15 +231,15 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: isLiquidGlass ? 'absolute' : 'fixed',
-        left: isLiquidGlass ? liquidViewport.x + position.x : position.x,
-        top: isLiquidGlass ? liquidViewport.y + position.y : position.y,
+        position: 'fixed',
+        left: position.x,
+        top: position.y,
         bottom: 'auto',
         transform: 'none',
         zIndex: 2147483000,
         ...portalStyleReset,
       }
-    : isLiquidGlass ? liquidPillDefaultStyle : fixedDefaultStyle;
+    : fixedDefaultStyle;
 
 
   return createPortal(
@@ -271,7 +247,7 @@ const PomodoroTimer = () => {
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} ${position ? '' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} pomodoro-floating-default rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
