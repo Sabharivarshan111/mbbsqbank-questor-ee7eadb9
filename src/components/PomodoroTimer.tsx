@@ -287,7 +287,7 @@ const PomodoroTimer = () => {
     return (
       <>
         {createPortal(
-          <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
+          <div ref={miniCircleRef} data-tour="pomodoro-pill" style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
