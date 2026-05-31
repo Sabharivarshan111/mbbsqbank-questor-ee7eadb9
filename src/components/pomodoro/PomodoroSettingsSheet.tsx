@@ -36,7 +36,8 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
   { value: 'off', label: 'Off' },
 ];
 
-export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings, update, onResetCycle, onApplyConfig, onFactoryReset, open, onOpenChange }) => {
+export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings: settingsProp, update, onResetCycle, onApplyConfig, onFactoryReset, open, onOpenChange }) => {
+  const settings = settingsProp ?? defaultPomodoroSettings;
   const { theme } = useTheme();
   const vibeOk = vibrationSupported();
   const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
