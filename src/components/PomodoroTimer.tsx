@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from
 import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
-import { usePomodoroSettings } from '@/hooks/use-pomodoro-settings';
+import { usePomodoroSettings, defaultPomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { usePomodoroStats, formatFocusTime } from '@/hooks/use-pomodoro-stats';
 import { playSound, vibrate, primeAudio } from '@/lib/timer-sounds';
 import { TimerControls } from './pomodoro/TimerControls';
