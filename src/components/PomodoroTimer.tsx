@@ -370,7 +370,7 @@ const PomodoroTimer = () => {
           )}
         </div>
       </div>
-    </div>,
+    </div>
     </div>,
     floatingPortalRoot,
   );
