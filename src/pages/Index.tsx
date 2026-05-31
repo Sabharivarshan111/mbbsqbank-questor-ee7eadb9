@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eye, ArrowUp } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
+import { Walkthrough } from "@/components/walkthrough/Walkthrough";
 
 const Index = () => {
   const { theme } = useTheme();
@@ -45,11 +46,11 @@ const Index = () => {
           
           {/* Question Bank - FIRST */}
           <div className="grid gap-8 grid-cols-1 lg:grid-cols-[1fr,1fr] w-full mb-8">
-            <div className="space-y-8">
+            <div className="space-y-8" data-tour="question-bank">
               <QuestionBank />
             </div>
             
-            <div className="lg:h-[calc(100vh-12rem)] overflow-hidden flex flex-col">
+            <div className="lg:h-[calc(100vh-12rem)] overflow-hidden flex flex-col" data-tour="ai-chat">
               <AiChat />
             </div>
           </div>
@@ -69,6 +70,7 @@ const Index = () => {
                 href="https://sabharivarshanprofile.lovable.app/"
                 target="_blank"
                 rel="noopener noreferrer"
+                data-tour="report-issue"
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary font-semibold shadow-sm hover:bg-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -84,6 +86,7 @@ const Index = () => {
         </div>
       </div>
       <PomodoroTimer />
+      <Walkthrough />
     </div>
   );
 };

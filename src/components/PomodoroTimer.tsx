@@ -324,6 +324,7 @@ const PomodoroTimer = () => {
     <div
       ref={pillRef}
       {...handlers}
+      data-tour="pomodoro-pill"
       style={positionStyle}
       className={`${styles.background} ${position ? '' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
@@ -388,6 +389,7 @@ const PomodoroTimer = () => {
             <Button
               variant="outline"
               size="icon"
+              data-tour="pomodoro-settings"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
@@ -407,6 +409,7 @@ const PomodoroTimer = () => {
                   <Button
                     variant="outline"
                     size="icon"
+                    data-tour="pomodoro-close"
                     onClick={toggleVisibility}
                     className={`h-8 w-8 rounded-full ${styles.button}`}
                     aria-label="Close Pomodoro timer"
