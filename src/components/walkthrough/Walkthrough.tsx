@@ -45,6 +45,10 @@ export const Walkthrough = () => {
     if (step.action === 'open-custom-theme' && prevId !== step.id) {
       window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'));
     }
+    // Make sure the full Pomodoro pill is visible for any pomodoro-* step
+    if (step.id.startsWith('pomodoro-')) {
+      window.dispatchEvent(new CustomEvent('orbit:show-pomodoro'));
+    }
     lastActionStepRef.current = step.id;
   }, [mounted, completed, step]);
 
