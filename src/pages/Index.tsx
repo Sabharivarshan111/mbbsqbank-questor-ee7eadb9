@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eye, ArrowUp } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
+import { Walkthrough } from "@/components/walkthrough/Walkthrough";
 
 const Index = () => {
   const { theme } = useTheme();
