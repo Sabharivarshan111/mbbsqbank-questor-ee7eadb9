@@ -873,7 +873,7 @@ html.liquid-glass .pomodoro-floating-root {
 html.liquid-glass .pomodoro-floating-default {
   position: fixed !important;
   left: 50% !important;
-  right: 0 !important;
+  right: auto !important;
   top: auto !important;
   bottom: 2.5rem !important;
   margin-left: 0 !important;
