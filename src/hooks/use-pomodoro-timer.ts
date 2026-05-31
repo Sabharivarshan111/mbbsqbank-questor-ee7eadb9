@@ -157,6 +157,17 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
     switchMode('focus');
   }, [switchMode]);
 
+  const applyCurrentSettings = useCallback(() => {
+    setIsRunning(false);
+    setIsEditing(false);
+    const mins = minutesForMode(mode);
+    setMinutes(mins);
+    setSeconds(0);
+    setTotalTime(mins * 60);
+    setRemainingTime(mins * 60);
+    setInputValue(mins.toString());
+  }, [mode, minutesForMode]);
+
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === '' || /^\d+$/.test(value)) {
@@ -221,6 +232,7 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
     resetTimer,
     switchMode,
     resetCycle,
+    applyCurrentSettings,
     handleInputChange,
     handleSubmit,
     startEditing,

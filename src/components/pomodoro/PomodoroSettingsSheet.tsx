@@ -21,6 +21,7 @@ import { useTheme } from '@/components/theme/ThemeProvider';
 interface Props {
   trigger?: React.ReactNode;
   onResetCycle?: () => void;
+  onApplyConfig?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -32,7 +33,7 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
   { value: 'off', label: 'Off' },
 ];
 
-export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, open, onOpenChange }) => {
+export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, onApplyConfig, open, onOpenChange }) => {
   const { theme } = useTheme();
   const { settings, update } = usePomodoroSettings();
   const vibeOk = vibrationSupported();
@@ -231,18 +232,21 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, 
 
           {/* Actions */}
           <section className="flex flex-col gap-2 pt-2 border-t border-border">
+            {onApplyConfig && (
+              <Button
+                onClick={() => {
+                  onApplyConfig();
+                  onOpenChange?.(false);
+                }}
+              >
+                Set this configuration
+              </Button>
+            )}
             {onResetCycle && (
               <Button variant="outline" onClick={onResetCycle}>
                 Reset pomodoro cycle
               </Button>
             )}
-            <Button
-              variant="ghost"
-              className="text-muted-foreground"
-              onClick={() => update(defaultPomodoroSettings)}
-            >
-              Restore defaults
-            </Button>
           </section>
         </div>
       </SheetContent>

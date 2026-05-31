@@ -80,6 +80,7 @@ const PomodoroTimer = () => {
     resetTimer,
     switchMode,
     resetCycle,
+    applyCurrentSettings,
     handleInputChange,
     handleSubmit,
     startEditing,
@@ -258,6 +259,7 @@ const PomodoroTimer = () => {
       open={settingsOpen}
       onOpenChange={setSettingsOpen}
       onResetCycle={resetCycle}
+      onApplyConfig={applyCurrentSettings}
     />
   );
 
