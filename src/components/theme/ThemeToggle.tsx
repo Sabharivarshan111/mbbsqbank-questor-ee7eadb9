@@ -53,7 +53,8 @@ export function ThemeToggle() {
 
   return (
     <div className="flex items-center gap-2">
-      <FontSizeToggle />
+      <span data-tour="font-size"><FontSizeToggle /></span>
+      <span data-tour="theme-toggle">
       <CircleLabel text="THEMES">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -147,6 +148,7 @@ export function ThemeToggle() {
         </DropdownMenuContent>
       </DropdownMenu>
       </CircleLabel>
+      </span>
       <CustomThemeDialog open={customOpen} onOpenChange={setCustomOpen} />
     </div>
   );
