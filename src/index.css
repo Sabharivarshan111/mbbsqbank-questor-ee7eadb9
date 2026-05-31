@@ -863,12 +863,19 @@ html.liquid-glass .pomodoro-floating-default *,
 html.liquid-glass .pomodoro-floating-default *::before,
 html.liquid-glass .pomodoro-floating-default *::after {
   transition-property: background-color, border-color, box-shadow, opacity, backdrop-filter, color !important;
+  transition-duration: 0ms !important;
 }
 
 html.liquid-glass .pomodoro-floating-default {
   z-index: 2147483000 !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
 }
 
+html.liquid-glass .pomodoro-floating-default button:hover,
+html.liquid-glass .pomodoro-floating-default button:active,
+html.liquid-glass .pomodoro-floating-default button:focus-visible,
 html.liquid-glass .pomodoro-floating-mini button,
 html.liquid-glass .pomodoro-floating-mini button:hover,
 html.liquid-glass .pomodoro-floating-mini button:active,
