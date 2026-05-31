@@ -232,6 +232,7 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
     resetTimer,
     switchMode,
     resetCycle,
+    applyCurrentSettings,
     handleInputChange,
     handleSubmit,
     startEditing,
