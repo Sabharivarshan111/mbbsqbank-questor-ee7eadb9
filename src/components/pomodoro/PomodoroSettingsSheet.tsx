@@ -244,8 +244,8 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings, upda
                 Set this configuration
               </Button>
             )}
-            {onResetCycle && (
-              <Button variant="outline" onClick={onResetCycle}>
+            {onFactoryReset && (
+              <Button variant="outline" onClick={onFactoryReset}>
                 Reset pomodoro cycle
               </Button>
             )}
