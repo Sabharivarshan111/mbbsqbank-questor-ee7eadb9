@@ -6,7 +6,7 @@ import { AiChat } from "@/components/AiChat";
 import PomodoroTimer from "@/components/PomodoroTimer";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Eye } from "lucide-react";
+import { Eye, ArrowUp } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 
 const Index = () => {
