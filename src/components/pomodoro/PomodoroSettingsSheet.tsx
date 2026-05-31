@@ -21,6 +21,7 @@ import { useTheme } from '@/components/theme/ThemeProvider';
 interface Props {
   trigger?: React.ReactNode;
   onResetCycle?: () => void;
+  onApplyConfig?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
