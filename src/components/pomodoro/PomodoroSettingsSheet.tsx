@@ -13,7 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { PomodoroSettings } from '@/hooks/use-pomodoro-settings';
+import { defaultPomodoroSettings, type PomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { playSound, vibrationSupported, primeAudio } from '@/lib/timer-sounds';
 import type { SoundPreset } from '@/lib/timer-sounds';
 import { useTheme } from '@/components/theme/ThemeProvider';
@@ -36,7 +36,8 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
   { value: 'off', label: 'Off' },
 ];
 
-export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings, update, onResetCycle, onApplyConfig, onFactoryReset, open, onOpenChange }) => {
+export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings: settingsProp, update, onResetCycle, onApplyConfig, onFactoryReset, open, onOpenChange }) => {
+  const settings = settingsProp ?? defaultPomodoroSettings;
   const { theme } = useTheme();
   const vibeOk = vibrationSupported();
   const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
