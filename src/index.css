@@ -838,8 +838,7 @@ html.liquid-glass [data-state] > [role="region"] {
 
 /* Fluid global transitions */
 .pomodoro-floating-root:not(.pomodoro-floating-dragged),
-.pomodoro-floating-default,
-.pomodoro-timer-container {
+.pomodoro-floating-default {
   position: fixed !important;
   left: 50% !important;
   right: auto !important;
@@ -855,8 +854,7 @@ html.liquid-glass [data-state] > [role="region"] {
   -webkit-backface-visibility: hidden;
 }
 
-.pomodoro-floating-root,
-.pomodoro-timer-container {
+.pomodoro-floating-root {
   contain: layout paint;
   will-change: auto !important;
 }
@@ -899,7 +897,7 @@ html.liquid-glass .pomodoro-floating-default {
   left: 50% !important;
   right: auto !important;
   top: auto !important;
-  bottom: 2.5rem !important;
+  bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px)) !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
   width: max-content !important;
