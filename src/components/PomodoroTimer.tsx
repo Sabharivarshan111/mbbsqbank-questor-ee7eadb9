@@ -110,6 +110,12 @@ const PomodoroTimer = () => {
     localStorage.setItem('pomodoroVisible', isVisible.toString());
   }, [isVisible]);
 
+  useEffect(() => {
+    const onShow = () => setIsVisible(true);
+    window.addEventListener('orbit:show-pomodoro', onShow);
+    return () => window.removeEventListener('orbit:show-pomodoro', onShow);
+  }, []);
+
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
