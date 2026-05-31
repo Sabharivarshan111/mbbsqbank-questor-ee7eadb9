@@ -254,12 +254,20 @@ const PomodoroTimer = () => {
   };
 
 
+  const handleFactoryReset = useCallback(() => {
+    updateSettings(defaultPomodoroSettings);
+    resetCycle();
+  }, [updateSettings, resetCycle]);
+
   const settingsSheet = (
     <PomodoroSettingsSheet
       open={settingsOpen}
       onOpenChange={setSettingsOpen}
+      settings={settings}
+      update={updateSettings}
       onResetCycle={resetCycle}
       onApplyConfig={applyCurrentSettings}
+      onFactoryReset={handleFactoryReset}
     />
   );
 
