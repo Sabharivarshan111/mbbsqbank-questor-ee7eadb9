@@ -876,7 +876,7 @@ html.liquid-glass .pomodoro-floating-default {
   left: 0 !important;
   right: 0 !important;
   top: auto !important;
-  bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem)) !important;
+  bottom: 2.5rem !important;
   margin-left: auto !important;
   margin-right: auto !important;
   width: max-content !important;
