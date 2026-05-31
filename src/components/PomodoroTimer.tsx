@@ -34,7 +34,7 @@ const PomodoroTimer = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const { settings } = usePomodoroSettings();
+  const { settings, update: updateSettings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
   const { onlineCount } = useOnlinePresence();
 
