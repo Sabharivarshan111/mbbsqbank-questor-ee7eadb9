@@ -837,7 +837,7 @@ html.liquid-glass [data-state] > [role="region"] {
 }
 
 /* Fluid global transitions */
-.pomodoro-floating-root:not(.pomodoro-floating-dragged),
+.pomodoro-fixed-anchor:not(.pomodoro-floating-dragged),
 .pomodoro-floating-default {
   position: fixed !important;
   left: 50% !important;
@@ -854,7 +854,7 @@ html.liquid-glass [data-state] > [role="region"] {
   -webkit-backface-visibility: hidden;
 }
 
-.pomodoro-floating-root {
+.pomodoro-fixed-anchor {
   contain: layout paint;
   will-change: auto !important;
 }
