@@ -172,7 +172,7 @@ const PomodoroTimer = () => {
     marginRight: 'auto',
     width: 'max-content',
     maxWidth: '95vw',
-    bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
+    bottom: '2.5rem',
     transform: 'none',
     zIndex: 2147483000,
     ...portalStyleReset,
