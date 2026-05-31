@@ -172,6 +172,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      data-tour="ai-chat-expand"
                       onClick={() => setIsFullscreen(v => !v)}
                       className={`h-8 w-8 ${theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : isLiquid ? "text-slate-700 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
                       aria-label={isFullscreen ? "Exit fullscreen" : "Open fullscreen"}

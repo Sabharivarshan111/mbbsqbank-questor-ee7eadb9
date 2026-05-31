@@ -95,7 +95,7 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings: sett
     <Sheet open={open} onOpenChange={onOpenChange}>
       {!isControlled && trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
 
-      <SheetContent side="bottom" style={liquidSheetStyle} className="pomodoro-settings-sheet max-h-[85vh] overflow-y-auto rounded-t-2xl">
+      <SheetContent side="bottom" data-tour="pomodoro-settings-sheet" style={liquidSheetStyle} className="pomodoro-settings-sheet max-h-[85vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
@@ -237,6 +237,7 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, settings: sett
           <section className="flex flex-col gap-2 pt-2 border-t border-border">
             {onApplyConfig && (
               <Button
+                data-tour="pomodoro-apply-config"
                 onClick={() => {
                   onApplyConfig();
                   onOpenChange?.(false);
