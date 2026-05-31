@@ -865,6 +865,18 @@ html.liquid-glass .pomodoro-floating-default *::after {
   transition-property: background-color, border-color, box-shadow, opacity, backdrop-filter, color !important;
 }
 
+html.liquid-glass .pomodoro-floating-default {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem)) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  transform: translate3d(-50%, 0, 0) !important;
+  z-index: 2147483000 !important;
+}
+
 html.liquid-glass .pomodoro-floating-default,
 html.liquid-glass .pomodoro-floating-mini button,
 html.liquid-glass .pomodoro-floating-mini button:hover,
