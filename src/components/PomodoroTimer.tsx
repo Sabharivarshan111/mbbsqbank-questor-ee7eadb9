@@ -193,7 +193,7 @@ const PomodoroTimer = () => {
     />
   );
 
-  const floatingPortalRoot = theme === 'liquid-glass' ? document.documentElement : document.body;
+  const floatingPortalRoot = document.body;
 
   if (settingsOpen) {
     return settingsSheet;
