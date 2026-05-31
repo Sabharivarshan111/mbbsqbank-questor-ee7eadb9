@@ -3,9 +3,10 @@ export interface WalkthroughStep {
   title: string;
   description: string;
   targetSelector?: string;
-  action?: 'open-custom-theme';
+  action?: 'open-custom-theme' | 'open-theme-menu' | 'open-pomodoro-settings';
   interactive?: boolean;
   placement?: 'below' | 'above' | 'auto';
+  pomodoro?: 'show' | 'minimize' | 'hide';
 }
 
 export const walkthroughSteps: WalkthroughStep[] = [
@@ -14,6 +15,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
     title: "Welcome to ORBIT MBBS QBANK 👋",
     description:
       "Let's take a quick 60-second tour so you don't miss any of the features built for you.",
+    pomodoro: 'hide',
   },
   {
     id: "qbank",
@@ -21,13 +23,24 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Browse thousands of MCQs and short answers across every MBBS subject — organized by year, subject and topic.",
     targetSelector: '[data-tour="question-bank"]',
+    pomodoro: 'hide',
   },
   {
     id: "ai-chat",
     title: "AI Medical Assistant",
     description:
-      "Ask any medical question or generate custom MCQs. Tap the expand icon at the top-right of the chat to open it in fullscreen.",
+      "Ask any medical question or generate custom MCQs right here.",
     targetSelector: '[data-tour="ai-chat"]',
+    pomodoro: 'hide',
+  },
+  {
+    id: "ai-chat-expand",
+    title: "Expand the Chat to Fullscreen",
+    description:
+      "Tap this expand icon to open the AI chat in fullscreen for distraction-free conversations. Tap it again to shrink it back.",
+    targetSelector: '[data-tour="ai-chat-expand"]',
+    pomodoro: 'hide',
+    placement: 'below',
   },
   {
     id: "theme-toggle",
@@ -35,14 +48,25 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Tap here to switch between Dark, Light, Black Pink and Liquid Glass themes.",
     targetSelector: '[data-tour="theme-toggle"]',
+    pomodoro: 'hide',
+  },
+  {
+    id: "theme-create-own",
+    title: "Create Your Own Theme",
+    description:
+      "Inside the theme menu, tap 'Create Your Own…' to design your own colors. We've opened it for you — this is the option you'll use.",
+    targetSelector: '[data-tour="theme-create-own"]',
+    action: 'open-theme-menu',
+    pomodoro: 'hide',
   },
   {
     id: "custom-theme",
-    title: "Create Your Own Theme 🎨",
+    title: "Pick Your Own Colors 🎨",
     description:
-      "This is the Create-Your-Own-Theme panel. Tap any swatch to pick your background, text, accent and card colors — your theme applies instantly. Tap Next when you're done exploring.",
+      "Tap any swatch to pick your background, text, accent and card colors — your theme applies instantly. Tap Next when you're done exploring.",
     targetSelector: '[data-tour="custom-theme-dialog"]',
     action: 'open-custom-theme',
+    pomodoro: 'hide',
   },
   {
     id: "font-size",
@@ -50,6 +74,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Tap A− / A+ to change font size (small, medium, large) everywhere in the app.",
     targetSelector: '[data-tour="font-size"]',
+    pomodoro: 'hide',
   },
   {
     id: "pomodoro-pill",
@@ -57,13 +82,15 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "This floating pill is your study timer. It always stays at the bottom so you can keep track of your focus session from anywhere in the app.",
     targetSelector: '[data-tour="pomodoro-pill"]',
+    pomodoro: 'show',
   },
   {
     id: "pomodoro-start",
     title: "Start a Focus Session ▶️",
     description:
-      "Tap the round ▶ Play button to begin a 25-minute focus session. The timer counts down and rings when time is up. Tap it again (now showing ⏸) to pause, and tap the ↺ button next to it to reset the current session back to the start.",
+      "Tap the round ▶ Play button to begin a 25-minute focus session. The timer counts down and rings when time is up. Tap it again (now ⏸) to pause, and tap ↺ next to it to reset.",
     targetSelector: '[data-tour="pomodoro-start"]',
+    pomodoro: 'show',
   },
   {
     id: "pomodoro-drag",
@@ -72,13 +99,25 @@ export const walkthroughSteps: WalkthroughStep[] = [
       "Touch and hold the pill for a moment, then drag it wherever you like — top, bottom, corners, anywhere. Try it now, then tap Next.",
     targetSelector: '[data-tour="pomodoro-pill"]',
     interactive: true,
+    pomodoro: 'show',
   },
   {
     id: "pomodoro-settings",
     title: "Pomodoro Settings ⚙️",
     description:
-      "Tap the gear icon to change focus & break durations, sound and vibration. Use 'Set this configuration' to apply your custom timings, or 'Reset pomodoro cycle' to restore the defaults.",
-    targetSelector: '[data-tour="pomodoro-settings"]',
+      "We've opened the settings sheet for you. Here you can change focus & break durations, the alert sound, volume and vibration.",
+    targetSelector: '[data-tour="pomodoro-settings-sheet"]',
+    action: 'open-pomodoro-settings',
+    pomodoro: 'show',
+  },
+  {
+    id: "pomodoro-apply",
+    title: "Set This Configuration",
+    description:
+      "After choosing your durations, tap 'Set this configuration' to apply your custom timings immediately.",
+    targetSelector: '[data-tour="pomodoro-apply-config"]',
+    action: 'open-pomodoro-settings',
+    pomodoro: 'show',
   },
   {
     id: "pomodoro-close",
@@ -86,6 +125,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Tap × to hide the timer pill. A small floating button appears so you can bring it back anytime.",
     targetSelector: '[data-tour="pomodoro-close"]',
+    pomodoro: 'show',
   },
   {
     id: "report-issue",
@@ -94,5 +134,6 @@ export const walkthroughSteps: WalkthroughStep[] = [
       "Found a bug or have feedback? Tap the creator's name in the footer to report any issue directly.",
     targetSelector: '[data-tour="report-issue"]',
     placement: 'below',
+    pomodoro: 'hide',
   },
 ];

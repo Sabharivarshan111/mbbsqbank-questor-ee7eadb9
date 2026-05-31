@@ -32,23 +32,40 @@ export const Walkthrough = () => {
 
   const step = walkthroughSteps[stepIndex];
 
-  // Fire enter/exit actions for the active step (e.g. open Custom Theme dialog)
+  // Fire enter/exit actions for the active step
   useEffect(() => {
     if (!mounted || completed) return;
     const prevId = lastActionStepRef.current;
-    if (prevId && prevId !== step.id) {
-      const prevStep = walkthroughSteps.find((s) => s.id === prevId);
-      if (prevStep?.action === 'open-custom-theme') {
+    const prevStep = prevId ? walkthroughSteps.find((s) => s.id === prevId) : null;
+
+    // Exit actions for previous step
+    if (prevStep && prevStep.id !== step.id) {
+      if (prevStep.action === 'open-custom-theme' && step.action !== 'open-custom-theme') {
         window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
       }
+      if (prevStep.action === 'open-theme-menu' && step.action !== 'open-theme-menu') {
+        window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
+      }
+      if (prevStep.action === 'open-pomodoro-settings' && step.action !== 'open-pomodoro-settings') {
+        window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
+      }
     }
-    if (step.action === 'open-custom-theme' && prevId !== step.id) {
+
+    // Enter actions
+    if (step.action === 'open-custom-theme') {
       window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'));
     }
-    // Make sure the full Pomodoro pill is visible for any pomodoro-* step
-    if (step.id.startsWith('pomodoro-')) {
-      window.dispatchEvent(new CustomEvent('orbit:show-pomodoro'));
+    if (step.action === 'open-theme-menu') {
+      window.dispatchEvent(new CustomEvent('orbit:open-theme-menu'));
     }
+    if (step.action === 'open-pomodoro-settings') {
+      window.dispatchEvent(new CustomEvent('orbit:open-pomodoro-settings'));
+    }
+
+    // Pomodoro visibility override (default: hide if not specified)
+    const pomo = step.pomodoro ?? 'hide';
+    window.dispatchEvent(new CustomEvent(`orbit:pomodoro-walkthrough-${pomo}`));
+
     lastActionStepRef.current = step.id;
   }, [mounted, completed, step]);
 
@@ -56,6 +73,9 @@ export const Walkthrough = () => {
   useEffect(() => {
     return () => {
       window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
+      window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
+      window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
+      window.dispatchEvent(new CustomEvent('orbit:pomodoro-walkthrough-clear'));
     };
   }, []);
 
@@ -99,6 +119,9 @@ export const Walkthrough = () => {
 
   const finish = useCallback(() => {
     window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
+    window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
+    window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
+    window.dispatchEvent(new CustomEvent('orbit:pomodoro-walkthrough-clear'));
     setCompleted(true);
   }, [setCompleted]);
 

@@ -18,21 +18,28 @@ export function ThemeToggle() {
   const { theme, setTheme, customColors } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // After mounting, we have access to the theme
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Allow the walkthrough to open/close the Create-Your-Own-Theme dialog
+  // Allow the walkthrough to open/close the Create-Your-Own-Theme dialog and the menu
   useEffect(() => {
     const open = () => setCustomOpen(true);
     const close = () => setCustomOpen(false);
+    const openMenu = () => setMenuOpen(true);
+    const closeMenu = () => setMenuOpen(false);
     window.addEventListener('orbit:open-custom-theme', open);
     window.addEventListener('orbit:close-custom-theme', close);
+    window.addEventListener('orbit:open-theme-menu', openMenu);
+    window.addEventListener('orbit:close-theme-menu', closeMenu);
     return () => {
       window.removeEventListener('orbit:open-custom-theme', open);
       window.removeEventListener('orbit:close-custom-theme', close);
+      window.removeEventListener('orbit:open-theme-menu', openMenu);
+      window.removeEventListener('orbit:close-theme-menu', closeMenu);
     };
   }, []);
 
@@ -68,7 +75,7 @@ export function ThemeToggle() {
       <span data-tour="font-size"><FontSizeToggle /></span>
       <span data-tour="theme-toggle">
       <CircleLabel text="THEMES">
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
@@ -151,6 +158,7 @@ export function ThemeToggle() {
             {theme === "custom" && <span className="ml-auto text-xs">Active</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
+            data-tour="theme-create-own"
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => setCustomOpen(true)}
           >
