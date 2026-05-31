@@ -1,35 +1,18 @@
-## Goal
+I’ll fix the Pomodoro settings so the pill updates immediately to the selected custom time and the reset action restores factory defaults.
 
-Make the Pomodoro settings sheet actually push the user's custom durations (e.g. Focus 40 min) into the running timer display, by reworking the two bottom action buttons.
+Plan:
+1. Make `PomodoroTimer` the single source of truth for Pomodoro settings.
+   - Pass the parent `settings` and `update` function into `PomodoroSettingsSheet`.
+   - Remove the settings sheet’s separate `usePomodoroSettings()` instance, because it currently updates its own local state/localStorage while the timer pill keeps reading stale `25` from the parent hook.
 
-## Root cause
+2. Fix “Set this configuration”.
+   - Keep sliders saving settings as before.
+   - When tapped, call `applyCurrentSettings()` from the parent after the parent has the latest settings, so the pill changes from `25:00` to the selected value like `40:00` immediately.
+   - Close the sheet after applying.
 
-In `usePomodoroTimer`, the effect that syncs `focusMinutes/shortMinutes/longMinutes` into the visible timer only runs when `!isRunning && !isEditing`. If the timer was ever started (or is mid-edit), changing sliders updates saved settings but the on-screen `25:00` never refreshes — which matches what the user sees (set 40 min, timer still shows 25:00).
+3. Change “Reset pomodoro cycle” to factory reset behavior.
+   - Restore default Pomodoro settings: focus `25`, short break `5`, long break `15`, long break every `4`, default sound/volume/vibration.
+   - Reset the current cycle/session back to focus mode and show `25:00` in the pill.
 
-The user's fix: give them an explicit "Set this configuration" button that force-applies current settings to the timer, and relabel the other button to "Reset pomodoro cycle".
-
-## Changes
-
-### 1. `src/hooks/use-pomodoro-timer.ts`
-Expose a new callback `applyCurrentSettings` that re-reads the current `mode` and resets `minutes / seconds / totalTime / remainingTime / inputValue` from the latest `minutesForMode(mode)`, and stops `isRunning`. Effectively the same body as the existing idle-sync effect, but callable on demand and unconditional.
-
-Return it alongside the existing API.
-
-### 2. `src/components/PomodoroTimer.tsx`
-- Pull `applyCurrentSettings` from `usePomodoroTimer`.
-- Pass it down to `<PomodoroSettingsSheet>` as a new prop `onApplyConfig`.
-
-### 3. `src/components/pomodoro/PomodoroSettingsSheet.tsx`
-- Add prop `onApplyConfig?: () => void`.
-- Rewrite the Actions section so the two buttons become (in this order):
-  1. Primary button: **"Set this configuration"** → calls `onApplyConfig?.()` then `onOpenChange?.(false)` so the sheet closes and the pill immediately shows the new duration (e.g. 40:00).
-  2. Outline button: **"Reset pomodoro cycle"** → calls `onResetCycle?.()`.
-- Remove the existing "Restore defaults" button entirely (per user request — that label/action goes away; the second slot is now the cycle reset).
-
-No styling/theme changes, no behavior changes to sliders, sounds, vibration, or Liquid Glass positioning.
-
-## Verification
-
-- Open Pomodoro settings, slide Focus to 40, tap **Set this configuration** → sheet closes, pill shows `40:00`, "Session: 40 min".
-- Tap **Reset pomodoro cycle** → tomato count resets to `0/4` and timer returns to focus mode at the current configured focus length.
-- Works identically in Dark, Light, BlackPink, and Liquid Glass themes (no theme-specific branches touched).
+4. Keep existing settings UI functionality intact.
+   - Sound test, vibration toggle, sliders, and Liquid Glass sheet positioning will remain unchanged.
