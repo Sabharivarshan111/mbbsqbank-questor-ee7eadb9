@@ -231,7 +231,7 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: 'absolute',
+        position: 'fixed',
         left: position.x,
         top: position.y,
         bottom: 'auto',
@@ -243,7 +243,6 @@ const PomodoroTimer = () => {
 
 
   return createPortal(
-    <div className="pomodoro-floating-viewport" style={floatingViewportStyle}>
     <div
       ref={pillRef}
       {...handlers}
@@ -358,7 +357,6 @@ const PomodoroTimer = () => {
         </div>
       </div>
     </div>
-    </div>,
     floatingPortalRoot,
   );
 
