@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Settings2, Volume2, Play } from 'lucide-react';
 import {
   Sheet,
@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { usePomodoroSettings, defaultPomodoroSettings } from '@/hooks/use-pomodoro-settings';
 import { playSound, vibrationSupported, primeAudio } from '@/lib/timer-sounds';
 import type { SoundPreset } from '@/lib/timer-sounds';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface Props {
   trigger?: React.ReactNode;
@@ -32,8 +33,11 @@ const SOUND_OPTIONS: { value: SoundPreset; label: string }[] = [
 ];
 
 export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, open, onOpenChange }) => {
+  const { theme } = useTheme();
   const { settings, update } = usePomodoroSettings();
   const vibeOk = vibrationSupported();
+  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const isLiquidGlass = theme === 'liquid-glass';
 
   const testSound = () => {
     primeAudio();
@@ -42,12 +46,52 @@ export const PomodoroSettingsSheet: React.FC<Props> = ({ trigger, onResetCycle, 
 
   const isControlled = open !== undefined;
 
+  const updateViewport = useCallback(() => {
+    const visualViewport = window.visualViewport;
+    setViewport({
+      x: window.scrollX + (visualViewport?.offsetLeft ?? 0),
+      y: window.scrollY + (visualViewport?.offsetTop ?? 0),
+      width: visualViewport?.width ?? window.innerWidth,
+      height: visualViewport?.height ?? window.innerHeight,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLiquidGlass || !open) return;
+    updateViewport();
+    const visualViewport = window.visualViewport;
+    window.addEventListener('scroll', updateViewport, { passive: true });
+    window.addEventListener('resize', updateViewport);
+    visualViewport?.addEventListener('scroll', updateViewport);
+    visualViewport?.addEventListener('resize', updateViewport);
+    return () => {
+      window.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+      visualViewport?.removeEventListener('scroll', updateViewport);
+      visualViewport?.removeEventListener('resize', updateViewport);
+    };
+  }, [isLiquidGlass, open, updateViewport]);
+
+  const liquidSheetStyle = useMemo<React.CSSProperties | undefined>(() => {
+    if (!isLiquidGlass || !open) return undefined;
+    return {
+      position: 'absolute',
+      left: viewport.x,
+      right: 'auto',
+      top: viewport.y + Math.max(0, viewport.height * 0.15),
+      bottom: 'auto',
+      width: viewport.width,
+      maxHeight: viewport.height * 0.85,
+      transform: 'none',
+      zIndex: 2147483001,
+    };
+  }, [isLiquidGlass, open, viewport]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       {!isControlled && trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
 
-      <SheetContent side="bottom" className="pomodoro-settings-sheet max-h-[85vh] overflow-y-auto rounded-t-2xl">
-
+      <SheetContent side="bottom" style={liquidSheetStyle} className="pomodoro-settings-sheet max-h-[85vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />

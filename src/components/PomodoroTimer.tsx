@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
@@ -112,9 +112,52 @@ const PomodoroTimer = () => {
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
+  const isLiquidGlass = theme === 'liquid-glass';
+  const [liquidViewport, setLiquidViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [floatingSize, setFloatingSize] = useState({ width: 0, height: 0 });
 
   const toggleVisibility = () => setIsVisible(prev => !prev);
 
+  const updateLiquidViewport = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = window.visualViewport;
+    setLiquidViewport({
+      x: window.scrollX + (viewport?.offsetLeft ?? 0),
+      y: window.scrollY + (viewport?.offsetTop ?? 0),
+      width: viewport?.width ?? window.innerWidth,
+      height: viewport?.height ?? window.innerHeight,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLiquidGlass) return;
+    updateLiquidViewport();
+    const viewport = window.visualViewport;
+    window.addEventListener('scroll', updateLiquidViewport, { passive: true });
+    window.addEventListener('resize', updateLiquidViewport);
+    viewport?.addEventListener('scroll', updateLiquidViewport);
+    viewport?.addEventListener('resize', updateLiquidViewport);
+    return () => {
+      window.removeEventListener('scroll', updateLiquidViewport);
+      window.removeEventListener('resize', updateLiquidViewport);
+      viewport?.removeEventListener('scroll', updateLiquidViewport);
+      viewport?.removeEventListener('resize', updateLiquidViewport);
+    };
+  }, [isLiquidGlass, updateLiquidViewport]);
+
+  useLayoutEffect(() => {
+    if (!isLiquidGlass) return;
+    const el = isVisible ? pillRef.current : miniCircleRef.current;
+    if (!el) return;
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      setFloatingSize({ width: rect.width, height: rect.height });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isLiquidGlass, isVisible]);
 
   const getThemeStyles = () => {
     if (theme === 'blackpink') {
@@ -179,12 +222,35 @@ const PomodoroTimer = () => {
     ...portalStyleReset,
   };
 
+  const getLiquidViewportStyle = (heightFallback: number): React.CSSProperties => {
+    const viewportWidth = liquidViewport.width || (typeof window !== 'undefined' ? window.innerWidth : 0);
+    const viewportHeight = liquidViewport.height || (typeof window !== 'undefined' ? window.innerHeight : 0);
+    const height = floatingSize.height || heightFallback;
+
+    return {
+      position: 'absolute',
+      left: liquidViewport.x + viewportWidth / 2,
+      top: liquidViewport.y + viewportHeight - height - 40,
+      right: 'auto',
+      bottom: 'auto',
+      marginLeft: 0,
+      marginRight: 0,
+      width: 'max-content',
+      maxWidth: '95vw',
+      transform: 'translateX(-50%)',
+      zIndex: 2147483000,
+      ...portalStyleReset,
+    };
+  };
+
+  const liquidPillDefaultStyle = getLiquidViewportStyle(144);
+  const liquidMiniCircleStyle = getLiquidViewportStyle(40);
+
   const miniCircleStyle: React.CSSProperties = {
-    ...fixedDefaultStyle,
+    ...(isLiquidGlass ? liquidMiniCircleStyle : fixedDefaultStyle),
     width: '2.5rem',
     height: '2.5rem',
   };
-
 
 
   const settingsSheet = (
@@ -233,16 +299,15 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: 'fixed',
-        left: position.x,
-        top: position.y,
+        position: isLiquidGlass ? 'absolute' : 'fixed',
+        left: isLiquidGlass ? liquidViewport.x + position.x : position.x,
+        top: isLiquidGlass ? liquidViewport.y + position.y : position.y,
         bottom: 'auto',
         transform: 'none',
         zIndex: 2147483000,
         ...portalStyleReset,
       }
-    : fixedDefaultStyle;
-
+    : isLiquidGlass ? liquidPillDefaultStyle : fixedDefaultStyle;
 
 
   return createPortal(
