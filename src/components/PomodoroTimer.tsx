@@ -208,7 +208,7 @@ const PomodoroTimer = () => {
                 <Button
                   onClick={toggleVisibility}
                   style={miniCircleStyle}
-                  className={`rounded-full p-2 shadow-lg ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} ${styles.background} ${styles.text}`}
+                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
                   size="icon"
                   variant="outline"
                   aria-label="Show Pomodoro timer"
