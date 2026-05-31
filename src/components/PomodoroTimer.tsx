@@ -152,7 +152,6 @@ const PomodoroTimer = () => {
   const styles = getThemeStyles();
 
   const portalStyleReset: React.CSSProperties = {
-    animation: theme === 'liquid-glass' ? 'none' : undefined,
     transition: 'none',
     willChange: 'auto',
   };
@@ -209,7 +208,7 @@ const PomodoroTimer = () => {
                 <Button
                   onClick={toggleVisibility}
                   style={miniCircleStyle}
-                  className={`rounded-full p-2 shadow-lg ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} ${styles.background} ${styles.text}`}
+                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
                   size="icon"
                   variant="outline"
                   aria-label="Show Pomodoro timer"
@@ -238,7 +237,7 @@ const PomodoroTimer = () => {
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] ${theme === 'liquid-glass' ? '' : 'animate-fade-in'} select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
