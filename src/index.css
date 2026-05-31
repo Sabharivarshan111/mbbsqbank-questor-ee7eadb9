@@ -858,37 +858,17 @@ html.liquid-glass .bg-card:hover {
   transform: translateY(-1px);
 }
 
-html.liquid-glass .pomodoro-floating-root,
-html.liquid-glass .pomodoro-floating-root *,
-html.liquid-glass .pomodoro-floating-root *::before,
-html.liquid-glass .pomodoro-floating-root *::after {
+html.liquid-glass .pomodoro-floating-default,
+html.liquid-glass .pomodoro-floating-default *,
+html.liquid-glass .pomodoro-floating-default *::before,
+html.liquid-glass .pomodoro-floating-default *::after {
   transition-property: background-color, border-color, box-shadow, opacity, backdrop-filter, color !important;
-  transition-duration: 0ms !important;
-}
-
-html.liquid-glass .pomodoro-floating-root {
-  z-index: 2147483000 !important;
 }
 
 html.liquid-glass .pomodoro-floating-default {
-  position: fixed !important;
-  left: 50% !important;
-  right: auto !important;
-  top: auto !important;
-  bottom: 2.5rem !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  width: max-content !important;
-  max-width: 95vw !important;
-  transform: translate3d(-50%, 0, 0) !important;
   z-index: 2147483000 !important;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
-html.liquid-glass .pomodoro-floating-root button:hover,
-html.liquid-glass .pomodoro-floating-root button:active,
-html.liquid-glass .pomodoro-floating-root button:focus-visible,
 html.liquid-glass .pomodoro-floating-mini button,
 html.liquid-glass .pomodoro-floating-mini button:hover,
 html.liquid-glass .pomodoro-floating-mini button:active,

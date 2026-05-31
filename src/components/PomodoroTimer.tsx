@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
 import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
@@ -112,8 +112,52 @@ const PomodoroTimer = () => {
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
   const { position, isDragging, handlers } = useLongPressDrag(pillRef);
+  const isLiquidGlass = theme === 'liquid-glass';
+  const [liquidViewport, setLiquidViewport] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [floatingSize, setFloatingSize] = useState({ width: 0, height: 0 });
 
   const toggleVisibility = () => setIsVisible(prev => !prev);
+
+  const updateLiquidViewport = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = window.visualViewport;
+    setLiquidViewport({
+      x: window.scrollX + (viewport?.offsetLeft ?? 0),
+      y: window.scrollY + (viewport?.offsetTop ?? 0),
+      width: viewport?.width ?? window.innerWidth,
+      height: viewport?.height ?? window.innerHeight,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLiquidGlass) return;
+    updateLiquidViewport();
+    const viewport = window.visualViewport;
+    window.addEventListener('scroll', updateLiquidViewport, { passive: true });
+    window.addEventListener('resize', updateLiquidViewport);
+    viewport?.addEventListener('scroll', updateLiquidViewport);
+    viewport?.addEventListener('resize', updateLiquidViewport);
+    return () => {
+      window.removeEventListener('scroll', updateLiquidViewport);
+      window.removeEventListener('resize', updateLiquidViewport);
+      viewport?.removeEventListener('scroll', updateLiquidViewport);
+      viewport?.removeEventListener('resize', updateLiquidViewport);
+    };
+  }, [isLiquidGlass, updateLiquidViewport]);
+
+  useLayoutEffect(() => {
+    if (!isLiquidGlass) return;
+    const el = isVisible ? pillRef.current : miniCircleRef.current;
+    if (!el) return;
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      setFloatingSize({ width: rect.width, height: rect.height });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isLiquidGlass, isVisible]);
 
   const getThemeStyles = () => {
     if (theme === 'blackpink') {
@@ -165,32 +209,45 @@ const PomodoroTimer = () => {
         : styles.text;
 
   const fixedDefaultStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: '50%',
-    right: 'auto',
-    marginLeft: 0,
-    marginRight: 0,
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
     width: 'max-content',
     maxWidth: '95vw',
-    bottom: '2.5rem',
-    transform: 'translate3d(-50%, 0, 0)',
+    bottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 1rem))',
+    transform: 'none',
     zIndex: 2147483000,
     ...portalStyleReset,
   };
 
-  const floatingViewportStyle: React.CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    width: '100vw',
-    height: '100dvh',
-    pointerEvents: 'none',
-    overflow: 'visible',
-    zIndex: 2147483000,
-    ...portalStyleReset,
+  const getLiquidViewportStyle = (heightFallback: number): React.CSSProperties => {
+    const viewportWidth = liquidViewport.width || (typeof window !== 'undefined' ? window.innerWidth : 0);
+    const viewportHeight = liquidViewport.height || (typeof window !== 'undefined' ? window.innerHeight : 0);
+    const height = floatingSize.height || heightFallback;
+
+    return {
+      position: 'absolute',
+      left: liquidViewport.x + viewportWidth / 2,
+      top: liquidViewport.y + viewportHeight - height - 40,
+      right: 'auto',
+      bottom: 'auto',
+      marginLeft: 0,
+      marginRight: 0,
+      width: 'max-content',
+      maxWidth: '95vw',
+      transform: 'translateX(-50%)',
+      zIndex: 2147483000,
+      ...portalStyleReset,
+    };
   };
+
+  const liquidPillDefaultStyle = getLiquidViewportStyle(144);
+  const liquidMiniCircleStyle = getLiquidViewportStyle(40);
 
   const miniCircleStyle: React.CSSProperties = {
-    ...fixedDefaultStyle,
+    ...(isLiquidGlass ? liquidMiniCircleStyle : fixedDefaultStyle),
     width: '2.5rem',
     height: '2.5rem',
   };
@@ -214,25 +271,23 @@ const PomodoroTimer = () => {
     return (
       <>
         {createPortal(
-          <div className="pomodoro-floating-viewport" style={floatingViewportStyle}>
-            <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-floating-root pomodoro-floating-default pomodoro-floating-mini animate-fade-in pointer-events-auto">
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={toggleVisibility}
-                      className={`h-full w-full rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
-                      size="icon"
-                      variant="outline"
-                      aria-label="Show Pomodoro timer"
-                    >
-                      <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+          <div ref={miniCircleRef} style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={toggleVisibility}
+                    className={`h-full w-full rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
+                    size="icon"
+                    variant="outline"
+                    aria-label="Show Pomodoro timer"
+                  >
+                    <Timer className={`w-5 h-5 ${styles.iconColor}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>,
           floatingPortalRoot,
         )}
@@ -244,24 +299,23 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: 'absolute',
-        left: position.x,
-        top: position.y,
+        position: isLiquidGlass ? 'absolute' : 'fixed',
+        left: isLiquidGlass ? liquidViewport.x + position.x : position.x,
+        top: isLiquidGlass ? liquidViewport.y + position.y : position.y,
         bottom: 'auto',
         transform: 'none',
         zIndex: 2147483000,
         ...portalStyleReset,
       }
-    : fixedDefaultStyle;
+    : isLiquidGlass ? liquidPillDefaultStyle : fixedDefaultStyle;
 
 
   return createPortal(
-    <div className="pomodoro-floating-viewport" style={floatingViewportStyle}>
     <div
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} pomodoro-floating-root ${position ? 'pomodoro-floating-dragged' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none pointer-events-auto ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} ${position ? '' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
@@ -370,7 +424,6 @@ const PomodoroTimer = () => {
           )}
         </div>
       </div>
-    </div>
     </div>,
     floatingPortalRoot,
   );
