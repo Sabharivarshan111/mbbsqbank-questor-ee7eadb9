@@ -202,23 +202,24 @@ const PomodoroTimer = () => {
     return (
       <>
         {createPortal(
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={toggleVisibility}
-                  style={miniCircleStyle}
-                  className={`rounded-full p-2 shadow-lg animate-fade-in ${styles.background} ${styles.text}`}
-                  size="icon"
-                  variant="outline"
-                  aria-label="Show Pomodoro timer"
-                >
-                  <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>,
+          <div style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={toggleVisibility}
+                    className={`h-full w-full rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
+                    size="icon"
+                    variant="outline"
+                    aria-label="Show Pomodoro timer"
+                  >
+                    <Timer className={`w-5 h-5 ${styles.iconColor}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>,
           floatingPortalRoot,
         )}
       </>
@@ -237,7 +238,7 @@ const PomodoroTimer = () => {
       ref={pillRef}
       {...handlers}
       style={positionStyle}
-      className={`${styles.background} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
+      className={`${styles.background} ${position ? '' : 'pomodoro-floating-default'} rounded-2xl px-5 py-3 shadow-lg min-w-[320px] max-w-[95vw] animate-fade-in select-none touch-none ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl ring-1 ring-white/30' : 'cursor-default'}`}
     >
       {isDragging && (
         <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden z-10 flex items-center justify-center">
