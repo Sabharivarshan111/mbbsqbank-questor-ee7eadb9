@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -14,7 +19,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
 
 const SWATCHES: { key: keyof CustomColors; label: string; hint: string }[] = [
   { key: "background", label: "Background", hint: "Main page color" },
@@ -46,77 +50,17 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     window.dispatchEvent(
       new CustomEvent(open ? "orbit:custom-theme-opened" : "orbit:custom-theme-closed"),
     );
-    if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = prev; };
-    }
   }, [open]);
 
-  if (!open) return null;
-
-  return createPortal(
-    <>
-      {/* Overlay */}
-      <div
-        onClick={() => onOpenChange(false)}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 2147483600,
-          background: 'rgba(0,0,0,0.7)',
-        }}
-      />
-      {/* Modal */}
-      <div
-        data-tour="custom-theme-dialog"
-        role="dialog"
-        aria-modal="true"
-        style={{
-          position: 'fixed',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'calc(100vw - 2rem)',
-          maxWidth: '28rem',
-          maxHeight: '85dvh',
-          overflowY: 'auto',
-          zIndex: 2147483601,
-          background: 'hsl(var(--background))',
-          color: 'hsl(var(--foreground))',
-          border: '1px solid hsl(var(--border))',
-          borderRadius: '0.5rem',
-          padding: '1.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-        }}
-      >
-        <button
-          onClick={() => onOpenChange(false)}
-          aria-label="Close"
-          style={{
-            position: 'absolute',
-            right: '0.75rem',
-            top: '0.75rem',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'hsl(var(--muted-foreground))',
-            padding: '0.25rem',
-          }}
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <div>
-          <h2 className="text-lg font-semibold">🎨 Create Your Own Theme</h2>
-          <p className="text-sm text-muted-foreground">
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent data-tour="custom-theme-dialog" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
+          <DialogDescription>
             Pick colors for your perfect look. Changes preview live below.
-          </p>
-        </div>
-
-
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Color pickers */}
         <div className="grid grid-cols-2 gap-3">
@@ -213,12 +157,10 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
             Apply Theme
           </Button>
         </div>
-      </div>
-    </>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }
-
 
 function hexToTextColor(hex: string): string {
   const c = hex.replace("#", "");

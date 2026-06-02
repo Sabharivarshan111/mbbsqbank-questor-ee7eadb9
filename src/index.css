@@ -773,6 +773,7 @@ html.liquid-glass .bg-popover,
 html.liquid-glass .bg-secondary,
 html.liquid-glass .bg-muted,
 html.liquid-glass [data-radix-popper-content-wrapper] > *,
+html.liquid-glass [role="dialog"],
 html.liquid-glass [role="menu"],
 html.liquid-glass [role="listbox"],
 html.liquid-glass [role="tooltip"] {
@@ -783,22 +784,6 @@ html.liquid-glass [role="tooltip"] {
   box-shadow:
     0 8px 32px hsl(220 20% 40% / 0.12),
     inset 0 1px 0 hsl(0 0% 100% / 0.6) !important;
-}
-
-html.liquid-glass [role="dialog"]:not([data-tour="custom-theme-dialog"]) {
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  background-color: hsl(0 0% 100% / 0.65) !important;
-  border: 1px solid hsl(220 13% 80% / 0.4) !important;
-  box-shadow:
-    0 8px 32px hsl(220 20% 40% / 0.12),
-    inset 0 1px 0 hsl(0 0% 100% / 0.6) !important;
-}
-
-html.liquid-glass [data-tour="custom-theme-dialog"] {
-  background-color: hsl(0 0% 100% / 0.95) !important;
-  border: 1px solid hsl(220 13% 80% / 0.4) !important;
-  box-shadow: 0 8px 32px hsl(220 20% 40% / 0.2) !important;
 }
 
 /* Buttons: glass for non-primary */
@@ -859,10 +844,10 @@ html.liquid-glass *::after {
   transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-html.liquid-glass [data-radix-popper-content-wrapper] [data-state="open"],
-html.liquid-glass [data-radix-popper-content-wrapper] [data-state="closed"] {
-  animation-duration: 350ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+html.liquid-glass [data-state="open"],
+html.liquid-glass [data-state="closed"] {
+  animation-duration: 350ms !important;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1) !important;
 }
 
 html.liquid-glass button:hover,
