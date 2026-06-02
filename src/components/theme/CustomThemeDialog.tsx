@@ -213,10 +213,12 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
             Apply Theme
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>,
+    document.body,
   );
 }
+
 
 function hexToTextColor(hex: string): string {
   const c = hex.replace("#", "");
