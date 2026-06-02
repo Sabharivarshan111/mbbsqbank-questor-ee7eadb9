@@ -22,7 +22,8 @@ export const walkthroughSteps: WalkthroughStep[] = [
     title: "Question Bank",
     description:
       "Browse thousands of MCQs and short answers across every MBBS subject — organized by year, subject and topic.",
-    targetSelector: '[data-tour="question-bank"]',
+    targetSelector: '[data-tour="question-bank"] [data-tour="qbank-header"]',
+    placement: 'below',
     pomodoro: 'hide',
   },
   {

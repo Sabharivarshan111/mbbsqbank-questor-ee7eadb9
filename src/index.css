@@ -840,7 +840,7 @@ html.liquid-glass [data-state] > [role="region"] {
 html.liquid-glass *,
 html.liquid-glass *::before,
 html.liquid-glass *::after {
-  transition-property: background-color, border-color, box-shadow, transform,
+  transition-property: background-color, border-color, box-shadow,
     opacity, backdrop-filter, color;
   transition-duration: 400ms;
   transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);

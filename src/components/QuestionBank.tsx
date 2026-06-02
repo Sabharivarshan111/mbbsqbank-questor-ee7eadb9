@@ -106,7 +106,7 @@ const QuestionBank = () => {
     <div className="bg-white dark:bg-black h-full min-h-[600px]">
       <div className="flex-1 p-4 max-w-4xl mx-auto space-y-4" {...handlers}>
         {/* Extras Tab as a separate section above the main tabs */}
-        <div className="w-full mb-4">
+        <div className="w-full mb-4" data-tour="qbank-header">
           <button 
             onClick={() => setActiveTab("extras")}
             data-active={activeTab === "extras"}
