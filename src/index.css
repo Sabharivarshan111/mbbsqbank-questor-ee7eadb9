@@ -730,7 +730,6 @@ html.liquid-glass body {
   letter-spacing: -0.01em;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  min-height: 100dvh;
 }
 
 
