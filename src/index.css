@@ -718,7 +718,6 @@ html.liquid-glass {
   --radius: 1rem;
   background-color: hsl(var(--background));
   overflow-x: hidden;
-  min-height: 100%;
 }
 
 html.liquid-glass body {

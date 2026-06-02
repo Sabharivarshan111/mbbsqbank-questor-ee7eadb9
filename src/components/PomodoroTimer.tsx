@@ -292,7 +292,7 @@ const PomodoroTimer = () => {
   const liquidMiniCircleStyle = getLiquidViewportStyle(40);
 
   const miniCircleStyle: React.CSSProperties = {
-    ...(isLiquidGlass ? liquidMiniCircleStyle : fixedDefaultStyle),
+    ...fixedDefaultStyle,
     width: '2.5rem',
     height: '2.5rem',
   };
@@ -361,15 +361,15 @@ const PomodoroTimer = () => {
 
   const positionStyle: React.CSSProperties = position
     ? {
-        position: isLiquidGlass ? 'absolute' : 'fixed',
-        left: isLiquidGlass ? liquidViewport.x + position.x : position.x,
-        top: isLiquidGlass ? liquidViewport.y + position.y : position.y,
+        position: 'fixed',
+        left: position.x,
+        top: position.y,
         bottom: 'auto',
         transform: 'none',
         zIndex: 2147483000,
         ...portalStyleReset,
       }
-    : isLiquidGlass ? liquidPillDefaultStyle : fixedDefaultStyle;
+    : fixedDefaultStyle;
 
 
   return createPortal(
