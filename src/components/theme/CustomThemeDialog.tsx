@@ -46,34 +46,77 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     window.dispatchEvent(
       new CustomEvent(open ? "orbit:custom-theme-opened" : "orbit:custom-theme-closed"),
     );
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
   }, [open]);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+  if (!open) return null;
+
+  return createPortal(
+    <>
+      {/* Overlay */}
+      <div
+        onClick={() => onOpenChange(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 2147483600,
+          background: 'rgba(0,0,0,0.7)',
+        }}
+      />
+      {/* Modal */}
+      <div
         data-tour="custom-theme-dialog"
-        className="!animate-none"
+        role="dialog"
+        aria-modal="true"
         style={{
           position: 'fixed',
           left: '50%',
           top: '50%',
-          right: 'auto',
-          bottom: 'auto',
-          transform: 'translate3d(-50%, -50%, 0)',
+          transform: 'translate(-50%, -50%)',
           width: 'calc(100vw - 2rem)',
           maxWidth: '28rem',
           maxHeight: '85dvh',
           overflowY: 'auto',
-          backdropFilter: 'none',
-          WebkitBackdropFilter: 'none',
+          zIndex: 2147483601,
+          background: 'hsl(var(--background))',
+          color: 'hsl(var(--foreground))',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: '0.5rem',
+          padding: '1.5rem',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
         }}
       >
-        <DialogHeader>
-          <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
-          <DialogDescription>
+        <button
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          style={{
+            position: 'absolute',
+            right: '0.75rem',
+            top: '0.75rem',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'hsl(var(--muted-foreground))',
+            padding: '0.25rem',
+          }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div>
+          <h2 className="text-lg font-semibold">🎨 Create Your Own Theme</h2>
+          <p className="text-sm text-muted-foreground">
             Pick colors for your perfect look. Changes preview live below.
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
+
+
 
         {/* Color pickers */}
         <div className="grid grid-cols-2 gap-3">
