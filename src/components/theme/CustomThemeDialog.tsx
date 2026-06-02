@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HexColorPicker } from "react-colorful";
 import {
   Dialog,
@@ -46,9 +46,15 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
 
   const reset = () => setDraft(DEFAULT_CUSTOM_COLORS);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent(open ? "orbit:custom-theme-opened" : "orbit:custom-theme-closed"),
+    );
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-tour="custom-theme-dialog" className="w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent data-tour="custom-theme-dialog" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
           <DialogDescription>

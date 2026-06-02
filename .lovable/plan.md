@@ -1,54 +1,35 @@
-# Fix 5 Layout & Walkthrough Issues
+## Three fixes (frontend only, no logic changes)
 
-## 1. Empty space below footer in Liquid Glass theme
-**File:** `src/pages/Index.tsx`
-- Remove `min-h-screen` from the root wrapper so the page hugs its content instead of forcing the page to fill the viewport (which is what leaves the big pink/cream empty area in Liquid Glass).
-- Keep `bg-background overflow-x-hidden relative` as-is.
+### 1. Liquid Glass — empty space below the footer (screenshot 1)
 
-## 2. "Create Your Own Theme" dialog clipped in Liquid Glass
-**File:** `src/index.css`
-- The universal `html.liquid-glass *` transition (line ~840) includes `transform` in its `transition-property`. This animates Radix Dialog's `translate(-50%, -50%)` centering and leaves the dialog stuck mid-slide so only the lower half is visible.
-- Remove `transform` from that transition-property list (keep background-color, border-color, box-shadow, opacity, backdrop-filter, color). Hover lift on buttons already uses its own rule and still works because the property change is instantaneous.
+Cause: `html.liquid-glass body { min-height: 100dvh }` forces the page to fill the viewport even when content is shorter, so the gradient background shows below the footer. Other themes don't have this rule, which is why they don't show that gap.
 
-**File:** `src/components/theme/CustomThemeDialog.tsx`
-- Tighten dialog size for small screens: change `max-w-md max-h-[90vh] overflow-y-auto` to also include `w-[calc(100vw-2rem)] sm:w-full` so it never exceeds the viewport.
+Fix in `src/index.css` (line ~733): remove `min-height: 100dvh` from `html.liquid-glass body`. The body will now hug its content like every other theme. The `pb-24` we added previously already covers the Pomodoro pill clearance.
 
-## 3. Pomodoro mini pill overlapping "Tap name to report any issues"
-**File:** `src/pages/Index.tsx`
-- Increase bottom clearance under the footer so the floating pill (which sits ~40 px from the bottom) never overlaps the "Tap name to report any issues" helper line.
-- Change the footer wrapper from `mb-8` to `mb-8 pb-24` (adds ~96 px breathing room beneath the helper text — pill floats over the empty area instead of the text).
+### 2. Liquid Glass — "Create Your Own Theme" dialog cut off (screenshot 2)
 
-## 4. Walkthrough card hides "First Year" on the Question Bank step
-**File:** `src/components/walkthrough/walkthroughSteps.ts`
-- For the `qbank` step:
-  - Change `targetSelector` from `'[data-tour="question-bank"]'` to `'[data-tour="question-bank"] [data-tour="qbank-header"]'` (a small target near the top of the section).
-  - Add `placement: 'below'` so the tooltip sits beneath the highlighted header and the first-year accordion stays visible.
+Cause: in Liquid Glass the Radix `DialogContent` ends up anchored toward the bottom of the viewport (the global `html.liquid-glass *` transition rule plus the dialog's slide animation lands the panel off-center on mobile), so the Apply button is below the fold.
 
-**File:** `src/components/QuestionBank.tsx` (small tweak)
-- Add `data-tour="qbank-header"` to the existing header / search container near the top of the component so the new selector resolves. (If the component has no obvious header wrapper, wrap the title+search area in a `<div data-tour="qbank-header">`.)
+Fix in `src/components/theme/CustomThemeDialog.tsx`: tighten the dialog so it always fits in the viewport and stays centered.
 
-## 5. Add a "Apply Theme" highlight step (like Pomodoro "Set this configuration")
-**File:** `src/components/theme/CustomThemeDialog.tsx`
-- Add `data-tour="custom-theme-apply"` to the `Apply Theme` `<Button>`.
+- Change `DialogContent` className to: `w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fixed`
+- Keep `data-tour="custom-theme-dialog"` and the existing children untouched.
 
-**File:** `src/components/walkthrough/walkthroughSteps.ts`
-- Insert a new step **immediately after** the existing `custom-theme` step:
+This forces the dialog to sit centered on every theme and never exceed 85% of the dynamic viewport, so the Apply Theme button is always reachable.
 
-```ts
-{
-  id: "custom-theme-apply",
-  title: "Apply Your Theme ✅",
-  description:
-    "Once you've picked your colors, tap 'Apply Theme' to save and use your custom look across the whole app.",
-  targetSelector: '[data-tour="custom-theme-apply"]',
-  action: 'open-custom-theme',
-  pomodoro: 'hide',
-},
-```
+### 3. Pomodoro pill covers the dialog while it's open (screenshot 3)
 
-- `Walkthrough.tsx` already keeps the custom-theme dialog open whenever the active step's `action === 'open-custom-theme'`, so no changes there.
+Cause: the fully-expanded Pomodoro pill stays pinned to the bottom of the screen on top of the dialog, covering Apply / preset rows.
 
-## Out of scope
-- No timer engine, AI chat, theme tokens, or backend changes.
-- Pomodoro pill visibility logic, theme menu controller, and existing walkthrough steps remain untouched apart from the two additions above.
-- Total walkthrough step count goes from 15 → 16.
+Fix:
+
+- `src/components/theme/CustomThemeDialog.tsx`: in a `useEffect` keyed on `open`, dispatch `window.dispatchEvent(new CustomEvent('orbit:custom-theme-opened'))` when `open` becomes true and `orbit:custom-theme-closed` when it becomes false. (Plain frontend wiring, no other behaviour change.)
+- `src/components/PomodoroTimer.tsx`: add a new piece of state `dialogMinimized: boolean`. Listen for `orbit:custom-theme-opened` → `setDialogMinimized(true)`, and `orbit:custom-theme-closed` → `setDialogMinimized(false)`. Treat `dialogMinimized` like the existing walkthrough `minimize` override: when true, render only the small floating-circle pill (the `!effectiveVisible` branch) regardless of `isVisible` — without persisting any change to `localStorage`.
+
+  Concretely: derive `const showAsMini = dialogMinimized || walkthroughOverride === 'minimize' || !effectiveVisible;` and use `showAsMini` instead of `!effectiveVisible` for the mini-circle branch. The user's "open/closed" preference for the pill is untouched — when the dialog closes, the pill restores to whatever it was before.
+
+This applies to **all themes**, not just Liquid Glass.
+
+### Out of scope
+
+No timer engine, AI chat, theme tokens, walkthrough copy, or backend changes.

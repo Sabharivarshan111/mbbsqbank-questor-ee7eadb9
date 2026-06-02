@@ -118,6 +118,7 @@ const PomodoroTimer = () => {
 
   // Walkthrough override — does NOT persist to localStorage
   const [walkthroughOverride, setWalkthroughOverride] = useState<'show' | 'minimize' | 'hide' | null>(null);
+  const [dialogMinimized, setDialogMinimized] = useState(false);
   useEffect(() => {
     const onShow = () => setWalkthroughOverride('show');
     const onMin = () => setWalkthroughOverride('minimize');
@@ -125,12 +126,16 @@ const PomodoroTimer = () => {
     const onClear = () => setWalkthroughOverride(null);
     const onOpenSettings = () => setSettingsOpen(true);
     const onCloseSettings = () => setSettingsOpen(false);
+    const onDialogOpen = () => setDialogMinimized(true);
+    const onDialogClose = () => setDialogMinimized(false);
     window.addEventListener('orbit:pomodoro-walkthrough-show', onShow);
     window.addEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
     window.addEventListener('orbit:pomodoro-walkthrough-hide', onHide);
     window.addEventListener('orbit:pomodoro-walkthrough-clear', onClear);
     window.addEventListener('orbit:open-pomodoro-settings', onOpenSettings);
     window.addEventListener('orbit:close-pomodoro-settings', onCloseSettings);
+    window.addEventListener('orbit:custom-theme-opened', onDialogOpen);
+    window.addEventListener('orbit:custom-theme-closed', onDialogClose);
     return () => {
       window.removeEventListener('orbit:pomodoro-walkthrough-show', onShow);
       window.removeEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
@@ -138,6 +143,8 @@ const PomodoroTimer = () => {
       window.removeEventListener('orbit:pomodoro-walkthrough-clear', onClear);
       window.removeEventListener('orbit:open-pomodoro-settings', onOpenSettings);
       window.removeEventListener('orbit:close-pomodoro-settings', onCloseSettings);
+      window.removeEventListener('orbit:custom-theme-opened', onDialogOpen);
+      window.removeEventListener('orbit:custom-theme-closed', onDialogClose);
     };
   }, []);
 
@@ -145,6 +152,7 @@ const PomodoroTimer = () => {
     ? walkthroughOverride === 'show'
     : isVisible;
   const hideEntirely = walkthroughOverride === 'hide';
+  const showAsMini = dialogMinimized || walkthroughOverride === 'minimize' || !effectiveVisible;
 
   const pillRef = useRef<HTMLDivElement>(null);
   const miniCircleRef = useRef<HTMLDivElement>(null);
@@ -321,7 +329,7 @@ const PomodoroTimer = () => {
     return settingsSheet;
   }
 
-  if (!effectiveVisible) {
+  if (showAsMini) {
     return (
       <>
         {createPortal(
