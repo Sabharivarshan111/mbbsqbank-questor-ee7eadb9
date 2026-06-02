@@ -54,7 +54,24 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-tour="custom-theme-dialog" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto">
+      <DialogContent
+        data-tour="custom-theme-dialog"
+        className="!animate-none"
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          right: 'auto',
+          bottom: 'auto',
+          transform: 'translate3d(-50%, -50%, 0)',
+          width: 'calc(100vw - 2rem)',
+          maxWidth: '28rem',
+          maxHeight: '85dvh',
+          overflowY: 'auto',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+        }}
+      >
         <DialogHeader>
           <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
           <DialogDescription>
