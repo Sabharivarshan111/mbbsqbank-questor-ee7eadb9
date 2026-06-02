@@ -70,6 +70,15 @@ export const walkthroughSteps: WalkthroughStep[] = [
     pomodoro: 'hide',
   },
   {
+    id: "custom-theme-apply",
+    title: "Apply Your Theme ✅",
+    description:
+      "Once you've picked your colors, tap 'Apply Theme' to save and use your custom look across the whole app.",
+    targetSelector: '[data-tour="custom-theme-apply"]',
+    action: 'open-custom-theme',
+    pomodoro: 'hide',
+  },
+  {
     id: "font-size",
     title: "Change Font Size",
     description:
