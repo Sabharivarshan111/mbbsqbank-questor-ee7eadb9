@@ -22,7 +22,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden relative">
+    <div className="bg-background overflow-x-hidden relative">
       <SEOHead 
         title="ORBIT MBBS QBANK - Free Medical Question Bank with AI Assistant"
         description="Free comprehensive MBBS question bank covering Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, and more. Features AI-powered study assistant for medical students preparing for university exams and NEET PG."
@@ -56,7 +56,7 @@ const Index = () => {
           </div>
           
           {/* Footer with Creator Name */}
-          <div className="w-full mb-8 flex flex-col items-center gap-4">
+          <div className="w-full mb-8 pb-24 flex flex-col items-center gap-4">
             <div className="flex flex-wrap justify-center gap-1">
               <Link to="/privacy-policy" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">Privacy Policy</Link>
               <Link to="/terms-of-service" className="inline-flex items-center justify-center px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-primary hover:bg-accent active:bg-accent/70 transition-colors">Terms of Service</Link>

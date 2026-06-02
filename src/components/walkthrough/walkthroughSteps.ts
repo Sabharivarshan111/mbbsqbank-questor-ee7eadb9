@@ -22,7 +22,8 @@ export const walkthroughSteps: WalkthroughStep[] = [
     title: "Question Bank",
     description:
       "Browse thousands of MCQs and short answers across every MBBS subject — organized by year, subject and topic.",
-    targetSelector: '[data-tour="question-bank"]',
+    targetSelector: '[data-tour="question-bank"] [data-tour="qbank-header"]',
+    placement: 'below',
     pomodoro: 'hide',
   },
   {
@@ -65,6 +66,15 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Tap any swatch to pick your background, text, accent and card colors — your theme applies instantly. Tap Next when you're done exploring.",
     targetSelector: '[data-tour="custom-theme-dialog"]',
+    action: 'open-custom-theme',
+    pomodoro: 'hide',
+  },
+  {
+    id: "custom-theme-apply",
+    title: "Apply Your Theme ✅",
+    description:
+      "Once you've picked your colors, tap 'Apply Theme' to save and use your custom look across the whole app.",
+    targetSelector: '[data-tour="custom-theme-apply"]',
     action: 'open-custom-theme',
     pomodoro: 'hide',
   },
