@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -19,6 +14,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
 
 const SWATCHES: { key: keyof CustomColors; label: string; hint: string }[] = [
   { key: "background", label: "Background", hint: "Main page color" },
