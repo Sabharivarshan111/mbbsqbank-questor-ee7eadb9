@@ -298,26 +298,31 @@ export const communityMedicineData = {
           essay: {
             name: "Essay",
             questions: [
-              "1. Discuss the cultural factors affecting health. * (Aug 2018) [Pg 801]",
-              "2. What is basic model of nuclear family? Discuss the various cultural factors in and disease. * (Feb 2013) [Pg 798,801]"
+              "1. Discuss the cultural factors affecting health. * (Aug 2018) * (Aug 2018) [Pg 801]",
+              "2. What is basic model of nuclear family? Discuss the various cultural factors in and disease. * (Feb 2013) * (Feb 2013) [Pg 798,801]"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
               "1. Medical social worker ***** (Feb 2010, Aug 2011, Aug 2012, Feb 2017, Feb 2023) [Pg.817]",
-              "2. Role of family in health and disease *** (Feb 2011, Aug 2017, Aug 2022) [Pg.787]",
-              "3. Acculturation *** (Aug 2009, Feb 2010, Feb 2015) [Pg. 808]",
+              "2. Role of family in health and disease *** (Feb 2011, Aug 2017, Aug 2022) *** (Feb 2011, Aug 2017, Aug 2022) [Pg.787]",
+              "3. Acculturation *** (Aug 2009, Feb 2010, Feb 2015) *** (Aug 2009, Feb 2010, Feb 2015) [Pg. 808]",
               "4. Types of learning. ** (Feb 2016, Feb 2021) [Pg.792]",
-              "5. Social security for industrial workers. * (Feb 2017) [Pg.792]",
+              "5. Social security for industrial workers. * (Feb 2017) * (Feb 2017) [Pg.792]",
               "6. What are the preventive measures applicable for child labour? * (Feb 2020) [Pg.799]",
               "7. Cultural factors in health and disease * (Aug 2016) [Pg.801]",
-              "8. Défense mechanisms identified by psychologists. * (Feb 2014) [Pg.793]",
-              "9. What is consumer protection act? * (Aug 2010) [Pg.809]",
-              "10. Art of interview * (Feb 2015) [Pg.810]",
+              "8. Défense mechanisms identified by psychologists. * (Feb 2014) * (Feb 2014) [Pg.793]",
+              "9. What is consumer protection act? * (Aug 2010) * (Aug 2010) [Pg.809]",
+              "10. Art of interview * (Feb 2015) * (Feb 2015) [Pg.810]",
               "11. Operational Research * (Aug 2013) [Pg.811]",
               "12. Drug addiction * (Aug 2009) [Pg.812]",
-              "13. Enlist the rights of the Patient * (Aug 2014) [Pg.810]"
+              "13. Enlist the rights of the Patient * (Aug 2014) * (Aug 2014) [Pg.810]",
+              "14. Medical social worker / Role of medical social worker. ***** (Aug 2011, Aug 2012, Feb 2010, Feb 2017, Feb 2023)",
+              "15. Define fiduciary duty. Give examples of boundary crossing and violation in doctor patient relationship. * (Mar 2025)",
+              "16. Explain Patient centered care. * (Jan 2026)",
+              "17. Name any two strategies for improvement of health of tribal people * (Feb 2018)",
+              "18. Write a brief note on the burden of disease among the tribal community. * ** (Mar 2025, Jan 2026)"
             ]
           }
         },
@@ -343,32 +348,35 @@ export const communityMedicineData = {
           essay: {
             name: "Essay",
             questions: [
-              "1. What is sampling? Explain random sampling methods with suitable examples. ** (Aug 2012, Aug 2015) [Pg no 977]",
-              "2. Define health information. Describe various source of health information. * [Pg no 967-971]"
+              "1. What is sampling? Explain random sampling methods with suitable examples. ** (Aug 2012, Aug 2015) ** (Aug 2012, Aug 2015) [Pg no 977]",
+              "2. Define health information. Describe various source of health information. * * [Pg no 967-971]"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Chi-Square test **** (Aug 2009, Feb 2012,2014, Feb 2020) [Pg no 980]",
+              "1. Chi-Square test **** (Aug 2009, Feb 2012,2014, Feb 2020) **** (Aug 2009, Feb 2012, Feb 2020) [Pg no 980]",
               "2. sampling methods **** (Aug 2008, Feb 2011, Feb 2012, Feb 2023) [Pg no 978]",
               "3. Population surveys ** (Aug 2013,2015) [Pg no 970]",
-              "4. Tests of significance. ** (Feb 2018, Feb 2022) [Pg no 978]",
-              "5. Enlist the probability sampling methods. Elaborate on any two methods. * (Feb 2019) [Pg no 977]",
-              "6. Standard deviation * (Feb 2009) [Pg no 976]",
-              "7. Histogram * (Feb 2010) [Pg no 973]",
-              "8. Sampling error. * (Aug 2010) [Pg no 978]",
+              "4. Tests of significance. ** (Feb 2018, Feb 2022) ** (Feb 2018, Feb 2022) [Pg no 978]",
+              "5. Enlist the probability sampling methods. Elaborate on any two methods. * (Feb 2019) * (Feb 2019) [Pg no 977]",
+              "6. Standard deviation * (Feb 2009) * (Feb 2009) [Pg no 976]",
+              "7. Histogram * (Feb 2010) ** (Feb 2010, Aug 2017) [Pg no 973]",
+              "8. Sampling error. * (Aug 2010) * (Aug 2010) [Pg no 978]",
               "9. Presentation of statistical data. * (Feb 2011) [Pg no 927]",
-              "10. Medical record linkage * (Aug 2010) [Pg no 970]",
-              "11. Normal distribution * (Feb 2011) [Pg no 977]",
-              "12. Measures of central tendency. * (Feb 2013) [Pg no 975]",
-              "13. Population surveys as a source of health information * (Feb 2013) [Pg no 970]",
-              "14. Standard normal curve * (Aug 2014) [Pg no 977]",
-              "15. Measures of dispersion * (Feb 2015) [Pg no 976]",
-              "16. Sources of health information. * (Feb 2017) [Pg no 968]",
+              "10. Medical record linkage * (Aug 2010) * (Aug 2010) [Pg no 970]",
+              "11. Normal distribution * (Feb 2011) * (Feb 2011) [Pg no 977]",
+              "12. Measures of central tendency. * (Feb 2013) * (Feb 2013) [Pg no 975]",
+              "13. Population surveys as a source of health information * (Feb 2013) *** (Feb 2013, Aug 2013) [Pg no 970]",
+              "14. Standard normal curve * (Aug 2014) * (Aug 2014) [Pg no 977]",
+              "15. Measures of dispersion * (Feb 2015) * (Feb 2015) [Pg no 976]",
+              "16. Sources of health information. * (Feb 2017) *** (Feb 2017, Jan 2026, Jun 2023) [Pg no 968]",
               "17. Histogram. * (Aug 2017) [Pg no 973]",
-              "18. Correlation and regression. * (Sep 2021) [Pg no 980]",
-              "19. Census * (Aug 2022) [Pg no 968]"
+              "18. Correlation and regression. * (Sep 2021) * (Sep 2021) [Pg no 980]",
+              "19. Census * (Aug 2022) * (Aug 2022) [Pg no 968]",
+              "20. Sampling methods / What is a sampling frame? ***** (Aug 2008, Feb 2011, Feb 2012, Feb 2023, Mar 2025)",
+              "21. Presentation / pictorial representations of statistical data. ** (Feb 2011, May 2024)",
+              "22. Mortality data. * (Feb 2023)"
             ]
           }
         },
@@ -377,21 +385,22 @@ export const communityMedicineData = {
           essay: {
             name: "Essay",
             questions: [
-              "1. Define Epidemiology. Discuss briefly the steps of a case-control study. Mention its merits & demerits ** (Aug 2011, Feb 2015) [pg.no.61,79,82]",
-              "2. Define source and reservoir of infection? Describe in detail dynamics and modes of disease transmission? * (Aug 2008) [pg.no.102]",
+              "1. Define Epidemiology. Discuss briefly the steps of a case-control study. Mention its merits & demerits ** (Aug 2011, Feb 2015) **** (Aug 2011, Feb 2015, Feb 2012, Feb 2023) [pg.no.61,79,82]",
+              "2. Define source and reservoir of infection? Describe in detail dynamics and modes of disease transmission? * (Aug 2008) * (Aug 2008) [pg.no.102]",
               "3. What are the types of analytical epidemiological study? Describe the steps involved in the case-control study. * (Aug 2009) [pg.no.78]",
-              "4. Discuss in detail the steps involved in conducting a cohort study. Mention the advantages and disadvantages of cohort study. * (Feb 2011) [pg.no.83]",
+              "4. Discuss in detail the steps involved in conducting a cohort study. Mention the advantages and disadvantages of cohort study. * (Feb 2011) *** (Feb 2011, Feb 2024, Sep 2021) [pg.no.83]",
               "5. Define Epidemiology. List the various epidemiological study designs. Briefly discuss the steps in a case control study. * (Feb 2012) [pg.no.61,79]",
               "6. List & define the various types of mortality indicators. What are the uses and limitations of mortality data? Which mortality indicator would you choose to decide the Relative importance of a disease as cause of death in a community? * (Aug 2012) [pg.no.65]",
               "7. Define disinfectant. Discuss in detail about different types of disinfectant. * (Aug 2023) [pg.no.140]",
-              "8. Define epidemiology and write the methods in epidemiology. Differentiate between associated factor and causative factor with suitable examples. Write about the relative risk and attributable risk and its applications in public health * (Feb 2018) [pg.no.61,95,86]",
+              "8. Define epidemiology and write the methods in epidemiology. Differentiate between associated factor and causative factor with suitable examples. Write about the relative risk and attributable risk and its applications in public health * (Feb 2018) * (Feb 2018) [pg.no.61,95,86]",
               "9. Classify acute events following immunization (AEFI). Describe the steps in the investigation of an AEFI. * (Feb 2019) [pg.no.123]",
-              "10. Define epidemic. Discuss the steps in investigation of an epidemic * (Feb 2020) [pg.no.146]",
-              "11. Define Pandemic. Discuss the phases of an Epidemic when an entire population that is susceptible to the infection is exposed to a case. * (Nov 2020) [pg.no.101,147]",
+              "10. Define epidemic. Discuss the steps in investigation of an epidemic * (Feb 2020) *** (Feb 2020, May 2024, Oct 2025) [pg.no.146]",
+              "11. Define Pandemic. Discuss the phases of an Epidemic when an entire population that is susceptible to the infection is exposed to a case. * (Nov 2020) * (Nov 2020) [pg.no.101,147]",
               "12. Enumerate the types of analytical epidemiological study. Describe the steps involved in conducting a cohort study with an example. Mention the advantages and disadvantages of this study design. * (Sep 2021) [pg.no.78]",
               "13. Discuss commonly used mortality rates and ratios. Add a note on uses and limitations of mortality data. * (Apr 2022) [pg.no.65]",
               "14. Define Epidemiology. Enumerate the steps in Case Control Study. Give examples for Case Control Study. * (Feb 2023) [pg.no.61,79]",
-              "15. Define Epidemiology. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. * (Feb 2023) [pg.no.70,89]"
+              "15. Define Epidemiology. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. * (Feb 2023) [pg.no.70,89]",
+              "16. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. * (Feb 2023)"
             ]
           },
           "short-notes": {
@@ -401,27 +410,27 @@ export const communityMedicineData = {
               "2. Tools of measurements in epidemiology ** (Aug 2009, Feb 2011) [pg.no.63]",
               "3. Uses of Epidemiology ** (Aug 2013,2016) [pg.no.99]",
               "4. Epidemic curve ** (Aug 2010, Aug 2017) [pg.no.72]",
-              "5. Steps in conducting RCT (Randomized Controlled Trials) with an example. ** (Feb 2014, Feb 2022) [pg.no.89]",
-              "6. Discuss the steps in the investigation of an epidemic. ** (Feb 2015, Feb 2019) [pg.no.147]",
+              "5. Steps in conducting RCT (Randomized Controlled Trials) with an example. ** (Feb 2014, Feb 2022) ** (Feb 2014, Feb 2022) [pg.no.89]",
+              "6. Discuss the steps in the investigation of an epidemic. ** (Feb 2015, Feb 2019) ** (Feb 2015, Feb 2019) [pg.no.147]",
               "7. Define migration studies. Discuss its use in epidemiology. ** (Aug 2019, Apr 2022) [pg.no.75]",
-              "8. Merits & demerits of cohort study * (Aug 2008) [pg.no.87]",
-              "9. Incidence rate and its uses * (Aug 2010) [pg.no.68]",
+              "8. Merits & demerits of cohort study * (Aug 2008) * (Aug 2008) [pg.no.87]",
+              "9. Incidence rate and its uses * (Aug 2010) * (Aug 2010) [pg.no.68]",
               "10. Elements of Cohort study * (Aug 2010) [pg.no.84]",
-              "11. Relative risk and attributable risk * (Aug 2011) [pg.no.86]",
+              "11. Relative risk and attributable risk * (Aug 2011) *** (Aug 2011, Jan 2025, May 2024) [pg.no.86]",
               "12. Describe the steps in doing a Case control study * (Aug 2012) [pg.no.84]",
-              "13. Define and give the importance of herd immunity in disease control * (Aug 2012) [pg.no.110]",
-              "14. Common Source epidemics * (Feb 2014) [pg.no.103]",
+              "13. Define and give the importance of herd immunity in disease control * (Aug 2012) ** (Aug 2012, Feb 2023) [pg.no.110]",
+              "14. Common Source epidemics * (Feb 2014) ** (Feb 2014, Feb 2024) [pg.no.103]",
               "15. Adverse events following immunization. * (Feb 2014) [pg.no.123]",
               "16. Monitoring and surveillance. * (Feb 2014) [pg.no.102]",
               "17. Emporiatrics * (Feb 2015) [pg.no.140]",
-              "18. Uses of incubation period * (Feb 2015) [pg.no.107]",
+              "18. Uses of incubation period * (Feb 2015) * (Feb 2015) [pg.no.107]",
               "19. Bias in epidemiological studies * (Feb 2016) [pg.no.81]",
-              "20. Write the national immunization schedule * (Feb 2017) [pg.no.125]",
+              "20. Write the national immunization schedule * (Feb 2017) * (Feb 2017) [pg.no.125]",
               "21. Define spot map. Discuss its use in epidemiology * (Aug 2018) [pg.no.74]",
               "22. Describe the design of rapid sand filters. * (Aug 2018) [Pg.no.840]",
               "23. Describe the steps in the chlorination of a well * (Feb 2019) [pg.no:844]",
               "24. Discuss the sources of bias in case-control studies and methods of over-coming it. * (Aug 2019) [pg.no.81]",
-              "25. Isolation versus quarantine. * (Apr 2022) [pg.no.133]",
+              "25. Isolation versus quarantine. * (Apr 2022) * (Apr 2022) [pg.no.133]",
               "26. Measures of Dispersion. * (Aug 2022)",
               "27. Mortality data. * (Feb 2023) [pg.no.65]",
               "28. Plan Cold chain model at Primary Health Centre Level for routine immunization. * (Feb 2023) [pg.no.116]",
@@ -431,7 +440,13 @@ export const communityMedicineData = {
               "32. Association and causation * [pg.no.95]",
               "33. Additional criteria for judging causality * [pg.no.97]",
               "34. Incubation period * [pg.no.107]",
-              "35. Open vial policy * [pg.no.121]"
+              "35. Open vial policy * [pg.no.121]",
+              "36. Cold chain maintenance / Plan Cold chain model at PHC Level / ILR / Equipment **** (Aug 2008, Feb 2018, Feb 2022, Feb 2023)",
+              "37. Bias in epidemiological studies / sources of bias in case-control studies. **** (Aug 2019, Feb 2016, Jun 2023, Oct 2025)",
+              "38. Vaccine vial monitoring / Open vial policy ** (Jan 2025)",
+              "39. Explain any five Hill’s criteria for association and causation. * (Feb 2024)",
+              "40. Write about the association and its types in Epidemiology. * (Jan 2026)",
+              "41. Write a note on the Immunizing agents with examples. * (Jan 2026)"
             ]
           }
         },
