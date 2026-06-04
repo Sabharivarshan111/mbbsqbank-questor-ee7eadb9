@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverTrigger,
@@ -47,78 +52,19 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     );
   }, [open]);
 
-  // Lock body scroll while open and close on Escape
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open, onOpenChange]);
-
-  if (!open) return null;
-
-  const content = (
-    <div
-      role="presentation"
-      data-tour="custom-theme-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onOpenChange(false);
-      }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 2147483600,
-        background: "rgba(0,0,0,0.7)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-        overflowY: "auto",
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="custom-theme-title"
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
         data-tour="custom-theme-dialog"
-        className="bg-background text-foreground border border-border rounded-lg shadow-xl"
-        style={{
-          width: "100%",
-          maxWidth: "28rem",
-          maxHeight: "85dvh",
-          overflowY: "auto",
-          padding: "1.5rem",
-          position: "relative",
-          display: "grid",
-          gap: "1rem",
-        }}
+        className="max-w-md max-h-[85dvh] overflow-y-auto w-[calc(100vw-2rem)]"
       >
-        <button
-          onClick={() => onOpenChange(false)}
-          aria-label="Close"
-          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
-          style={{ position: "absolute", right: "1rem", top: "1rem" }}
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        <div className="flex flex-col space-y-1.5 text-center sm:text-left">
-          <h2 id="custom-theme-title" className="text-lg font-semibold leading-none tracking-tight">
-            🎨 Create Your Own Theme
-          </h2>
-          <p className="text-sm text-muted-foreground">
+        <DialogHeader>
+          <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
+          <DialogDescription>
             Pick colors for your perfect look. Changes preview live below.
-          </p>
-        </div>
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Color pickers */}
         <div className="grid grid-cols-2 gap-3">
           {SWATCHES.map(({ key, label, hint }) => (
             <Popover key={key}>
@@ -147,7 +93,6 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
           ))}
         </div>
 
-        {/* Presets */}
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-2">Quick presets</div>
           <div className="flex flex-wrap gap-2">
@@ -172,7 +117,6 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
           </div>
         </div>
 
-        {/* Live preview */}
         <div
           className="rounded-lg p-4 border space-y-3"
           style={{
@@ -199,7 +143,6 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
           </button>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-2">
           <Button variant="outline" onClick={reset} className="flex-1">
             Reset
@@ -208,11 +151,9 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
             Apply Theme
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-
-  return createPortal(content, document.body);
 }
 
 function hexToTextColor(hex: string): string {
