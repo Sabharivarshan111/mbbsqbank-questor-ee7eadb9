@@ -1,35 +1,44 @@
-## Three fixes (frontend only, no logic changes)
+## Why this only happens in Liquid Glass
 
-### 1. Liquid Glass — empty space below the footer (screenshot 1)
+Reproduced in the preview: in Dark theme the “Create Your Own Theme” dialog renders centered as expected. The moment Liquid Glass is active, the same dialog drops to the bottom of the page, with the page scrolling behind it, so the Reset / Apply Theme buttons fall below the fold.
 
-Cause: `html.liquid-glass body { min-height: 100dvh }` forces the page to fill the viewport even when content is shorter, so the gradient background shows below the footer. Other themes don't have this rule, which is why they don't show that gap.
+Liquid Glass adds several theme‑wide rules in `src/index.css` that **only** target this theme — no other theme has them:
 
-Fix in `src/index.css` (line ~733): remove `min-height: 100dvh` from `html.liquid-glass body`. The body will now hug its content like every other theme. The `pb-24` we added previously already covers the Pomodoro pill clearance.
+- `html.liquid-glass [role="dialog"]` (lines ~770–787) forces `background-color`, `border`, `box-shadow` (incl. `inset`) and `backdrop-filter` with `!important`.
+- `html.liquid-glass *` (lines ~838–845) defines a global 400 ms transition list (`background-color, border-color, box-shadow, opacity, backdrop-filter, color`).
+- `html.liquid-glass [data-state="open"], html.liquid-glass [data-state="closed"]` (lines ~847–851) overrides `animation-duration: 350ms !important`.
 
-### 2. Liquid Glass — "Create Your Own Theme" dialog cut off (screenshot 2)
+The Radix `DialogContent` relies on a static `translate(-50%, -50%)` plus a `tailwindcss-animate` enter animation that animates `transform`. Under these Liquid Glass overrides the dialog ends up keeping the animation’s end-state transform (identity) instead of the static centering transform, so it lands wherever the document flow leaves it — pinned to the bottom of the viewport. Other themes don’t touch dialog styling, so Radix’s default centering works untouched.
 
-Cause: in Liquid Glass the Radix `DialogContent` ends up anchored toward the bottom of the viewport (the global `html.liquid-glass *` transition rule plus the dialog's slide animation lands the panel off-center on mobile), so the Apply button is below the fold.
+The user’s `CustomThemeDialog` already passes correct centering utilities (`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85dvh] overflow-y-auto`). The fix is to make sure those positioning rules win in Liquid Glass too.
 
-Fix in `src/components/theme/CustomThemeDialog.tsx`: tighten the dialog so it always fits in the viewport and stays centered.
+## Fix (frontend / CSS only, scoped to Liquid Glass)
 
-- Change `DialogContent` className to: `w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fixed`
-- Keep `data-tour="custom-theme-dialog"` and the existing children untouched.
+Add one targeted rule in `src/index.css`, right next to the existing `html.liquid-glass [role="dialog"]` block (so dialog visuals and dialog positioning live together):
 
-This forces the dialog to sit centered on every theme and never exceed 85% of the dynamic viewport, so the Apply Theme button is always reachable.
+```css
+/* Lock Radix dialog content to viewport center in Liquid Glass —
+   the theme's global transitions and animation overrides above strip
+   the static centering transform otherwise. */
+html.liquid-glass [role="dialog"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-height: 85dvh;
+  overflow-y: auto;
+  width: calc(100vw - 2rem);
+  max-width: 28rem; /* matches max-w-md the dialog already requests */
+}
+```
 
-### 3. Pomodoro pill covers the dialog while it's open (screenshot 3)
+Why this works:
 
-Cause: the fully-expanded Pomodoro pill stays pinned to the bottom of the screen on top of the dialog, covering Apply / preset rows.
+- `position/top/left/transform !important` defeat any leftover animation end-state on `transform` and any future Liquid Glass override.
+- `max-height: 85dvh` + `overflow-y: auto` guarantee the Apply Theme button is always reachable even on short viewports (Pixel-class phones with ~640 CSS px height).
+- Scoped to `html.liquid-glass [role="dialog"]`, so Dark / Light / BlackPink / Custom themes keep their existing centered behavior untouched — no regression.
+- No JS change needed in `CustomThemeDialog.tsx` — the existing Tailwind classes already match this intent, this rule just makes them stick.
 
-Fix:
+## Out of scope
 
-- `src/components/theme/CustomThemeDialog.tsx`: in a `useEffect` keyed on `open`, dispatch `window.dispatchEvent(new CustomEvent('orbit:custom-theme-opened'))` when `open` becomes true and `orbit:custom-theme-closed` when it becomes false. (Plain frontend wiring, no other behaviour change.)
-- `src/components/PomodoroTimer.tsx`: add a new piece of state `dialogMinimized: boolean`. Listen for `orbit:custom-theme-opened` → `setDialogMinimized(true)`, and `orbit:custom-theme-closed` → `setDialogMinimized(false)`. Treat `dialogMinimized` like the existing walkthrough `minimize` override: when true, render only the small floating-circle pill (the `!effectiveVisible` branch) regardless of `isVisible` — without persisting any change to `localStorage`.
-
-  Concretely: derive `const showAsMini = dialogMinimized || walkthroughOverride === 'minimize' || !effectiveVisible;` and use `showAsMini` instead of `!effectiveVisible` for the mini-circle branch. The user's "open/closed" preference for the pill is untouched — when the dialog closes, the pill restores to whatever it was before.
-
-This applies to **all themes**, not just Liquid Glass.
-
-### Out of scope
-
-No timer engine, AI chat, theme tokens, walkthrough copy, or backend changes.
+No changes to: timer engine, Pomodoro pill, AI chat, theme tokens, walkthrough, ThemeProvider, or backend. Only the one CSS rule above.

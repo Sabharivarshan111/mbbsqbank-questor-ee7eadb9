@@ -786,6 +786,10 @@ html.liquid-glass [role="tooltip"] {
     inset 0 1px 0 hsl(0 0% 100% / 0.6) !important;
 }
 
+/* CustomThemeDialog is rendered via a custom portal that uses flex
+   centering inside a fixed full-viewport backdrop. No extra dialog
+   positioning rules are needed for it under Liquid Glass. */
+
 /* Buttons: glass for non-primary */
 html.liquid-glass button:not(.bg-primary):not([data-state="checked"]):not(.bg-destructive) {
   backdrop-filter: blur(16px) saturate(180%);

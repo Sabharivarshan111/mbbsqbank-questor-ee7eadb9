@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -52,24 +47,83 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     );
   }, [open]);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-tour="custom-theme-dialog" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] sm:w-full max-w-md max-h-[85dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
-          <DialogDescription>
+  // Lock body scroll while open and close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onOpenChange(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
+  const content = (
+    <div
+      role="presentation"
+      data-tour="custom-theme-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onOpenChange(false);
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2147483600,
+        background: "rgba(0,0,0,0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="custom-theme-title"
+        data-tour="custom-theme-dialog"
+        className="bg-background text-foreground border border-border rounded-lg shadow-xl"
+        style={{
+          width: "100%",
+          maxWidth: "28rem",
+          maxHeight: "85dvh",
+          overflowY: "auto",
+          padding: "1.5rem",
+          position: "relative",
+          display: "grid",
+          gap: "1rem",
+        }}
+      >
+        <button
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+          style={{ position: "absolute", right: "1rem", top: "1rem" }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+          <h2 id="custom-theme-title" className="text-lg font-semibold leading-none tracking-tight">
+            🎨 Create Your Own Theme
+          </h2>
+          <p className="text-sm text-muted-foreground">
             Pick colors for your perfect look. Changes preview live below.
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
 
         {/* Color pickers */}
         <div className="grid grid-cols-2 gap-3">
           {SWATCHES.map(({ key, label, hint }) => (
             <Popover key={key}>
               <PopoverTrigger asChild>
-                <button
-                  className="flex flex-col items-start gap-2 p-3 rounded-lg border border-border hover:border-primary transition-colors text-left"
-                >
+                <button className="flex flex-col items-start gap-2 p-3 rounded-lg border border-border hover:border-primary transition-colors text-left">
                   <div
                     className="w-full h-10 rounded-md border border-border shadow-inner"
                     style={{ backgroundColor: draft[key] }}
@@ -130,10 +184,7 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
           <div className="text-xs opacity-60">Live preview</div>
           <h3 className="text-lg font-bold">Sample Heading</h3>
           <p className="text-sm opacity-80">This is how your text will look across the app.</p>
-          <div
-            className="rounded-md p-3"
-            style={{ backgroundColor: draft.card }}
-          >
+          <div className="rounded-md p-3" style={{ backgroundColor: draft.card }}>
             <div className="text-sm font-medium">Card component</div>
             <div className="text-xs opacity-70 mt-1">Subject content lives here.</div>
           </div>
@@ -157,9 +208,11 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
             Apply Theme
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
+
+  return createPortal(content, document.body);
 }
 
 function hexToTextColor(hex: string): string {
