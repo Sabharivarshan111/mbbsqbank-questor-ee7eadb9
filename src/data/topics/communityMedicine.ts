@@ -23,7 +23,7 @@ export const communityMedicineData = {
               "1. Health? Details about health and indicators * (Aug 2011) [Pg.no.24]",
               "2. Epidemiological triad? Agent, host, Environmental factors? * (Feb 2009) [Pg.no.39]",
               "3. Describe various levels of prevention and interventions with examples. ** (Feb 2010) [Pg.no.47]",
-              "4. What are the four levels of disease prevention? A 35-year-old female underwent Pap smear, what is the level of prevention followed here? Elaborate the modes of intervention of diseases. * (Jan 2025)"
+              "4. What are the four levels of disease prevention? A 35-year-old female underwent Pap smear, what is the level of prevention followed here? Elaborate the modes of intervention of diseases. (Jan 2025) *"
             ]
           },
           "short-notes": {
@@ -43,20 +43,23 @@ export const communityMedicineData = {
               "12. Primary prevention * (Feb 2013) [Pg.no.48]",
               "13. Lifestyle and health. * (Aug 2008) [Pg.no.]",
               "14. Proportional mortality rate * (Feb 2009) [Pg.no.25,66]",
-              "15. Levels of prevention ** (Aug 2011) [Pg.no.47]",
+              "15. Levels of prevention * (Aug 2011) [Pg.no.47]",
               "16. Define 'agent 'in disease causation. Explain the different types of agents. * (Aug 2012) [Pg.no.43]",
               "17. Human poverty index * (Aug 2013) [Pg.no.17] or HDI",
               "18. Disability limitation * (Feb 2014) [Pg.no.50]",
               "19. Sentinel surveillance * (Feb 2015) [Pg.no.47]",
-              "20. Sullivan's index ** (Aug 2015) [Pg.no.26] or DFLE",
+              "20. Sullivan's index * (Aug 2015) [Pg.no.26] or DFLE",
               "21. What are the modes of intervention in various levels of prevention? *** (Feb 2020) [Pg.no.49]",
               "22. Discuss multifactorial etiology and web of causation. *** (Apr 2022) [Pg.no.40]",
               "23. Levels of Health Care. * (Feb 2023) [Pg.no.36]",
               "24. What are the various types of Disease Surveillance? * (Feb 2023) [Pg.no.47]",
               "25. Positive health * (Aug 2008) [Pg.no.16]",
               "26. Hospital performance indicator. * [Pg.no.30]",
-              "27. Rehabilitation / Define Rehabilitation and discuss various types *** (Aug 2009, May 2024, Oct 2025)",
-              "28. Classify the indicators of health. Enumerate the mortality indicators. * (Feb 2024)"
+              "27. Rehabilitation / Define Rehabilitation and discuss various types (Aug 2009, May 2024, Oct 2025) ***",
+              "28. Levels of prevention / with suitable examples (Aug 2011, Oct 2025) **",
+              "29. Human poverty index (Aug 2013) *",
+              "30. Sullivan’s index (Aug 2015, Jan 2025) **",
+              "31. Classify the indicators of health. Enumerate the mortality indicators. (Feb 2024) *"
             ]
           }
         },
@@ -72,24 +75,24 @@ export const communityMedicineData = {
               "5. Discuss in detail about the Integrated Vector control? * (Feb 2014) [Pg 320]",
               "6. What are health hazards of improper solid waste disposal? Explain in detail the various methods of solid waste management. * (Aug 2016) [Pg 880,881]",
               "7. List the water related diseases. How is water purified on a large scale? * (Feb 2017) [Pg 837,838]",
-              "8. Define refuse. Enumerate the health hazards due to solid wastes. Discuss the various sources, collection and methods of disposal of solid wastes. * (Feb 22) [Pg 880]",
+              "8. Define refuse. Enumerate the health hazards due to solid wastes. Discuss the various sources, collection and methods of disposal of solid wastes. * [Pg 880]",
               "9. Mode of transmission – Arboviral disease? Arthropod control? * [Pg:894]",
-              "10. What are the sources of Air Pollution? Discuss the Various Health effects due to Air Pollution. Explain the various measures in place for Surveillance and Control of Air Pollution in India. * (Jun 2023)",
-              "11. Explain the steps of Modern sewage treatment and discuss its role in preventing waterborne disease and promoting public health. * (Jan 2025)"
+              "10. What are the sources of Air Pollution? Discuss the Various Health effects due to Air Pollution. Explain the various measures in place for Surveillance and Control of Air Pollution in India. (June 2023) *",
+              "11. Explain the steps of Modern sewage treatment and discuss its role in preventing waterborne disease and promoting public health. (Jan 2025) *"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
               "1. Swimming pool sanitation. *** (Aug 2014, Aug 2017, Feb 2022) [Pg 855]",
-              "2. Sanitation barrier **** (Feb, Aug 2010) [Pg 883]",
-              "3. Oxidation pond. ** (Feb 2016, Feb '23) [Pg 891]",
+              "2. Sanitation barrier ** (Feb, Aug 2010) [Pg 883]",
+              "3. Oxidation pond. ** (Feb 2016) [Pg 891]",
               "4. Principles of chlorination ** (Feb 2015, Aug 2022) [Pg 841]",
               "5. Surveillance of drinking water quality. ** (Aug 2015, Apr 2022) [Pg 852]",
-              "6. Discuss the sources and hazards of indoor air pollution *** (Aug2019, Sep 2021) [Pg 863]",
+              "6. Discuss the sources and hazards of indoor air pollution ** (Aug2019, Sep 2021) [Pg 863]",
               "7. Healthful school environment * (Aug 2008) [Pg 658]",
               "8. Types of ventilation * (Feb 2009) [Pg 866]",
-              "9. Control of noise pollution. *** (Aug 2009) [Pg 870]",
+              "9. Control of noise pollution. * (Aug 2009) [Pg 870]",
               "10. Soakage pit * (Feb 2010) [Pg 836]",
               "11. Refuse disposal methods in rural areas. *** (Aug 2010) [Pg 881]",
               "12. Methods of disposal of solid wastes. * (Feb 2011) [Pg 881]",
@@ -111,11 +114,11 @@ export const communityMedicineData = {
               "28. Enumerate the indicators of housing. * (Feb 2020) [Pg 879]",
               "29. Discuss the small scale measures that can be practiced for making water potable. * (Nov 2020) [Pg 843]",
               "30. Suitable measures of portable water supply to rural areas. *",
-              "31. Rapid sand filter feature. ** [Pg:840]",
+              "31. Rapid sand filter feature. * [Pg:840]",
               "32. Free residual chlorine. * [Pg:842]",
               "33. Disinfection wells * [Pg:844]",
               "34. Bacteriological standards of drinking water. * [Pg:849]",
-              "35. Hardness of water. ** [Pg:853]",
+              "35. Hardness of water. * [Pg:853]",
               "36. Defluoridation. * [Pg:854]",
               "37. Comfort zones. * [Pg:859]",
               "38. Indices of thermal comfort * [Pg:859]",
@@ -136,8 +139,14 @@ export const communityMedicineData = {
               "53. Cyclops * [Pg:908]",
               "54. Paris green * [Pg:911]",
               "55. Anti-rodent measures. * [Pg:912]",
-              "56. Minimum standards of housing in an urban area / Indicators of housing. ** (Feb 2019, Feb 2020)",
-              "57. How do you monitor air pollution? * (Mar 2025)"
+              "56. Sanitation barrier / Explain sanitation barrier with suitable diagram. (Feb, Aug 2010, May 2024, Oct 2025) ****",
+              "57. Control of noise pollution / non auditory effects. (Aug 2009, Feb 2015, Aug 2018) ***",
+              "58. Minimum standards of housing in an urban area / Indicators of housing. (Feb 2019, Feb 2020) **",
+              "59. Rapid sand filter feature / Differentiate rapid sand and slow sand filter. Draw a flow diagram of rapid sand filter. (Ms.pdf, Feb 2024) **",
+              "60. Disinfection wells / steps in chlorination of well. (Feb 2019) *",
+              "61. Hardness of water / Classify the level of hardness in water and discuss the steps in removal of hardness. (May 2024, Oct 2025) **",
+              "62. Indices of thermal comfort / Comfort zones. *",
+              "63. How do you monitor air pollution? (March 2025) *"
             ]
           }
         },
@@ -148,22 +157,22 @@ export const communityMedicineData = {
             questions: [
               "1. a) Define health education. Discuss in detail various principles of health education (Feb 2012) b) Discuss in details the principles of health education *** (Feb 2010, Aug 2010) [pg no 985]",
               "2. a) Describe the methods of health education to groups of people (Group approach) (Aug 2013). b) Describe the methods of health education to groups of people with their merits and demerits ** (Feb 2015) [pg no 991]",
-              "3. Discuss the various methods in health communication. * (Aug. 2017) [pg no 983]",
+              "3. Discuss the various methods in health communication. * (Aug 2017) [pg no 983]",
               "4. Define 'Motivation' in health education. Enumerate the methods used in individual approach and group approach of health education. * (Feb 2020) [pg no 984,991]",
               "5. Define health education. Discuss various methods used in delivering health education? * (Feb 2021) [pg no 985]",
-              "6. Define health education. Discuss in detail various principles of health education **** (Aug 2010, Feb 2010, Feb 2012, Mar 2025)",
-              "7. Describe the methods of health education to groups of people (Group approach) with their merits and demerits ** (Aug 2013, Feb 2015)"
+              "6. Define health education. Discuss in detail various principles of health education (Feb 2010, Aug 2010, Feb 2012, March 2025) ****",
+              "7. Describe the methods of health education to groups of people (Group approach) with their merits and demerits (Aug 2013, Feb 2015) **"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Barriers of communication ****** (Feb 2011, Aug 2012, Aug 2022) [pg no 984]",
+              "1. Barriers of communication *** (Feb 2011, Aug 2012, Aug 2022) [pg no 984]",
               "2. Behaviour change communication and its uses. ** (Feb 2019, Feb 2022)",
               "3. Content of Health Education ** (Aug 2011, Aug 2019) [pg no 988]",
               "4. Barriers of health education. * (Aug 2015) [pg no",
               "5. Types of communication * (Feb 2013) [pg no 983]",
-              "6. Health education Vs Health propaganda ** (Feb 2016) [pg no 987]",
+              "6. Health education Vs Health propaganda * (Feb 2016) [pg no 987]",
               "7. Models of Health Education ** (Feb 2014) [pg no 987]",
               "8. Principles of health education ** (Aug 2016) [pg no 989]",
               "9. Discuss 'workshop' as a method of education * (Aug 2014) [pg no 993]",
@@ -172,9 +181,11 @@ export const communityMedicineData = {
               "12. Approach to health education. *** (Feb 2023) [pg no 986]",
               "13. Group discussion * [Pg:992]",
               "14. Roleplay and workshop * [Pg:993]",
-              "15. Types of Learning. * (Feb 2024)",
-              "16. Non-verbal communication. * (Jan 2025)",
-              "17. Role of IEC (Information, Education, Communication) Materials in Health Education. * (Oct 2025)"
+              "15. Barriers of communication / Illustrate the communication process & barriers (Aug 2008, Feb 2011, Aug 2012, Aug 2022, Oct 2025, March 2025) ******",
+              "16. Health education Vs Health propaganda / Enlist differences (Feb 2016, Jan 2026) **",
+              "17. Types of Learning. (Feb 2024) *",
+              "18. Non-verbal communication. (Jan 2025) *",
+              "19. Role of IEC (Information, Education, Communication) Materials in Health Education. (Oct 2025) *"
             ]        },
         "nutrition-and-health": {
           name: "NUTRITION AND HEALTH",
@@ -192,14 +203,14 @@ export const communityMedicineData = {
               "9. Mention the various health problems of the school child. Discuss in detail about the objectives and aspects of school health service. * (Aug 2017) [pg no.657]",
               "10. What are the common causes for under five year mortality in India? How will you classify and treat diarrhea at the community level. Add a note on home available fluid. * (Aug 2018) [Pg no. 652, 263, 269]",
               "11. What is the statutory body which regulates the food quality and safety in India? What is food fortification and common food fortification permitted? Add a note on food additives? * (Aug 2019) [Pg: 772, 773]",
-              "12. A 4 year old child who weighs 15kgs... defective vision during the night. Triangular pearly white spot on bulbar conjunctiva. a) Diagnosis/signs b) Management c) Diet plan d) Micronutrient deficiencies. * (Oct 2025)"
+              "12. A 4 year old child who weighs 15kgs... defective vision during the night. Triangular pearly white spot on bulbar conjunctiva. a) Diagnosis/signs b) Management c) Diet plan d) Micronutrient deficiencies. (Oct 2025) *"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
               "1. Iodine deficiency disorders control programs ** (Aug 2013, Feb 2015) [Pg:723]",
-              "2. Iodine deficiency disorders and its control. ***** (Aug. 2017, Aug 2022) [Pg:758]",
+              "2. Iodine deficiency disorders and its control. ***** (Aug 2017, Aug 2022) [Pg:758]",
               "3. Endemic fluorosis ** (Aug 2011, Feb 2013) [Pg:758]",
               "4. Food fortification ** (Feb 2012, Aug 2014) [Pg:773]",
               "5. Health problems in urban slums ** (Feb 2010, Aug 2010)",
@@ -216,26 +227,26 @@ export const communityMedicineData = {
               "16. Epidemic Dropsy * (Aug 2016) [pg no.772]",
               "17. Nutritional factors in cardiovascular disease. * (Feb 2017) [pg no.760]",
               "18. Balanced diet. * (Feb 2017) [pg no.751]",
-              "19. Trans fatty acids. * (Aug. 2017) [pg no.758]",
+              "19. Trans fatty acids. * (Aug 2017) [pg no.758]",
               "20. Enumerate the strategies of 'National Nutritional Policy'. * (Feb 2018)",
               "21. Iodine Deficiency Disorders (IDD) with reference to pregnancy and infancy. * (Aug 2018) [pg no.739, 724]",
-              "22. Name water soluble vitamins and write about the deficiency manifestation of thiamine * (Aug. 2018) [pg no. 730, 733]",
-              "23. Prevention of Food Adulteration Act. * (Aug. 2017) [pg no. 773]",
+              "22. Name water soluble vitamins and write about the deficiency manifestation of thiamine * (Aug 2018) [pg no. 730, 733]",
+              "23. Prevention of Food Adulteration Act. * (Aug 2017) [pg no. 773]",
               "24. Explain the anemia control programme. * (Feb 2020) [pg no. 775]",
-              "25. Discuss about inclusion of WHOLE CEREALS in diet? * (Aug. 2020) [pg no 741]",
+              "25. Discuss about inclusion of WHOLE CEREALS in diet? * (Aug 2020) [pg no 741]",
               "26. Surveillance measures at ports for control of infectious disease. * (Aug 2020)",
               "27. Food toxicants? * (Feb 2021) [Pg:771]",
               "28. Evaluate Mid-day meal programme? * (Feb 2023) [Pg:776]",
-              "29. Dietary goals. * (Aug 2008)",
-              "30. Mid day Meal Programme / Evaluate Mid-day meal programme. ** (Aug 2008, Feb 2023)",
-              "31. Aflatoxins. * (Feb 2009)",
-              "32. Hidden hunger. * (Jan 2025)",
-              "33. Food standards. * (Jan 2025)",
-              "34. Write a note on Anemia Mukt Bharat. * (Mar 2025)",
-              "35. Role of Zinc in Health and Disease. * (Jun 2023)",
-              "36. What is the Poshan Abhiyan initiative and how does it aim to address nutrition challenges in India? * (Jan 2025)",
-              "37. Global hunger index. * (Oct 2025)",
-              "38. Brief on Nutritional surveillance. * (Jan 2026)"
+              "29. Dietary goals. (Aug 2008) *",
+              "30. Mid day Meal Programme / Evaluate Mid-day meal programme. (Aug 2008, Feb 2023) **",
+              "31. Aflatoxins. (Feb 2009) *",
+              "32. Hidden hunger. (Jan 2025) *",
+              "33. Food standards. (Jan 2025) *",
+              "34. Write a note on Anemia Mukt Bharat. (March 2025) *",
+              "35. Role of Zinc in Health and Disease. (June 2023) *",
+              "36. What is the Poshan Abhiyan initiative and how does it aim to address nutrition challenges in India? (Jan 2025) *",
+              "37. Global hunger index. (Oct 2025) *",
+              "38. Brief on Nutritional surveillance. (Jan 2026) *"
             ]
           }
         },
@@ -250,16 +261,16 @@ export const communityMedicineData = {
               "4. Classify occupational diseases. Epidemiology and prevention of pneumoconiosis. * (Feb 2022) [Pg 932,933]",
               "5. Social security? Measures provided to factory workers? Benefits under ESI scheme. * [Pg:817,943]",
               "6. Social security? Its measures for organised sectors. * [Pg:817]",
-              "7. Enumerate the various occupational hazards. Discuss in detail the prevention and control of occupational diseases. * (Feb 2023)",
-              "8. Describe the scope of Employees State Insurance ACT, 1948. Discuss the benefits to the insured persons under the act. * (May 2024)"
+              "7. Enumerate the various occupational hazards. Discuss in detail the prevention and control of occupational diseases. (Feb 2023) *",
+              "8. Describe the scope of Employees State Insurance ACT, 1948. Discuss the benefits to the insured persons under the act. (May 2024) *"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Lead poisoning and its prevention. ****** (Aug 2009, Feb 2011, Aug 2014, Feb 2017, Aug 2022) [Pg 934,935]",
+              "1. Lead poisoning and its prevention. ***** (Aug 2009, Feb 2011, Aug 2014, Feb 2017, Aug 2022) [Pg 934,935]",
               "2. Occupational cancers and prevention **** (Aug 2014, Aug 2017, Sep 2021, Apr 2022) [Pg 935]",
-              "3. Benefits of ESI Scheme **** (Feb 2010, Feb 2014, Feb 2018) [Pg 943]",
+              "3. Benefits of ESI Scheme *** (Feb 2010, Feb 2014, Feb 2018) [Pg 943]",
               "4. Sickness Absenteeism ** (Feb 2012, Aug 2014) [Pg 937]",
               "5. Occupational hazards of agricultural workers. *** (Aug 2013, Aug 2016) [Pg 936]",
               "6. Occupational health * (Feb 2010) [Pg 930,945]",
@@ -274,9 +285,11 @@ export const communityMedicineData = {
               "15. Asbestosis * [Pg:934]",
               "16. The factories act * [Pg:942]",
               "17. Ergonomics * [Pg:930]",
-              "18. Anthracosis / Bagassosis / Asbestosis [Pg:933,934] *",
-              "19. Enumerate the benefits under ESI Act. Describe any one benefit briefly. * (Feb 2024)",
-              "20. Classify of occupational diseases with examples. ** (May 2024, Oct 2025)"
+              "18. Lead poisoning and its prevention / control. (Aug 2009, Feb 2011, Aug 2014, Feb 2017, Aug 2022, March 2025) ******",
+              "19. Benefits of ESI Scheme / ESI act. (Feb 2010, Feb 2014, Feb 2018, Jan 2025) ****",
+              "20. Anthracosis / Bagassosis / Asbestosis [Pg:933,934] *",
+              "21. Enumerate the benefits under ESI Act. Describe any one benefit briefly. (Feb 2024) *",
+              "22. Classify of occupational diseases with examples. (May 2024, Oct 2025) **"
             ]
           }
         },
@@ -305,10 +318,11 @@ export const communityMedicineData = {
               "11. Operational Research * (Aug 2013) [Pg.811]",
               "12. Drug addiction * (Aug 2009) [Pg.812]",
               "13. Enlist the rights of the Patient * (Aug 2014) [Pg.810]",
-              "14. Define fiduciary duty. Give examples of boundary crossing and violation in doctor patient relationship. * (Mar 2025)",
-              "15. Explain Patient centered care. * (Jan 2026)",
-              "16. Name any two strategies for improvement of health of tribal people * (Feb 2018)",
-              "17. Write a brief note on the burden of disease among the tribal community. ** (Mar 2025)"
+              "14. Medical social worker / Role of medical social worker. (Feb 2010, Aug 2011, Aug 2012, Feb 2017, Feb 2023) *****",
+              "15. Define fiduciary duty. Give examples of boundary crossing and violation in doctor patient relationship. (March 2025) *",
+              "16. Explain Patient centered care. (Jan 2026) *",
+              "17. Name any two strategies for improvement of health of tribal people (Feb 2018) *",
+              "18. Write a brief note on the burden of disease among the tribal community. (March 2025) *"
             ]
           }
         },
@@ -318,13 +332,14 @@ export const communityMedicineData = {
             name: "Short Notes",
             questions: [
               "1. Crucial points in the life cycle of man *** (Aug 2009, Aug 2011, Aug 2012) [Pg:959]",
-              "2. Prevention of drug dependence *** (Aug 2013, Aug 2015) [Pg:965]",
+              "2. Prevention of drug dependence ** (Aug 2013, Aug 2015) [Pg:965]",
               "3. Warning signals of poor mental health * (Feb 2013) [Pg:958]",
               "4. Causes of mental ill health * (Feb 2011) [Pg:959]",
               "5. Factors associated with high risk for drug abuse * (Feb 2014) [Pg:965]",
               "6. Comprehensive mental health action plan * [Pg:956]",
               "7. Prevention of drug dependence and alcoholism * [Pg:965]",
-              "8. Enlist the characteristics of mentally healthy persons. * (Mar 2025)"
+              "8. Prevention of drug dependence / substance abuse (Aug 2013, Aug 2015, Jan 2026) ***",
+              "9. Enlist the characteristics of mentally healthy persons. (March 2025) *"
             ]
           }
         },
@@ -340,9 +355,9 @@ export const communityMedicineData = {
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Chi-Square test **** (Aug 2009, Feb 2012,2014, Feb 2020) [Pg no 980]",
-              "2. sampling methods ***** (Aug 2008, Feb 2011, Feb 2012, Feb 2023) [Pg no 978]",
-              "3. Population surveys *** (Aug 2013,2015) [Pg no 970]",
+              "1. Chi-Square test **** (Aug 2009, Feb 2012, Feb 2020) [Pg no 980]",
+              "2. sampling methods **** (Aug 2008, Feb 2011, Feb 2012, Feb 2023) [Pg no 978]",
+              "3. Population surveys ** (Aug 2013,2015) [Pg no 970]",
               "4. Tests of significance. ** (Feb 2018, Feb 2022) [Pg no 978]",
               "5. Enlist the probability sampling methods. Elaborate on any two methods. * (Feb 2019) [Pg no 977]",
               "6. Standard deviation * (Feb 2009) [Pg no 976]",
@@ -352,15 +367,16 @@ export const communityMedicineData = {
               "10. Medical record linkage * (Aug 2010) [Pg no 970]",
               "11. Normal distribution * (Feb 2011) [Pg no 977]",
               "12. Measures of central tendency. * (Feb 2013) [Pg no 975]",
-              "13. Population surveys as a source of health information * (Feb 2013) [Pg no 970]",
+              "13. Population surveys as a source of health information *** (Feb 2013) [Pg no 970]",
               "14. Standard normal curve * (Aug 2014) [Pg no 977]",
               "15. Measures of dispersion * (Feb 2015) [Pg no 976]",
               "16. Sources of health information. *** (Feb 2017) [Pg no 968]",
               "17. Histogram. * (Aug 2017) [Pg no 973]",
               "18. Correlation and regression. * (Sep 2021) [Pg no 980]",
               "19. Census * (Aug 2022) [Pg no 968]",
-              "20. Presentation / pictorial representations of statistical data. ** (Feb 2011, May 2024)",
-              "21. Mortality data. * (Feb 2023)"
+              "20. Sampling methods / What is a sampling frame? (Aug 2008, Feb 2011, Feb 2012, Feb 2023, March 2025) *****",
+              "21. Presentation / pictorial representations of statistical data. (Feb 2011, May 2024) **",
+              "22. Mortality data. (Feb 2023) *"
             ]
           }
         },
@@ -384,7 +400,7 @@ export const communityMedicineData = {
               "13. Discuss commonly used mortality rates and ratios. Add a note on uses and limitations of mortality data. * (Apr 2022) [pg.no.65]",
               "14. Define Epidemiology. Enumerate the steps in Case Control Study. Give examples for Case Control Study. * (Feb 2023) [pg.no.61,79]",
               "15. Define Epidemiology. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. * (Feb 2023) [pg.no.70,89]",
-              "16. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. * (Feb 2023)"
+              "16. Classify the various Epidemiological studies. Explain in detail the steps in conducting a randomized controlled trial. (Feb 2023) *"
             ]
           },
           "short-notes": {
@@ -408,7 +424,7 @@ export const communityMedicineData = {
               "16. Monitoring and surveillance. * (Feb 2014) [pg.no.102]",
               "17. Emporiatrics * (Feb 2015) [pg.no.140]",
               "18. Uses of incubation period * (Feb 2015) [pg.no.107]",
-              "19. Bias in epidemiological studies **** (Feb 2016) [pg.no.81]",
+              "19. Bias in epidemiological studies * (Feb 2016) [pg.no.81]",
               "20. Write the national immunization schedule * (Feb 2017) [pg.no.125]",
               "21. Define spot map. Discuss its use in epidemiology * (Aug 2018) [pg.no.74]",
               "22. Describe the design of rapid sand filters. * (Aug 2018) [Pg.no.840]",
@@ -420,15 +436,17 @@ export const communityMedicineData = {
               "28. Plan Cold chain model at Primary Health Centre Level for routine immunization. * (Feb 2023) [pg.no.116]",
               "29. Proportional mortality rate * [pg.no.66]",
               "30. Direct standardisation * [pg.no.66]",
-              "31. Vaccine vial monitoring ** [pg.no.122]",
+              "31. Vaccine vial monitoring * [pg.no.122]",
               "32. Association and causation * [pg.no.95]",
               "33. Additional criteria for judging causality * [pg.no.97]",
               "34. Incubation period * [pg.no.107]",
               "35. Open vial policy * [pg.no.121]",
-              "36. Cold chain maintenance / Plan Cold chain model at PHC Level / ILR / Equipment **** (Aug 2008, Feb 2018, Feb 2022, Feb 2023)",
-              "37. Explain any five Hill’s criteria for association and causation. * (Feb 2024)",
-              "38. Write about the association and its types in Epidemiology. * (Jan 2026)",
-              "39. Write a note on the Immunizing agents with examples. * (Jan 2026)"
+              "36. Cold chain maintenance / Plan Cold chain model at PHC Level / ILR / Equipment (Aug 2008, Feb 2018, Feb 2022, Feb 2023) ****",
+              "37. Bias in epidemiological studies / sources of bias in case-control studies. (Feb 2016, Aug 2019, June 2023, Oct 2025) ****",
+              "38. Vaccine vial monitoring / Open vial policy (Ms.pdf, Jan 2025) **",
+              "39. Explain any five Hill’s criteria for association and causation. (Feb 2024) *",
+              "40. Write about the association and its types in Epidemiology. (Jan 2026) *",
+              "41. Write a note on the Immunizing agents with examples. (Jan 2026) *"
             ]
           }
         },
@@ -441,12 +459,12 @@ export const communityMedicineData = {
               "2. Sensitivity & specificity ** (Feb 2009, Aug 2022) [pg.no 155]",
               "3. Prenatal Screening * (Aug 2008) [pg.no 605]",
               "4. Criteria for screening disease * (Feb 2011) [pg.no 153]",
-              "5. Types of screening ** (Feb 20102) [pg.no 153]",
+              "5. Types of screening ** (Feb 2010) [pg.no 153]",
               "6. Differentiate between screening test and a diagnostic test ** (Feb 2018) [pg no 151]",
               "7. Discuss the advantages and limitations of using a test with HIGH SENSITIVITY as screening test with an example. * (Nov 2020)",
-              "8. Define Screening. Add a note on different types of Screening. How will you evaluate a Screening test? * (Jan 2026)",
-              "9. Describe cancer screening in detail. *** (Feb 2020, Jan 2025, Jun 2023)",
-              "10. Concept of lead time. * (Jan 2025)"
+              "8. Define Screening. Add a note on different types of Screening. How will you evaluate a Screening test? (Jan 2026) *",
+              "9. Describe cancer screening in detail. (Feb 2020, June 2023, Jan 2025) ***",
+              "10. Concept of lead time. (Jan 2025) *"
             ]
           }
         },
@@ -466,7 +484,7 @@ export const communityMedicineData = {
               "3. Define the categories, colour coding and containers used in biomedical waste management? ** (Feb 2020) [Pg 919]",
               "4. Explain biomedical waste management of wastes associated with COVID disease.? * (Aug 2020) [Pg 920]",
               "5. Health hazards of healthcare waste? * (Feb 2023) [Pg 916]",
-              "6. Enlist the difference between incineration and inertization of health care waste. * (Mar 2025)"
+              "6. Enlist the difference between incineration and inertization of health care waste. (March 2025) *"
             ]
           }
         },
@@ -515,25 +533,25 @@ export const communityMedicineData = {
               "15. Discuss the occupations that have a higher risk of exposure to COVID disease. Explain the essential measures of prevention undertaken to protect them. * (Nov 2020) [pg:192]",
               "16. Insect borne diseases? explain lymphatic filariasis, add a note on its control programme * [pg.no:350,479]",
               "17. Epidemiology, prevention and control of hepatitis-B * [pg.no.251]",
-              "18. A 52-year-old man presents with a 3-week history of cough with expectoration... Discuss epidemiology, management, prevention of TB. * (Jan 2025)",
-              "19. A 31 year old male on routine screening was found to have fasting blood glucose 120 mg/dL... Diagnosis? Risk factors? Programme? * (May 2024)"
+              "18. A 52-year-old man presents with a 3-week history of cough with expectoration... Discuss epidemiology, management, prevention of TB. (Jan 2025) *",
+              "19. A 31 year old male on routine screening was found to have fasting blood glucose 120 mg/dL... Diagnosis? Risk factors? Programme? (May 2024) *"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Scrub Typhus. **** (Aug 2013,2015) [pg:347]",
+              "1. Scrub Typhus. **** (Aug 2013) [pg:347]",
               "2. Epidemiology and prevention of COVID 19 *** (Feb 2022, Aug 2022) [pg:192]",
               "3. Natural history of measles. ** (Aug 2010, Aug2010) [pg:164]",
-              "4. Prevention of Neo-natal tetanus. *** (Aug 2009, Feb 2917) [pg:361]",
+              "4. Prevention of Neo-natal tetanus. ** (Aug 2009, Feb 2917) [pg:361]",
               "5. Describe the control and prevention of yellow fever. ** (Aug 2014, Feb 2019) [pg:328]",
               "6. Blocked flea * (Feb 2010) [pg:310]",
               "7. Strategies for Polio eradication in India. ** (Feb 2011) [pg:246]",
               "8. Syndromic approach in sexually transmitted diseases. ** (Feb 2011) [pg:381]",
               "9. Congenital rubella syndrome. * (Aug 2011) [pg:169]",
-              "10. Current strategy of filaria control. ** (Aug 2011) [pg:479]",
+              "10. Current strategy of filaria control. * (Aug 2011) [pg:479]",
               "11. Give the case definition of Acute Encephalitis Syndrome. How is it managed at PHC level? * (Aug 2012) [Pg:334]",
-              "12. Primary prevention of diarrhoeal diseases. **** (Aug 2012) [pg:265]",
+              "12. Primary prevention of diarrhoeal diseases. * (Aug 2012) [pg:265]",
               "13. Management of cases and carriers in diphtheria. ** (Feb 2013) [pg:180]",
               "14. Investigation of food poisoning. * (Feb 2013) [pg:282]",
               "15. Control of Japanese Encephalitis. * (Feb 2013) [pg:332]",
@@ -545,7 +563,7 @@ export const communityMedicineData = {
               "21. Tertiary preventive measures for leprosy patients. * (Feb 2019) [pg:376]",
               "22. Apply the levels of prevention for Leprosy. * (Feb 2023) [pg:369]",
               "23. Vaccine associated paralytic polio * (Aug 2014) [pg:242]",
-              "24. Opportunistic infections in AIDS *** (Feb 2015) [pg:398]",
+              "24. Opportunistic infections in AIDS * (Feb 2015) [pg:398]",
               "25. Intensified Pulse Polio Immunization. * (Aug 2015) [pg:247]",
               "26. Epidemiology and Prevention of Ebola virus disease. * (Feb 2016) [pg:407]",
               "27. Post exposure prophylaxis in prevention of human rabies ** (Aug 2016) [Pg:325]",
@@ -564,8 +582,11 @@ export const communityMedicineData = {
               "40. Acute flaccid paralysis * [pg:241]",
               "41. Leishmaniasis * [pg:351]",
               "42. Trachoma * [pg:356]",
-              "43. Management of multi drug resistant tuberculosis. * (Feb 2024)",
-              "44. Influenza vaccines / COVID vaccines. ** (Jan 2026, May 2024)"
+              "43. Current strategy of filaria control / Filarial survey. (Aug 2011, June 2023) **",
+              "44. Primary prevention of diarrhoeal diseases / ORT. (Aug 2012, Feb 2023, Oct 2025, Jan 2026) ****",
+              "45. Opportunistic infections in AIDS / PEP in HIV. (Feb 2015, Feb 2023, Jan 2025) ***",
+              "46. Management of multi drug resistant tuberculosis. (Feb 2024) *",
+              "47. Influenza vaccines / COVID vaccines. (May 2024, Jan 2026) **"
             ]
           }
         },
@@ -579,15 +600,15 @@ export const communityMedicineData = {
               "3. Discuss the epidemiology and prevention of coronary heart disease. Discuss the contributions of national program for its prevention * (Feb 2019) [pg no 419]",
               "4. Epidemiology and prevention of obesity. Add a note on assessment and hazards of obesity. * (Apr 2022) [pg no 451]",
               "5. Describe the epidemiology of Hypertension. Write in detail about the control and preventive measures of Hypertension. * (Aug 2022) [pg no 425]",
-              "6. Enumerate the arthropods of medical importance. Discuss briefly the mosquito control measures in urban area. * (Aug 2017)"
+              "6. Enumerate the arthropods of medical importance. Discuss briefly the mosquito control measures in urban area. (Aug 2017) *"
             ]
           },
           "short-notes": {
             name: "Short Notes",
             questions: [
-              "1. Primary and Secondary prevention of Rheumatic Heart disease. ** (Feb 2016, Feb 13) [pg no 433]",
+              "1. Primary and Secondary prevention of Rheumatic Heart disease. ** (Feb 2016, Feb 2013) [pg no 433]",
               "2. Environmental risk factors for cancers. ** (Aug 2011, Feb 2018) [pg no 437]",
-              "3. VISION 2020 *** (Feb 2016, Sep 2011) [pg no 459]",
+              "3. VISION 2020 ** (Feb 2016, Sep 2011) [pg no 459]",
               "4. Describe cancer screening in detail. * (Feb 2020) [pg no 439]",
               "5. Prevention of Rheumatic fever * (Aug 2011) [pg no 433]",
               "6. Health problems due to industrialization. * (Aug 2011) [pg no 470]",
@@ -602,8 +623,9 @@ export const communityMedicineData = {
               "15. Enumerate the measures to combat obesity. * (Feb 2023) [pg no 454]",
               "16. Tracking BP * [pg:427]",
               "17. Warning signs of cancer * [pg:438]",
-              "18. Risk factors for road traffic accidents. * (Oct 2025)",
-              "19. Web of causation for Coronary Artery Disease (CAD). * (Jan 2025)"
+              "18. VISION 2020 / Avoidable blindness. (Feb 2016, Sep 2011, Aug 2012) ***",
+              "19. Risk factors for road traffic accidents. (Oct 2025) *",
+              "20. Web of causation for Coronary Artery Disease (CAD). (Jan 2025) *"
             ]
           }
         },
@@ -624,9 +646,9 @@ export const communityMedicineData = {
               "4. Define sex Ratio. Write the measures taken by the Government pertaining to this indicator. ** (Feb 2014, Aug 2014) [Pg no 558]",
               "5. Natural family planning methods ** (Aug 2013, Feb 2017) [Pg no 582]",
               "6. Pearl index ** (Feb 2010, Aug 2017) [Pg no 585]",
-              "7. Provisions under MTP Act 1971. **** (Aug 2017, Aug 2019) [Pg no 580]",
+              "7. Provisions under MTP Act 1971. ** (Aug 2017, Aug 2019) [Pg no 580]",
               "8. National population policy 2000. * (Feb 2009) [Pg no 568]",
-              "9. Combined oral contraceptive pills *** (Aug 2011) [Pg no 574]",
+              "9. Combined oral contraceptive pills * (Aug 2011) [Pg no 574]",
               "10. Oral contraceptive pills * (Aug 2015) [Pg no 574]",
               "11. Medical termination of pregnancy act * (Feb 2014) [Pg no 580]",
               "12. Urbanization * (Aug 2008) [Pg no 559]",
@@ -644,10 +666,12 @@ export const communityMedicineData = {
               "24. Community needs assessment approach. * (Feb 2022)",
               "25. Factors contributing to high fertility in India. * (Aug 2022) [Pg no 562]",
               "26. Fertility indicators. * (Feb 2023) [Pg no 563]",
-              "27. Define Net Reproduction rate and Couple protection rate. Explain the relationship between the two. ** (Feb 2024, Oct 2025)",
-              "28. Application of Demographic gap. * (Jun 2023)",
-              "29. What are the various methods used to evaluate the effectiveness and safety of contraceptive methods? * (Jan 2025)",
-              "30. What are the contributing factors to the unmet demand for family planning, and how is it being addressed? * (Jan 2026)"
+              "27. Provisions under MTP Act 1971 / Medical termination of Pregnancy Act. (Aug 2017, Aug 2019, Feb 2014, June 2023) ****",
+              "28. Combined oral contraceptive pills / Oral contraceptive pills (Aug 2011, Aug 2015, May 2024) ***",
+              "29. Define Net Reproduction rate and Couple protection rate. Explain the relationship between the two. (Feb 2024, Oct 2025) **",
+              "30. Application of Demographic gap. (June 2023) *",
+              "31. What are the various methods used to evaluate the effectiveness and safety of contraceptive methods? (Jan 2025) *",
+              "32. What are the contributing factors to the unmet demand for family planning, and how is it being addressed? (Jan 2026) *"
             ]
           }
         },
@@ -677,10 +701,10 @@ export const communityMedicineData = {
               "19. List the various health problems of the school child. Discuss in detail about the objectives and aspects of School Health Services? * (Aug. 2022) [Pg:657]",
               "20. What are the indicators of MCH care? Discuss in detail the factors affecting Infant Mortality * (Aug 2011) [Pg:635]",
               "21. Role of multipurpose health care workers female in delivery of MCH service in rural area * [Pg:632]",
-              "22. Define Maternal Mortality Rate/Ratio. Write in detail about the measures and Programs for reducing it. *** (Feb 2015, Feb 2017, Mar 2025)",
-              "23. Define a Low Birth Weight Baby. Discuss the problem statement, causes and intervention measures for Low Birth Weight Babies. * (Jun 2023)",
-              "24. During family survey... Calculate dependency ratio. Discuss the various health problems of the elderly. What are the life style modifications you will suggest for healthy ageing? * (Mar 2025)",
-              "25. What are the objectives of school health services? Describe the minimum standards in India for Healthful School environment and explain the school health Programme under Ayushman Bharat. ** (Feb 2024, Oct 2025)"
+              "22. Define Maternal Mortality Rate/Ratio. Write in detail about the measures and Programs for reducing it. (Feb 2015, Feb 2017, March 2025) ***",
+              "23. Define a Low Birth Weight Baby. Discuss the problem statement, causes and intervention measures for Low Birth Weight Babies. (June 2023) *",
+              "24. During family survey... Calculate dependency ratio. Discuss the various health problems of the elderly. What are the life style modifications you will suggest for healthy ageing? (March 2025) *",
+              "25. What are the objectives of school health services? Describe the minimum standards in India for Healthful School environment and explain the school health Programme under Ayushman Bharat. (Feb 2024, Oct 2025) **"
             ]
           },
           "short-notes": {
@@ -728,12 +752,13 @@ export const communityMedicineData = {
               "40. Indicators of maternal and child health services * [Pg:635]",
               "41. Congenital malformations * [Pg:656]",
               "42. Objectives of school health services/programme/healthful school environment * [Pg:658]",
-              "43. Health problem among school children ** [Pg:657]",
+              "43. Health problem among school children * [Pg:657]",
               "44. What are the preventive measures applicable for child labour * [Pg:669]",
               "45. Integrated child development service scheme * [Pg:673]",
               "46. Lifestyle and health * [Pg:678]",
-              "47. UJJAWALA scheme. * (Jan 2025)",
-              "48. Healthful school environment * (Aug 2008)"
+              "47. UJJAWALA scheme. (Jan 2025) *",
+              "48. Healthful school environment (Aug 2008) *",
+              "49. Health problem among school children / List various health problems. (Ms.pdf, Aug 2022) **"
             ]
           }
         },
@@ -780,9 +805,9 @@ export const communityMedicineData = {
             questions: [
               "1. Vitamin A prophylaxis programme * (Feb 2009) [Pg no:756]",
               "2. Describe the various strategies used in national vector borne diseases control programme * (Feb 2020) [pg no 472]",
-              "3. Objectives and targets of National Family Welfare Program. ** (Feb 2024, Oct 2025)",
-              "4. Swachh Bharat Mission. * (Jun 2023)",
-              "5. Concept of essential medicine. * (Feb 2024)"
+              "3. Objectives and targets of National Family Welfare Program. (Feb 2024, Oct 2025) **",
+              "4. Swachh Bharat Mission. (June 2023) *",
+              "5. Concept of essential medicine. (Feb 2024) *"
             ]
           }
         },
@@ -793,12 +818,12 @@ export const communityMedicineData = {
             questions: [
               "1. Disaster preparedness ** (Aug 2015, Aug 2016) [Pg 925]",
               "2. Triage in disaster management ** (Aug 2014, Feb 2018) [Pg 923]",
-              "3. Define health planning and management. Write in detail the various steps involved in planning cycle. ***** (Aug 2009, Aug 2017, Feb 2011, Feb 2013, Feb 2023)",
-              "4. What is a Disaster? What are the types of Disaster? Describe the fundamental aspects of Disaster Management / sequential steps. ** (Jan 2025, Jun 2023)",
-              "5. Planning cycle / steps. ***** (Aug 2008, Aug 2013, Aug 2015, Feb 2017, Jan 2025)",
-              "6. Network analysis. ****** (Aug 2012, Aug 2016, Feb 2014, Feb 2022, Feb 2024, Oct 2025)",
-              "7. Cost effective analysis vs Cost benefit analysis. **** (Feb 2017, Feb 2021, Feb 2023, May 2024)",
-              "8. Explain the elements of evaluation of health services. * (Mar 2025)"
+              "3. Define health planning and management. Write in detail the various steps involved in planning cycle. (Aug 2009, Feb 2011, Aug 2017, Feb 2013, Feb 2023) *****",
+              "4. What is a Disaster? What are the types of Disaster? Describe the fundamental aspects of Disaster Management / sequential steps. (June 2023, Jan 2025) **",
+              "5. Planning cycle / steps. (Aug 2008, Aug 2013, Aug 2015, Feb 2017, Jan 2025) *****",
+              "6. Network analysis. (Aug 2012, Feb 2014, Aug 2016, Feb 2022, Feb 2024, Oct 2025) ******",
+              "7. Cost effective analysis vs Cost benefit analysis. (Feb 2017, Feb 2021, Feb 2023, May 2024) ****",
+              "8. Explain the elements of evaluation of health services. (March 2025) *"
             ]
           }
         },
@@ -818,7 +843,7 @@ export const communityMedicineData = {
               "9. What are the functions of Indian Red Cross Society? * (Feb 2018) [Pg no:1032]",
               "10. What are the international health regulations in use for disease control? * (Feb 2020)",
               "11. Niti Ayog.? * (Feb 2023) [Pg no:1002]",
-              "12. UNICEF / Role of UNICEF in child health. ****** (Aug 2013, Feb 2009, Feb 2011, Feb 2013, Feb 2021, May 2024)"
+              "12. UNICEF / Role of UNICEF in child health. (Feb 2009, Feb 2011, Feb 2013, Aug 2013, Feb 2021, May 2024) ******"
             ]
           }
         },
@@ -828,7 +853,7 @@ export const communityMedicineData = {
             name: "Short Notes",
             questions: [
               "1. Genetic counselling **** (Aug 2011, Aug 2014, Feb 2015, Feb 2022) [Pg 955]",
-              "2. Prevention of genetic disorders. *** (Aug 2017, Aug 2022) [Pg 954]",
+              "2. Prevention of genetic disorders. ** (Aug 2017, Aug 2022) [Pg 954]",
               "3. Chromosomal Abnormalities * (Feb 2013) [Pg 948]",
               "4. Factors influence the gene frequencies in human population * (Aug 2013) [Pg 954]",
               "5. Eugenics * (Aug 2010) [Pg 954]",
@@ -836,8 +861,9 @@ export const communityMedicineData = {
               "7. Turner's syndrome * [Pg:949]",
               "8. Sex linked inheritance * [Pg:949]",
               "9. In utero diagnosis * [Pg:955]",
-              "10. Eugenics and Euthenics. * (Mar 2025)",
-              "11. What recent advancements have been made in the field of molecular genetics? * (Jan 2026)"
+              "10. Prevention of genetic disorders / Secondary prevention. (Aug 2017, Aug 2022, May 2024) ***",
+              "11. Eugenics and Euthenics. (March 2025) *",
+              "12. What recent advancements have been made in the field of molecular genetics? (Jan 2026) *"
             ]
           }
         },
