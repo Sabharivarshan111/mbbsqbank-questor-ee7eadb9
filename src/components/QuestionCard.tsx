@@ -247,10 +247,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
 };
 
 function countAsterisks(question: string): number {
-  // Count explicit asterisks in the format "****" at the beginning or middle of the text
-  const explicitAsterisks = question.match(/\*+/);
+  // Count explicit asterisks (* or ★) at the beginning or middle of the text
+  const explicitAsterisks = question.match(/[\*★]+/);
   if (explicitAsterisks) {
-    return explicitAsterisks[0].length;
+    return explicitAsterisks[0].replace(/[^\*★]/g, "").length;
   }
   
   // Count the number of exam dates in parentheses
