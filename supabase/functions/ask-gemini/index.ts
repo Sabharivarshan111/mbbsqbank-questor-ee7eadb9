@@ -711,8 +711,8 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
     logWithTimestamp(`[${requestId}] Unhandled error after ${duration}ms:`, error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || "An error occurred while processing your request",
-        details: error.stack
+        error: "An error occurred while processing your request",
+        requestId
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
