@@ -194,23 +194,18 @@ const QuestionCardEnhanced: React.FC<QuestionCardEnhancedProps> = ({ question, i
 };
 
 function countAsterisks(question: string): number {
-  // Count explicit asterisks (* or ★) at the beginning or middle of the text
-  const explicitAsterisks = question.match(/[\*★]+/);
-  if (explicitAsterisks) {
-    return explicitAsterisks[0].replace(/[^\*★]/g, "").length;
+  const starMatches = question.match(/[\*★☆⭐]/g);
+  if (starMatches && starMatches.length > 0) {
+    return starMatches.length;
   }
-  
-  // Count the number of exam dates in parentheses
-  const datePattern = /\(((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Jul|Sep|Nov)\s\d{2}(?:;)?)+)\)/;
+
+  const datePattern = /\(((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2,4}[,;]?\s*)+)\)/i;
   const dateMatch = question.match(datePattern);
-  
   if (dateMatch && dateMatch[1]) {
-    // Count the number of dates by counting the semicolons and adding 1
-    const dates = dateMatch[1].split(';');
+    const dates = dateMatch[1].split(/[;,]/).map(s => s.trim()).filter(Boolean);
     return dates.length;
   }
-  
-  // If no asterisks or dates found, return 0
+
   return 0;
 }
 
