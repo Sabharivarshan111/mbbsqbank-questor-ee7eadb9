@@ -50,23 +50,6 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     window.dispatchEvent(
       new CustomEvent(open ? "orbit:custom-theme-opened" : "orbit:custom-theme-closed"),
     );
-    if (open) {
-      setTimeout(() => {
-        const el = document.querySelector('[data-tour="custom-theme-dialog"]') as HTMLElement | null;
-        if (!el) { console.log("[diag] no dialog"); return; }
-        console.log("[diag] dialog rect", JSON.stringify(el.getBoundingClientRect()));
-        const cs = getComputedStyle(el);
-        console.log("[diag] dialog style", cs.position, cs.top, cs.left, cs.transform);
-        let n: HTMLElement | null = el.parentElement;
-        while (n) {
-          const s = getComputedStyle(n);
-          if (s.transform !== "none" || s.filter !== "none" || s.perspective !== "none" || s.contain !== "none" || s.willChange !== "auto" || s.backdropFilter !== "none") {
-            console.log("[diag] containing-block ancestor", n.tagName, n.className, "transform=", s.transform, "filter=", s.filter, "contain=", s.contain, "willChange=", s.willChange, "backdropFilter=", s.backdropFilter);
-          }
-          n = n.parentElement;
-        }
-      }, 500);
-    }
   }, [open]);
 
   return (
