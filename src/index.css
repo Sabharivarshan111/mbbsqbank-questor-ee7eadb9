@@ -786,9 +786,18 @@ html.liquid-glass [role="tooltip"] {
     inset 0 1px 0 hsl(0 0% 100% / 0.6) !important;
 }
 
-/* CustomThemeDialog is rendered via a custom portal that uses flex
-   centering inside a fixed full-viewport backdrop. No extra dialog
-   positioning rules are needed for it under Liquid Glass. */
+/* Lock Radix dialog content to viewport center in Liquid Glass —
+   the theme's global transitions and animation overrides otherwise
+   leave the dialog at its animation end-state transform, dropping it
+   below the fold. Force the static centering transform to win. */
+html.liquid-glass [role="dialog"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-height: 85dvh;
+  overflow-y: auto;
+}
 
 /* Buttons: glass for non-primary */
 html.liquid-glass button:not(.bg-primary):not([data-state="checked"]):not(.bg-destructive) {
