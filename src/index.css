@@ -799,6 +799,18 @@ html.liquid-glass [role="dialog"] {
   overflow-y: auto;
 }
 
+/* Pomodoro Settings is a bottom Sheet, not a centered Dialog —
+   undo the centering override so it docks to the bottom full-width. */
+html.liquid-glass .pomodoro-settings-sheet {
+  top: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Buttons: glass for non-primary */
 html.liquid-glass button:not(.bg-primary):not([data-state="checked"]):not(.bg-destructive) {
   backdrop-filter: blur(16px) saturate(180%);
