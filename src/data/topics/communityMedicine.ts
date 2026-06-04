@@ -186,7 +186,9 @@ export const communityMedicineData = {
               "17. Types of Learning. (Feb 2024) *",
               "18. Non-verbal communication. (Jan 2025) *",
               "19. Role of IEC (Information, Education, Communication) Materials in Health Education. (Oct 2025) *"
-            ]        },
+            ]
+          }
+        },
         "nutrition-and-health": {
           name: "NUTRITION AND HEALTH",
           essay: {
