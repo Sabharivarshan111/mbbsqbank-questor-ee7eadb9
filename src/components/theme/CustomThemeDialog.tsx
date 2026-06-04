@@ -57,6 +57,12 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
       <DialogContent
         data-tour="custom-theme-dialog"
         className="max-w-md max-h-[85dvh] overflow-y-auto w-[calc(100vw-2rem)]"
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
       >
         <DialogHeader>
           <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
