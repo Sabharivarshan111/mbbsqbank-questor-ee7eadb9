@@ -152,7 +152,6 @@ function extractSubtopicQuery(prompt: string, subject: SubjectEntry, paperKey?: 
   // Strip subject/paper/trigger words and types/limits, keep the rest as a subtopic hint.
   let s = " " + prompt.toLowerCase() + " ";
   s = s.replace(new RegExp(normalizeString(subject.name).replace(/\s+/g, "\\s+"), "g"), " ");
-  s = s.replace(/\b" + (paperKey ?? "") + "\b/g, " ");
   s = s.replace(/paper[\s-]*(?:\d+|one|two|three|1st|2nd|3rd)/g, " ");
   s = s.replace(/\bp[123]\b/g, " ");
   s = s.replace(/\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam tomorrow|tomorrow.*exam)\b/g, " ");
