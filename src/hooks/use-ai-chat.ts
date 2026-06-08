@@ -6,6 +6,7 @@ import { ChatMessage } from "@/models/ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { isStringMatch, normalizeString } from "@/lib/utils";
+import { detectHighYieldIntent, getRankedQuestions, formatHighYieldResponse } from "@/lib/high-yield-query";
 
 interface QueueStats {
   isQueueActive: boolean;
@@ -523,6 +524,25 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
     setPrompt(""); // Clear the input immediately when processing starts
     
     try {
+      // 0. NEW: High-yield intent (essays/short-notes ranked by asterisk count).
+      //    Handled fully client-side from the local question bank.
+      const hyIntent = detectHighYieldIntent(question);
+      if (hyIntent) {
+        const hyResult = getRankedQuestions(hyIntent);
+        if (hyResult && hyResult.groups.length > 0) {
+          const content = formatHighYieldResponse(hyIntent, hyResult);
+          const aiMessage: ChatMessage = {
+            id: uuidv4(),
+            role: 'assistant',
+            content,
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // First, check if this is a request for important questions that we can handle locally
       const importantQuestionsRequest = detectSubjectImportantQuestionsRequest(question);
       
