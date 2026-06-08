@@ -529,7 +529,7 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
       const hyIntent = detectHighYieldIntent(question);
       if (hyIntent) {
         const hyResult = getRankedQuestions(hyIntent);
-        if (hyResult && hyResult.groups.length > 0) {
+        if (hyResult) {
           const content = formatHighYieldResponse(hyIntent, hyResult);
           const aiMessage: ChatMessage = {
             id: uuidv4(),

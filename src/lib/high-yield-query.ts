@@ -1,6 +1,7 @@
 // High-yield question intent detection & ranking.
 // Pulls ranked essays/short-notes directly from QUESTION_BANK_DATA by asterisk count.
 // 100% client-side. No edge function calls. No question-bank data is mutated.
+// Typo-tolerant subject matching and loose paper-wording support.
 
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { normalizeString } from "@/lib/utils";
@@ -12,7 +13,7 @@ export interface HighYieldIntent {
   subjectName: string;
   paperKey?: string;
   paperName?: string;
-  subtopicQuery?: string; // raw user-typed subtopic
+  subtopicQuery?: string;
   types: QType[];
   limits: { essay: number; "short-notes": number };
 }
@@ -30,9 +31,46 @@ interface RankedGroup {
 
 const DEFAULT_LIMITS = { essay: 10, "short-notes": 20 } as const;
 
+// ───────────────────────────── Helpers ─────────────────────────────
+
+function tokens(s: string): string[] {
+  return normalizeString(s).split(/\s+/).filter(Boolean);
+}
+
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp: number[] = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) dp[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1]
+        ? prev
+        : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+function fuzzyTokenMatch(token: string, target: string): boolean {
+  if (!token || !target) return false;
+  if (token === target) return true;
+  if (target.includes(token) && token.length >= 4) return true;
+  if (token.includes(target) && target.length >= 4) return true;
+  const maxLen = Math.max(token.length, target.length);
+  if (maxLen < 4) return false;
+  const tolerance = maxLen <= 5 ? 1 : maxLen <= 8 ? 2 : 3;
+  return editDistance(token, target) <= tolerance;
+}
+
 // ───────────────────────────── Intent detection ─────────────────────────────
 
-const TRIGGER_RE = /\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam tomorrow|tomorrow.*exam|top\s+\d+)\b/i;
+const TRIGGER_RE = /\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam|tomorrow|top\s+\d+|tell|give|list|show|need|want|essays?|short[\s-]?notes?|questions?)\b/i;
 
 const NUMBER_WORDS: Record<string, number> = {
   five: 5, ten: 10, fifteen: 15, twenty: 20, thirty: 30,
@@ -41,23 +79,15 @@ const NUMBER_WORDS: Record<string, number> = {
 function parseNumberToken(token: string): number | undefined {
   const n = parseInt(token, 10);
   if (!isNaN(n) && n > 0 && n < 200) return n;
-  const w = NUMBER_WORDS[token.toLowerCase()];
-  return w;
+  return NUMBER_WORDS[token.toLowerCase()];
 }
 
 function detectLimits(prompt: string): Partial<Record<QType, number>> {
   const out: Partial<Record<QType, number>> = {};
-  // "5 essays", "top 10 essay", "ten essays"
   const essayMatch = prompt.match(/(?:top\s+)?(\d+|five|ten|fifteen|twenty|thirty)\s+(?:high[\s-]?yield\s+)?(?:important\s+)?essays?\b/i);
-  if (essayMatch) {
-    const n = parseNumberToken(essayMatch[1]);
-    if (n) out.essay = n;
-  }
+  if (essayMatch) { const n = parseNumberToken(essayMatch[1]); if (n) out.essay = n; }
   const snMatch = prompt.match(/(?:top\s+)?(\d+|five|ten|fifteen|twenty|thirty)\s+(?:high[\s-]?yield\s+)?(?:important\s+)?short[\s-]?notes?\b/i);
-  if (snMatch) {
-    const n = parseNumberToken(snMatch[1]);
-    if (n) out["short-notes"] = n;
-  }
+  if (snMatch) { const n = parseNumberToken(snMatch[1]); if (n) out["short-notes"] = n; }
   return out;
 }
 
@@ -69,10 +99,9 @@ function detectTypes(prompt: string, limits: Partial<Record<QType, number>>): QT
   return ["essay", "short-notes"];
 }
 
-// Flatten QUESTION_BANK_DATA → list of subjects (e.g. Community Medicine)
 interface SubjectEntry {
-  key: string;            // e.g. "community-medicine"
-  name: string;           // e.g. "Community Medicine"
+  key: string;
+  name: string;
   node: any;
 }
 
@@ -87,39 +116,70 @@ function listSubjects(): SubjectEntry[] {
   return out;
 }
 
+const SUBJECT_ALIASES: Array<{ phrases: string[]; key: string }> = [
+  { phrases: ["community medicine", "comm med", "comm medicine", "communit medicine", "comunity medicine", "comunit medicine", "community med", "psm", "spm", "preventive social medicine", "preventive and social medicine"], key: "community-medicine" },
+  { phrases: ["obstetrics gynaecology", "obstetrics gynecology", "obg", "obgyn", "obs gyn", "obs gyne", "gynaec", "gynecology", "obstetrics"], key: "obstetrics-gynaecology" },
+  { phrases: ["general surgery", "surgery", "gen surgery", "surg"], key: "general-surgery" },
+  { phrases: ["general medicine", "gen medicine", "gen med", "internal medicine"], key: "general-medicine" },
+  { phrases: ["paediatrics", "pediatrics", "paeds", "peds", "pedia", "paed"], key: "paediatrics" },
+  { phrases: ["pharmacology", "pharma", "pharmac"], key: "pharmacology" },
+  { phrases: ["pathology", "patho"], key: "pathology" },
+  { phrases: ["microbiology", "micro", "microbio"], key: "microbiology" },
+  { phrases: ["forensic medicine", "forensic", "fmt", "forensics"], key: "forensic-medicine" },
+  { phrases: ["anatomy", "anat"], key: "anatomy" },
+  { phrases: ["physiology", "physio"], key: "physiology" },
+  { phrases: ["biochemistry", "biochem"], key: "biochemistry" },
+  { phrases: ["ent", "otorhinolaryngology"], key: "ent" },
+  { phrases: ["ophthalmology", "ophthal"], key: "ophthalmology" },
+  { phrases: ["orthopaedics", "orthopedics", "ortho"], key: "orthopaedics" },
+];
+
 function matchSubject(prompt: string): SubjectEntry | null {
-  const lower = " " + normalizeString(prompt) + " ";
   const subjects = listSubjects();
-  // Sort longest-name first so "community medicine" wins over "medicine"
-  const sorted = [...subjects].sort((a, b) => b.name.length - a.name.length);
-  for (const s of sorted) {
-    const nameN = normalizeString(s.name);
-    const keyN = normalizeString(s.key);
-    if (lower.includes(" " + nameN + " ") || lower.includes(" " + keyN + " ")) return s;
-  }
-  // Fallback aliases
-  const aliases: Record<string, string> = {
-    "comm med": "community-medicine",
-    "psm": "community-medicine",
-    "obg": "obstetrics-gynaecology",
-    "obs gyn": "obstetrics-gynaecology",
-    "surgery": "general-surgery",
-    "medicine": "general-medicine",
-    "paeds": "paediatrics",
-    "peds": "paediatrics",
-    "pharma": "pharmacology",
-    "patho": "pathology",
-    "micro": "microbiology",
-    "forensic": "forensic-medicine",
-    "fmt": "forensic-medicine",
-  };
-  for (const [alias, key] of Object.entries(aliases)) {
-    if (lower.includes(" " + alias + " ")) {
+  const lowerN = normalizeString(prompt);
+  const ptoks = tokens(prompt);
+
+  // 1. Phrase aliases (longest first) — substring match
+  const phraseSorted = SUBJECT_ALIASES
+    .flatMap(a => a.phrases.map(p => ({ phrase: p, key: a.key })))
+    .sort((a, b) => b.phrase.length - a.phrase.length);
+  for (const { phrase, key } of phraseSorted) {
+    if (lowerN.includes(phrase)) {
       const hit = subjects.find(s => s.key === key);
       if (hit) return hit;
     }
   }
-  return null;
+
+  // 2. Subject name substring
+  const nameSorted = [...subjects].sort((a, b) => b.name.length - a.name.length);
+  for (const s of nameSorted) {
+    if (lowerN.includes(normalizeString(s.name))) return s;
+  }
+
+  // 3. Fuzzy token match against names + alias phrases
+  let best: { entry: SubjectEntry; score: number } | null = null;
+  const candidates: Array<{ key: string; tokens: string[] }> = [];
+  for (const s of subjects) candidates.push({ key: s.key, tokens: tokens(s.name) });
+  for (const a of SUBJECT_ALIASES) {
+    for (const p of a.phrases) candidates.push({ key: a.key, tokens: tokens(p) });
+  }
+
+  for (const c of candidates) {
+    const sigTokens = c.tokens.filter(t => t.length >= 3);
+    if (!sigTokens.length) continue;
+    let matched = 0;
+    for (const ct of sigTokens) {
+      if (ptoks.some(pt => fuzzyTokenMatch(pt, ct))) matched++;
+    }
+    if (matched >= sigTokens.length) {
+      const score = matched * 10 + sigTokens.length;
+      if (!best || score > best.score) {
+        const hit = subjects.find(s => s.key === c.key);
+        if (hit) best = { entry: hit, score };
+      }
+    }
+  }
+  return best ? best.entry : null;
 }
 
 function detectPaper(prompt: string, subject: SubjectEntry): { key: string; name: string } | null {
@@ -127,19 +187,36 @@ function detectPaper(prompt: string, subject: SubjectEntry): { key: string; name
   const papers = Object.entries(subject.node.subtopics)
     .filter(([k]) => /^paper-\d+$/.test(k)) as [string, any][];
   if (papers.length === 0) return null;
-  const lower = prompt.toLowerCase();
-  // Match "paper 1", "paper one", "p1", "paper-1"
-  const m = lower.match(/paper[\s-]*(\d+|one|two|three|1st|2nd|3rd)/);
+  const lower = " " + prompt.toLowerCase() + " ";
+
+  // Word→number map (incl. common typos: "to"→2, "too"→2, "tree"→3)
+  const wordNum: Record<string, number> = {
+    one: 1, two: 2, three: 3, "1st": 1, "2nd": 2, "3rd": 3,
+    first: 1, second: 2, third: 3,
+    to: 2, too: 2, tu: 2, tree: 3,
+  };
+
+  // 1. "paper 2" / "paper-2" / "paper two" / "paper to"
+  let m = lower.match(/paper[\s-]*(\d+|one|two|three|to|too|tu|tree|1st|2nd|3rd|first|second|third)\b/);
   let n: number | null = null;
   if (m) {
     const t = m[1];
     if (/^\d+$/.test(t)) n = parseInt(t, 10);
-    else if (t === "one" || t === "1st") n = 1;
-    else if (t === "two" || t === "2nd") n = 2;
-    else if (t === "three" || t === "3rd") n = 3;
-  } else {
-    const m2 = lower.match(/\bp([123])\b/);
-    if (m2) n = parseInt(m2[1], 10);
+    else n = wordNum[t] ?? null;
+  }
+  // 2. "2nd paper" / "second paper" / "two paper"
+  if (n === null) {
+    const m2 = lower.match(/\b(\d+|one|two|three|1st|2nd|3rd|first|second|third)\s*(?:nd|st|rd|th)?\s+paper\b/);
+    if (m2) {
+      const t = m2[1];
+      if (/^\d+$/.test(t)) n = parseInt(t, 10);
+      else n = wordNum[t] ?? null;
+    }
+  }
+  // 3. "p1" / "p2" / "p 2"
+  if (n === null) {
+    const m3 = lower.match(/\bp\s*([123])\b/);
+    if (m3) n = parseInt(m3[1], 10);
   }
   if (n === null) return null;
   const key = `paper-${n}`;
@@ -148,36 +225,42 @@ function detectPaper(prompt: string, subject: SubjectEntry): { key: string; name
   return { key, name: node.name ?? key };
 }
 
-function extractSubtopicQuery(prompt: string, subject: SubjectEntry, paperKey?: string): string | undefined {
-  // Strip subject/paper/trigger words and types/limits, keep the rest as a subtopic hint.
+function extractSubtopicQuery(prompt: string, subject: SubjectEntry): string | undefined {
   let s = " " + prompt.toLowerCase() + " ";
-  s = s.replace(new RegExp(normalizeString(subject.name).replace(/\s+/g, "\\s+"), "g"), " ");
-  s = s.replace(/paper[\s-]*(?:\d+|one|two|three|1st|2nd|3rd)/g, " ");
-  s = s.replace(/\bp[123]\b/g, " ");
-  s = s.replace(/\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam tomorrow|tomorrow.*exam)\b/g, " ");
+  // Strip subject name and alias phrases
+  const stripPhrases = [
+    normalizeString(subject.name),
+    ...(SUBJECT_ALIASES.find(a => a.key === subject.key)?.phrases ?? []),
+  ];
+  for (const p of stripPhrases) {
+    if (!p) continue;
+    s = s.replace(new RegExp(p.replace(/\s+/g, "\\s+"), "g"), " ");
+  }
+  // Strip paper variants
+  s = s.replace(/paper[\s-]*(?:\d+|one|two|three|to|too|tu|tree|1st|2nd|3rd|first|second|third)/g, " ");
+  s = s.replace(/\b(?:\d+|one|two|three|1st|2nd|3rd|first|second|third)\s*(?:nd|st|rd|th)?\s+paper\b/g, " ");
+  s = s.replace(/\bp\s*[123]\b/g, " ");
+  // Strip triggers / filler
+  s = s.replace(/\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam tomorrow|tomorrow.*?exam|tomorrow|exam)\b/g, " ");
   s = s.replace(/(?:top\s+)?(?:\d+|five|ten|fifteen|twenty|thirty)\s+(?:high[\s-]?yield\s+)?(?:important\s+)?(?:essays?|short[\s-]?notes?)/g, " ");
-  s = s.replace(/\b(essays?|short[\s-]?notes?|questions?|topics?|please|can you|give me|tell me|i have|now|read|only|to|for|me|the|a|in|on|of|and|or|with|some|all|list|show|need|want|are|is|kindly|plz|pls|hi|hey|ok|okay)\b/g, " ");
+  s = s.replace(/\b(essays?|short[\s-]?notes?|questions?|topics?|please|can you|tell|give|show|list|need|want|me|the|a|an|in|on|of|and|or|with|some|all|now|for|to|read|only|i|have|kindly|plz|pls|hi|hey|ok|okay|are|is|will|would|could|my)\b/g, " ");
   s = s.replace(/[?,.!:;()\[\]/]/g, " ").replace(/\s+/g, " ").trim();
   return s.length >= 3 ? s : undefined;
 }
 
 export function detectHighYieldIntent(prompt: string): HighYieldIntent | null {
-  if (!prompt || prompt.length < 4) return null;
-  // Need a trigger OR the combination of "(essays|short notes)" with a subject mention
-  const trigger = TRIGGER_RE.test(prompt);
-  const mentionsType = /\bessays?\b|\bshort[\s-]?notes?\b/i.test(prompt);
-  if (!trigger && !mentionsType) return null;
+  if (!prompt || prompt.length < 3) return null;
+  // Skip if this is a triple-tap / double-tap special prompt
+  if (/^(triple-tapped:|double-tapped:)/i.test(prompt.trim())) return null;
+  if (!TRIGGER_RE.test(prompt)) return null;
 
   const subject = matchSubject(prompt);
   if (!subject) return null;
 
-  // Require some intent verb (trigger) OR a clear "essay/short note" type ask
-  if (!trigger && !mentionsType) return null;
-
   const paper = detectPaper(prompt, subject);
   const limits = detectLimits(prompt);
   const types = detectTypes(prompt, limits);
-  const subtopicQuery = extractSubtopicQuery(prompt, subject, paper?.key);
+  const subtopicQuery = extractSubtopicQuery(prompt, subject);
 
   return {
     subjectKey: subject.key,
@@ -196,7 +279,6 @@ export function detectHighYieldIntent(prompt: string): HighYieldIntent | null {
 // ───────────────────────────── Ranking ─────────────────────────────
 
 function countAsterisks(q: string): number {
-  // Pick the LONGEST run of consecutive asterisks anywhere in the string.
   const matches = q.match(/\*+/g);
   if (!matches) return 0;
   return matches.reduce((m, r) => Math.max(m, r.length), 0);
@@ -216,16 +298,27 @@ function extractRanked(arr: unknown): RankedQuestion[] {
   return arr.map((q: string) => ({ text: cleanQuestionText(q), count: countAsterisks(q) }));
 }
 
-// Walk a node and collect (subtopicName → essays + shortNotes) groups.
 function walkGroups(node: any, currentName?: string): RankedGroup[] {
   if (!node || typeof node !== "object") return [];
   const out: RankedGroup[] = [];
   const sub = node.subtopics;
-  if (!sub || typeof sub !== "object") return out;
+  if (!sub || typeof sub !== "object") {
+    // node may itself carry essay/short-notes directly
+    const essayNode = node.essay;
+    const snNode = node["short-notes"] ?? node["short-note"];
+    if ((essayNode && Array.isArray(essayNode.questions)) || (snNode && Array.isArray(snNode.questions))) {
+      out.push({
+        subtopicName: currentName ?? node.name ?? "Topic",
+        essays: extractRanked(essayNode?.questions),
+        shortNotes: extractRanked(snNode?.questions),
+      });
+    }
+    return out;
+  }
 
-  // Is this node itself a leaf subtopic with essay/short-notes?
-  const essayNode = sub.essay;
-  const snNode = sub["short-notes"] ?? sub["short-note"];
+  // Some nodes store essay/short-notes inside .subtopics, others as direct props.
+  const essayNode = sub.essay ?? node.essay;
+  const snNode = sub["short-notes"] ?? sub["short-note"] ?? node["short-notes"] ?? node["short-note"];
   const hasLeaf = (essayNode && Array.isArray(essayNode.questions)) ||
                   (snNode && Array.isArray(snNode.questions));
   if (hasLeaf) {
@@ -236,7 +329,6 @@ function walkGroups(node: any, currentName?: string): RankedGroup[] {
     });
   }
 
-  // Recurse into non-leaf children
   for (const [key, child] of Object.entries(sub)) {
     if (key === "essay" || key === "short-notes" || key === "short-note") continue;
     if (child && typeof child === "object") {
@@ -257,15 +349,14 @@ function findStartNode(intent: HighYieldIntent): { node: any; label: string } | 
     node = node.subtopics[intent.paperKey];
     label = `${subj.name} – ${node.name ?? intent.paperKey}`;
   }
-  // Narrow to subtopic if provided
   if (intent.subtopicQuery) {
     const found = findSubtopicNode(node, intent.subtopicQuery);
-    if (found) return { node: found.node, label: `${label} – ${found.name}` };
+    if (found && found.score >= 40) return { node: found.node, label: `${label} – ${found.name}` };
   }
   return { node, label };
 }
 
-function findSubtopicNode(node: any, query: string): { node: any; name: string } | null {
+function findSubtopicNode(node: any, query: string): { node: any; name: string; score: number } | null {
   if (!node?.subtopics) return null;
   const qn = normalizeString(query);
   const qWords = qn.split(/\s+/).filter(w => w.length > 2);
@@ -284,8 +375,10 @@ function findSubtopicNode(node: any, query: string): { node: any; name: string }
       if (nameN === qn || keyN === qn) score = 100;
       else if (nameN.includes(qn) || qn.includes(nameN) || keyN.includes(qn)) score = 60;
       else {
-        // word overlap
-        const overlap = qWords.filter(w => nameN.includes(w) || keyN.includes(w)).length;
+        const overlap = qWords.filter(w =>
+          nameN.includes(w) || keyN.includes(w) ||
+          tokens(nameN).some(t => fuzzyTokenMatch(w, t))
+        ).length;
         if (overlap > 0) score = 20 + overlap * 10;
       }
       if (score > 0 && (!best || score > best.score)) {
@@ -295,7 +388,7 @@ function findSubtopicNode(node: any, query: string): { node: any; name: string }
     }
   };
   walk(node);
-  return best ? { node: best.node, name: best.name } : null;
+  return best;
 }
 
 export interface HighYieldResult {
@@ -314,14 +407,12 @@ export function getRankedQuestions(intent: HighYieldIntent): HighYieldResult | n
 
 function stars(n: number): string {
   if (n <= 0) return "";
-  return ` ${"★".repeat(Math.min(n, 6))} (${n})`;
+  return ` ★${"★".repeat(Math.min(n, 6) - 1)} (${n})`;
 }
 
 export function formatHighYieldResponse(intent: HighYieldIntent, result: HighYieldResult): string {
-  // Aggregate across groups; if single group, render headings without subtopic split.
   const wantEssay = intent.types.includes("essay");
   const wantSN = intent.types.includes("short-notes");
-
   const isSingleSubtopic = result.groups.length === 1;
 
   let out = `# High-Yield Questions — ${result.label}\n\n`;
@@ -332,7 +423,6 @@ export function formatHighYieldResponse(intent: HighYieldIntent, result: HighYie
     if (wantEssay) out += renderList("Most Repeated Essays", g.essays, intent.limits.essay);
     if (wantSN) out += renderList("Most Repeated Short Notes", g.shortNotes, intent.limits["short-notes"]);
   } else {
-    // Aggregate all and rank globally, but also keep per-subtopic context.
     const allEssays: RankedQuestion[] = [];
     const allSN: RankedQuestion[] = [];
     for (const g of result.groups) {
