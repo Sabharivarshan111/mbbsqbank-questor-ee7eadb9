@@ -1,68 +1,70 @@
-## Goal
+# High-Yield Questions Feature for AI Chat
 
-Cross-verify the uploaded `PSM_QbankV4_MedicosZoneOfficial.txt` against `src/data/topics/communityMedicine.ts` and **enrich** the existing bank:
+Let users ask the AI things like "important essays in Community Medicine Paper 2 – Demography" and get back a ranked list straight from the existing question bank, sorted by asterisk (repetition) count. No data files are touched. All existing AI chat features keep working unchanged.
 
-- Keep ALL existing subtopics in Paper 1 & Paper 2 exactly as-is (names, keys, order).
-- Keep ALL existing questions exactly as-is — nothing gets removed or reworded.
-- For each text-file question that already exists in the bank: update the year list + asterisk count to reflect new repeat-year tags from the text file (only additions, never reductions).
-- For each genuinely new text-file question: append it to the most appropriate existing subtopic under the matching tab (Essay or Short Notes).
-- Skip all MCQs entirely.
+## What the user gets
 
-## Approach
+In the AI chat, queries like these will be detected and answered from the local question bank:
+- "Community Medicine Paper 2 demography important essays"
+- "Top 20 short notes for Pharmacology CNS"
+- "I have exam tomorrow in Community Medicine Paper 2, give me 5 high yield essays"
+- "Most repeated questions in Forensic Medicine toxicology"
 
-1. **Parse the text file** with a Python script:
-   - Split by chapter headers ("1. EVOLUTION OF…", etc.) for Paper I and Paper II.
-   - Within each chapter, extract only `ESSAYS` and `SHORT NOTES` sections (stop at `MULTIPLE CHOICE QUESTIONS`/`MCQ ANSWERS`/next chapter).
-   - Strip page headers/footers (`PRE FINAL YEAR MBBS`, page numbers, decorative `☬ ... ⚚` lines).
-   - Stitch wrapped lines so each numbered item becomes one string, preserving year list + ★ count.
+The reply shows essays and/or short notes ranked **highest asterisk count first** (most repeated), with the asterisks shown next to each question, e.g.:
 
-2. **Map text-file chapters → existing subtopic keys.** Fixed mapping (no new subtopics created):
+```
+**Demography & Family Planning — Most Repeated Essays**
+1. Define demographic cycle… ★★★★★ (5)
+2. Discuss family planning methods… ★★★★ (4)
+...
+**Short Notes**
+1. NRR ★★★★
+2. Couple protection rate ★★★
+```
 
-   Paper I:
-   - Ch 1 Evolution / Concepts of health and disease → `man-and-medicine` + `concepts-in-health-disease` (questions routed by topic keyword)
-   - Ch 2 Environment and health → `environment-and-health`
-   - Ch 3 Health education and communication → `communication-for-health-education`
-   - Ch 4 Nutrition and health → `nutrition-and-health`
-   - Ch 5 Occupational health → `occupational-health`
-   - Ch 6 Medical sociology → `medicine-social-science`
-   - Ch 7 Mental health → `mental-health`
-   - Ch 8 Biostatistics and health information → `health-information-medical-statistics`
-   - Ch 9 Basic epidemiology / infectious disease epidemiology → `principles-methods-of-epidemiology`
-   - Ch 10 Screening for diseases → `screening-for-disease`
-   - Ch 11 Tribal health in India → `medicine-social-science` (no dedicated subtopic; closest existing fit)
-   - Ch 12 Hospital waste management → `hospital-waste-management`
+If the user doesn't specify a number → defaults to **Top 10 essays + Top 20 short notes**.
 
-   Paper II:
-   - Ch 1 Epidemiology of specific diseases → split between `epidemiology-of-communicable-diseases` and `epidemiology-of-non-communicable-diseases` based on the disease named in each question.
-   - Ch 2 Demography and family planning → `demography-family-planning`
-   - Ch 3 Reproductive and child health, Ch 4 Preventive geriatrics, Ch 5 School health → `obstetrics-pediatrics-geriatrics`
-   - Ch 6 Health system; Health care of the community → `health-care-of-community`
-   - Ch 7 Health planning / disaster management → `disaster-management` (planning items folded into same subtopic — no new subtopic)
-   - Ch 8 International health → `international-health`
-   - Ch 9 National health programmes → `health-programmes-sdg-mdg`
-   - Ch 10 Essential medicines and counterfeit medicines → `health-programmes-sdg-mdg` (closest existing fit; no new subtopic)
-   - Ch 11 Genetics and health → `genetics-health`
+## How it works (technical)
 
-3. **De-duplicate against existing questions.** For each text-file question:
-   - Normalize (lowercase, strip numbering/years/★/punctuation) and compare against every existing question's normalized form within the target subtopic + tab.
-   - If a match is found → keep the existing question text, but merge in any new year tags from the text file and recompute the trailing `*` count to equal total distinct year tags (existing dates union new dates). Pg references preserved.
-   - If no match → append the new question at the end of the same subtopic+tab `questions` array, formatted to match existing style: `"N. <text> (Years) ***"` with `N` continuing the existing numbering. No `[Pg.no.X]` is added (the new text file does not provide page numbers consistently).
+All client-side. No edge function changes. No question-bank data changes.
 
-4. **Write back `src/data/topics/communityMedicine.ts`** preserving the existing file's structure, indentation, and all unchanged content. Only `questions` arrays inside matched subtopics are modified (additions + asterisk-count updates).
+### 1. New helper: `src/lib/high-yield-query.ts`
+- `detectHighYieldIntent(prompt: string)` → returns `{ subject, paper?, subtopic?, types: ('essay'|'short-notes')[], limits: { essay?, shortNotes? } } | null`
+  - Matches keywords: "important", "high yield", "most repeated", "high-yield", "exam tomorrow", "top N", "essays", "short notes".
+  - Fuzzy-matches subject/paper/subtopic names against keys in `QUESTION_BANK_DATA` (case-insensitive, normalised, handles "paper 2" / "paper two" / "p2").
+- `getRankedQuestions(intent)` → walks `QUESTION_BANK_DATA`, finds the matching subtopic(s), reads each question's asterisk count (already parsed by your existing `question-count` util), and returns sorted arrays of `{ text, stars }`.
+- `formatHighYieldResponse(intent, results)` → returns a markdown string ready to inject as an assistant message (headings, numbered lists, ★ display, fallback "No matches found in QB" message).
 
-5. **Verify** with `bunx tsc --noEmit` and a small diff summary (count of new questions added per subtopic, count of asterisk-count updates) printed to console.
+### 2. Hook integration: `src/hooks/use-ai-chat.ts`
+- Inside `handleSubmit` / `handleSubmitQuestion`, **before** calling the edge function:
+  1. Run `detectHighYieldIntent(prompt)`.
+  2. If it returns a match → build the ranked response locally, push it as an assistant message, clear loading, return. (No AI call, no token cost, instant.)
+  3. If no match → existing flow runs untouched (Gemini call, references, queue, rate-limit handling — all preserved).
 
-## Guarantees
+### 3. Empty-state hint (optional, low-risk)
+- Add one example chip in `src/components/chat/EmptyChatState.tsx` like: *"Important essays in Community Medicine Paper 2 – Demography"* so users discover the feature.
 
-- No existing question removed, reworded, or reordered.
-- No subtopic added, renamed, or removed.
-- No MCQs added.
-- Essay/Short Notes counts only ever grow or stay the same.
-- Asterisk counts only ever grow or stay the same.
+## What stays exactly the same
+- `QUESTION_BANK_DATA` and every `src/data/topics/*` file — **not edited**.
+- Triple-tap "answer this question" flow.
+- Double-tap "generate MCQs" flow.
+- Normal free-form chat → still goes to `ask-gemini` / `ask-ai` edge function.
+- Rate limiting, queueing, references, fullscreen, themes, offline banner — all untouched.
+- MCQ formatting rules from memory (green correct answer highlight, new lines).
 
-## Technical details
+## Files to add / edit
+- **Add** `src/lib/high-yield-query.ts` (intent detection + ranking + formatting)
+- **Edit** `src/hooks/use-ai-chat.ts` (short-circuit in submit handlers only)
+- **Edit (optional)** `src/components/chat/EmptyChatState.tsx` (one example prompt)
 
-- Parser: Python script in `/tmp/parse_psm.py` reading `/mnt/user-uploads/PSM_QbankV4_MedicosZoneOfficial.txt`.
-- Generator: Python script reads the current `communityMedicine.ts`, parses each `questions: [ ... ]` array, applies the merge, and rewrites only those array blocks (string-replace by exact match), leaving every other byte of the file untouched.
-- Asterisk char used in additions: `*` (ASCII) to match the existing file's convention (existing bank uses `*`, not `★`).
-- Routing for Ch 1 Paper I and Ch 1 Paper II uses keyword rules (e.g. "public health" / "concepts" → `man-and-medicine`/`concepts-in-health-disease`; disease names → communicable vs non-communicable).
+## Edge cases handled
+- Subject named but no subtopic → returns top questions across all subtopics of that subject/paper.
+- Subtopic matches but has no questions of requested type → message: *"No essays found for this subtopic — here are the short notes instead."* (matches your existing "No essays found" fallback pattern.)
+- Ambiguous match (e.g. "medicine" → General Medicine vs Community Medicine) → asks user to clarify in one short assistant message instead of guessing.
+- Asterisk count missing on a question → treated as count 1, still ranked, no crash.
+
+## Verification after build
+- Type `"Community Medicine Paper 2 demography important essays"` → ranked list appears instantly (no network call).
+- Type a normal question like `"explain insulin resistance"` → still hits Gemini as before.
+- Triple-tap a question card → still triggers the answer flow.
+- Double-tap → still generates MCQs.
