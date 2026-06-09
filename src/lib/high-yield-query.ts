@@ -308,13 +308,27 @@ export function detectHighYieldIntent(prompt: string): HighYieldIntent | null {
   if (/^(triple-tapped:|double-tapped:)/i.test(prompt.trim())) return null;
   if (!TRIGGER_RE.test(prompt)) return null;
 
-  const subject = matchSubject(prompt);
-  if (!subject) return null;
-
-  const paper = detectPaper(prompt, subject);
   const limits = detectLimits(prompt);
   const types = detectTypes(prompt, limits);
-  const subtopicQuery = extractSubtopicQuery(prompt, subject);
+
+  let subject = matchSubject(prompt);
+  let paper = subject ? detectPaper(prompt, subject) : null;
+  let subtopicQuery: string | undefined;
+
+  if (subject) {
+    subtopicQuery = extractSubtopicQuery(prompt, subject);
+  } else {
+    // No subject named — try to identify a subtopic across all subjects.
+    const cleaned = cleanForSubtopicSearch(prompt);
+    const hit = cleaned ? findSubtopicAcrossAllSubjects(cleaned) : null;
+    if (!hit) return null;
+    subject = hit.subject;
+    if (hit.paperKey) {
+      const node = subject.node?.subtopics?.[hit.paperKey];
+      paper = node ? { key: hit.paperKey, name: node.name ?? hit.paperKey } : null;
+    }
+    subtopicQuery = cleaned;
+  }
 
   return {
     subjectKey: subject.key,
