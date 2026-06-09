@@ -156,22 +156,29 @@ function matchSubject(prompt: string): SubjectEntry | null {
     if (lowerN.includes(normalizeString(s.name))) return s;
   }
 
-  // 3. Fuzzy token match against names + alias phrases
+  // 3. Strict fuzzy token match against multi-word alias phrases / subject names only.
+  // Single-token aliases (e.g. "ent", "ortho", "psm") are intentionally excluded here
+  // to avoid words like "disaster" fuzzy-mapping onto unrelated short subject codes.
   let best: { entry: SubjectEntry; score: number } | null = null;
   const candidates: Array<{ key: string; tokens: string[] }> = [];
-  for (const s of subjects) candidates.push({ key: s.key, tokens: tokens(s.name) });
+  for (const s of subjects) {
+    const t = tokens(s.name).filter(x => x.length >= 3);
+    if (t.length >= 2) candidates.push({ key: s.key, tokens: t });
+  }
   for (const a of SUBJECT_ALIASES) {
-    for (const p of a.phrases) candidates.push({ key: a.key, tokens: tokens(p) });
+    for (const p of a.phrases) {
+      const t = tokens(p).filter(x => x.length >= 3);
+      if (t.length >= 2) candidates.push({ key: a.key, tokens: t });
+    }
   }
 
   for (const c of candidates) {
-    const sigTokens = c.tokens.filter(t => t.length >= 3);
-    if (!sigTokens.length) continue;
+    const sigTokens = c.tokens;
     let matched = 0;
     for (const ct of sigTokens) {
       if (ptoks.some(pt => fuzzyTokenMatch(pt, ct))) matched++;
     }
-    if (matched >= sigTokens.length) {
+    if (matched === sigTokens.length && matched >= 2) {
       const score = matched * 10 + sigTokens.length;
       if (!best || score > best.score) {
         const hit = subjects.find(s => s.key === c.key);
@@ -180,6 +187,53 @@ function matchSubject(prompt: string): SubjectEntry | null {
     }
   }
   return best ? best.entry : null;
+}
+
+// Clean filler/trigger words from a prompt without removing subject names.
+// Used for global subtopic search when no subject is mentioned.
+function cleanForSubtopicSearch(prompt: string): string {
+  let s = " " + prompt.toLowerCase() + " ";
+  s = s.replace(/paper[\s-]*(?:\d+|one|two|three|to|too|tu|tree|1st|2nd|3rd|first|second|third)/g, " ");
+  s = s.replace(/\b(?:\d+|one|two|three|1st|2nd|3rd|first|second|third)\s*(?:nd|st|rd|th)?\s+paper\b/g, " ");
+  s = s.replace(/\bp\s*[123]\b/g, " ");
+  s = s.replace(/\b(important|high[\s-]?yield|most[\s-]?repeated|repeated|frequently[\s-]?asked|commonly[\s-]?asked|exam tomorrow|tomorrow.*?exam|tomorrow|exam)\b/g, " ");
+  s = s.replace(/(?:top\s+)?(?:\d+|five|ten|fifteen|twenty|thirty)\s+(?:high[\s-]?yield\s+)?(?:important\s+)?(?:essays?|short[\s-]?notes?)/g, " ");
+  s = s.replace(/\b(essays?|short[\s-]?notes?|questions?|topics?|please|can you|tell|give|show|list|need|want|me|the|a|an|in|on|of|and|or|with|some|all|now|for|to|read|only|i|have|kindly|plz|pls|hi|hey|ok|okay|are|is|will|would|could|my|about|regarding)\b/g, " ");
+  s = s.replace(/[?,.!:;()\[\]/]/g, " ").replace(/\s+/g, " ").trim();
+  return s;
+}
+
+// Search every subject's subtopic tree and return the best matching subject + subtopic node.
+function findSubtopicAcrossAllSubjects(query: string): { subject: SubjectEntry; paperKey?: string; subtopicName: string; score: number } | null {
+  if (!query || query.length < 3) return null;
+  const subjects = listSubjects();
+  let best: { subject: SubjectEntry; paperKey?: string; subtopicName: string; score: number } | null = null;
+
+  for (const subj of subjects) {
+    // Try the subject root.
+    const rootMatch = findSubtopicNode(subj.node, query);
+    if (rootMatch && rootMatch.score >= 40) {
+      if (!best || rootMatch.score > best.score) {
+        best = { subject: subj, subtopicName: rootMatch.name, score: rootMatch.score };
+      }
+    }
+    // Also try each paper node so we can capture paperKey context.
+    const subs = subj.node?.subtopics;
+    if (subs) {
+      for (const [k, child] of Object.entries(subs)) {
+        if (!/^paper-\d+$/.test(k)) continue;
+        const m = findSubtopicNode(child, query);
+        if (m && m.score >= 40) {
+          // Prefer matches with a containing name (tie-break).
+          const score = m.score + 1;
+          if (!best || score > best.score) {
+            best = { subject: subj, paperKey: k, subtopicName: m.name, score };
+          }
+        }
+      }
+    }
+  }
+  return best;
 }
 
 function detectPaper(prompt: string, subject: SubjectEntry): { key: string; name: string } | null {
