@@ -1,44 +1,41 @@
-## Goal
-Make AI chat reliably answer exam/high-yield/important-question prompts from the in-app Question Bank first, before calling Gemini/online AI.
+# Fix: Subtopic-only queries in AI chat
 
-## What I will change
-1. **Improve intent detection**
-   - Treat prompts like “tomorrow exam”, “tell questions”, “important”, “high yield”, “most repeated”, “paper two community medicine” as question-bank lookup requests.
-   - Detect requests even when the user does not type “essay” or “short note”.
-   - Default output stays: **Top 10 essays + Top 20 short notes**.
+## Problem
+When the user types only a subtopic name like "important questions in disaster management" without naming a subject (Community Medicine, etc.), the matcher currently fuzzy-matches the words against subject names/aliases and returns a wrong subject (e.g. ENT). It should instead search every subject's subtopic tree and pick the best subtopic match.
 
-2. **Add typo-tolerant subject matching**
-   - Match subjects using aliases plus fuzzy matching.
-   - Examples that should work:
-     - `comunit medicine`
-     - `communit medicine`
-     - `community medicine paper to`
-     - `paper two community medicine`
-     - `psm paper 2 important questions`
+## Fix (only `src/lib/high-yield-query.ts`)
 
-3. **Fix paper detection wording**
-   - Support `paper 2`, `paper two`, `paper to`, `paper too`, `p2`, `2nd paper`, and reversed wording like `paper to community medicine`.
+1. **Make subject matching stricter**
+   - In `matchSubject`, require alias/name matches to be real (full phrase substring or strong token overlap). Drop the loose single-token fuzzy fallback that currently lets unrelated words like "disaster" map to "ENT" / "ortho" via edit distance.
+   - Only return a subject when confidence is high (phrase hit, full name hit, or ≥2 significant tokens matched).
 
-4. **Prevent bad subtopic extraction**
-   - Current detector may treat leftover words like “paper to” or “tomorrow exam” as a subtopic, causing empty/no-result responses.
-   - I’ll clean filler words better and only narrow to a subtopic when there is a real match.
+2. **New: global subtopic search when no subject is detected**
+   - If `matchSubject` returns null but the prompt still passes `TRIGGER_RE` (important / essays / short notes / exam / etc.), run a new `findSubtopicAcrossAllSubjects(cleanedQuery)`:
+     - Walk every subject in `QUESTION_BANK_DATA`.
+     - Reuse the existing `findSubtopicNode` scoring per subject.
+     - Track the best-scoring subtopic across all subjects (require score ≥ 40, same threshold used today).
+   - Build the `HighYieldIntent` using that subject + paper (inferred from the matched node's parent if it is under `paper-N`) + subtopic.
 
-5. **Question-bank-first fallback**
-   - If the prompt looks like an important/exam-question request and a subject is found, it will return QB results locally.
-   - Only normal medical explanation prompts will continue to Gemini/online AI.
+3. **Cleaned query for subtopic search**
+   - Reuse the same filler-stripping logic from `extractSubtopicQuery`, but without removing a subject name (since none was given). Strip only: triggers ("important", "high yield", "tomorrow exam", "essays", "short notes", numbers), paper words, and stopwords. Leaves "disaster management", "demography", "epidemiology", etc.
 
-## Technical details
-- Edit only:
-  - `src/lib/high-yield-query.ts`
-  - possibly small cleanup in `src/hooks/use-ai-chat.ts`
-- Replace exact-only matching with a small local fuzzy matcher using normalized strings and edit distance/token overlap.
-- Keep existing triple-tap, double-tap MCQ, normal AI Q&A, references, rate limit, and chat history behavior unchanged.
+4. **Examples that will work after the fix**
+   - `important questions in disaster management` → Community Medicine → Disaster Management
+   - `top essays demography` → Community Medicine → Demography
+   - `high yield short notes shock` → Pathology / Surgery (whichever scores higher) → Shock
+   - `tomorrow exam epidemiology questions` → Community Medicine → Epidemiology
+   - Existing flows (with subject named, with paper, triple/double tap, normal Gemini Q&A) stay unchanged.
 
-## Verification examples
-After implementation, these should return ranked QB essays/short notes instantly:
-- `tell me important questions in community medicine paper two`
-- `tell important questions in paper to comunit medicine`
-- `tomorrow exam psm p2 give questions`
-- `high yield essays demography community medicine paper 2`
+5. **Guardrails**
+   - If multiple subjects tie, prefer the one whose subtopic name fully contains the query.
+   - If no subtopic clears the score threshold, return null so the prompt falls through to Gemini (today's normal behavior), instead of returning a wrong subject.
 
-Normal prompts like `explain insulin resistance` should still go to Gemini.
+## Files touched
+- `src/lib/high-yield-query.ts` only.
+- No changes to `use-ai-chat.ts`, UI, data, or any other feature.
+
+## Verification
+- `disaster management` → returns Community Medicine → Disaster Management essays + short notes.
+- `ent` alone (no trigger word) → still goes to Gemini.
+- `important questions community medicine paper 2` → unchanged behavior.
+- `explain insulin resistance` → still goes to Gemini.
