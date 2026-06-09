@@ -1,41 +1,43 @@
-# Fix: Subtopic-only queries in AI chat
+# Fix: Question Bank search lag (behavior preserved)
 
-## Problem
-When the user types only a subtopic name like "important questions in disaster management" without naming a subject (Community Medicine, etc.), the matcher currently fuzzy-matches the words against subject names/aliases and returns a wrong subject (e.g. ENT). It should instead search every subject's subtopic tree and pick the best subtopic match.
+## Goal
+Stop the Question Bank from freezing while typing in the search bar. **Every existing search behavior stays exactly the same** — same results, same auto-expand of all topics on search, same empty state, same tabs.
 
-## Fix (only `src/lib/high-yield-query.ts`)
+## Root cause
+`src/hooks/use-question-bank.ts` re-walks the entire `QUESTION_BANK_DATA` tree on every keystroke (twice — essays + short-notes), and:
+1. **No debounce** — the heavy walk fires on every keystroke.
+2. **`setState` inside `useMemo`** (`setHasSearchResults`, `setIsSearching` inside `getFilteredData`) — forces an extra render after each memo run.
+3. **Cloning every node** with object spread even when no children matched, allocating large objects unnecessarily.
 
-1. **Make subject matching stricter**
-   - In `matchSubject`, require alias/name matches to be real (full phrase substring or strong token overlap). Drop the loose single-token fuzzy fallback that currently lets unrelated words like "disaster" map to "ENT" / "ortho" via edit distance.
-   - Only return a subject when confidence is high (phrase hit, full name hit, or ≥2 significant tokens matched).
+## Fix (only `src/hooks/use-question-bank.ts`)
 
-2. **New: global subtopic search when no subject is detected**
-   - If `matchSubject` returns null but the prompt still passes `TRIGGER_RE` (important / essays / short notes / exam / etc.), run a new `findSubtopicAcrossAllSubjects(cleanedQuery)`:
-     - Walk every subject in `QUESTION_BANK_DATA`.
-     - Reuse the existing `findSubtopicNode` scoring per subject.
-     - Track the best-scoring subtopic across all subjects (require score ≥ 40, same threshold used today).
-   - Build the `HighYieldIntent` using that subject + paper (inferred from the matched node's parent if it is under `paper-N`) + subtopic.
+1. **Debounce filtering by ~180 ms.**
+   - `searchQuery` (what the input shows) stays instant.
+   - A new internal `debouncedQuery` drives the filter memos.
+   - Auto-expand effect also runs on `debouncedQuery` so the accordion only updates once typing settles — no behavior change, just smoother.
 
-3. **Cleaned query for subtopic search**
-   - Reuse the same filler-stripping logic from `extractSubtopicQuery`, but without removing a subject name (since none was given). Strip only: triggers ("important", "high yield", "tomorrow exam", "essays", "short notes", numbers), paper words, and stopwords. Leaves "disaster management", "demography", "epidemiology", etc.
+2. **Move `hasSearchResults` / `isSearching` out of `useMemo`.**
+   - Compute them as derived values from the memoized filtered data (no `setState` inside memos).
+   - External API of the hook is unchanged.
 
-4. **Examples that will work after the fix**
-   - `important questions in disaster management` → Community Medicine → Disaster Management
-   - `top essays demography` → Community Medicine → Demography
-   - `high yield short notes shock` → Pathology / Surgery (whichever scores higher) → Shock
-   - `tomorrow exam epidemiology questions` → Community Medicine → Epidemiology
-   - Existing flows (with subject named, with paper, triple/double tap, normal Gemini Q&A) stay unchanged.
+3. **Avoid needless cloning in `filterNestedContent`.**
+   - When a child returns unchanged or nothing was pruned, return the original reference instead of spreading into a new object.
+   - Pure perf; output shape is identical.
 
-5. **Guardrails**
-   - If multiple subjects tie, prefer the one whose subtopic name fully contains the query.
-   - If no subtopic clears the score threshold, return null so the prompt falls through to Gemini (today's normal behavior), instead of returning a wrong subject.
+4. **Keep auto-expand-all on search.** No UI change.
 
-## Files touched
-- `src/lib/high-yield-query.ts` only.
-- No changes to `use-ai-chat.ts`, UI, data, or any other feature.
+## What is NOT changing
+- Search matching logic, case-insensitive substring match.
+- Auto-expansion of all topics when a search is active.
+- Empty-state ("No results") behavior.
+- Tabs (Essay / Short Notes / Extras).
+- Component files, styling, anything outside this hook.
+
+## File touched
+- `src/hooks/use-question-bank.ts` only.
 
 ## Verification
-- `disaster management` → returns Community Medicine → Disaster Management essays + short notes.
-- `ent` alone (no trigger word) → still goes to Gemini.
-- `important questions community medicine paper 2` → unchanged behavior.
-- `explain insulin resistance` → still goes to Gemini.
+- Typing fast in the search bar feels smooth on mobile (no freeze).
+- After a brief pause results appear and all topics auto-expand (same as today).
+- Clearing search collapses topics and restores full bank (same as today).
+- "No results" still appears when nothing matches.
