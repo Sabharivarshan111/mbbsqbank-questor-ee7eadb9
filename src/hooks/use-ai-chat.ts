@@ -18,14 +18,20 @@ interface UseAiChatProps {
   initialQuestion?: string;
 }
 
-// Function to extract questions with their asterisk counts
+// Function to extract questions with their asterisk counts (matches UI logic)
+function countStars(q: string): number {
+  const starMatches = q.match(/[\*★☆⭐]/g);
+  if (starMatches && starMatches.length > 0) return starMatches.length;
+  const datePattern = /\(((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2,4}[,;]?\s*)+)\)/i;
+  const dateMatch = q.match(datePattern);
+  if (dateMatch && dateMatch[1]) {
+    return dateMatch[1].split(/[;,]/).map(s => s.trim()).filter(Boolean).length;
+  }
+  return 0;
+}
+
 function extractQuestions(questions: string[]): {text: string, count: number}[] {
-  return questions.map(question => {
-    // Extract the asterisk pattern if present
-    const asteriskMatch = question.match(/\*+/);
-    const count = asteriskMatch ? asteriskMatch[0].length : 0;
-    return { text: question, count };
-  });
+  return questions.map(question => ({ text: question, count: countStars(question) }));
 }
 
 // Enhanced topic maps for different subjects
