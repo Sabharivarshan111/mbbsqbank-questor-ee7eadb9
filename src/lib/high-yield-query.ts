@@ -347,16 +347,24 @@ export function detectHighYieldIntent(prompt: string): HighYieldIntent | null {
 // ───────────────────────────── Ranking ─────────────────────────────
 
 function countAsterisks(q: string): number {
-  const matches = q.match(/\*+/g);
-  if (!matches) return 0;
-  return matches.reduce((m, r) => Math.max(m, r.length), 0);
+  // Match UI logic in QuestionCard: sum all star-like chars anywhere.
+  const starMatches = q.match(/[\*★☆⭐]/g);
+  if (starMatches && starMatches.length > 0) return starMatches.length;
+
+  // Fallback: count exam-date entries in (Jan 23, Jun 24; ...) style
+  const datePattern = /\(((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2,4}[,;]?\s*)+)\)/i;
+  const dateMatch = q.match(datePattern);
+  if (dateMatch && dateMatch[1]) {
+    return dateMatch[1].split(/[;,]/).map(s => s.trim()).filter(Boolean).length;
+  }
+  return 0;
 }
 
 function cleanQuestionText(q: string): string {
   return q
     .replace(/\(Pg\.?\s*[Nn]o\.?:?[^)]*\)/g, "")
     .replace(/\[Pg[^\]]*\]/g, "")
-    .replace(/\*+/g, "")
+    .replace(/[\*★☆⭐]+/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }

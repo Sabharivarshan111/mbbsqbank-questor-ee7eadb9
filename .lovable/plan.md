@@ -1,49 +1,68 @@
-## Goal
-Make the Question Bank search stop hanging/lagging while keeping the same visible behavior: same search results, same tabs, same no-results message, and same auto-expanded search results.
+## Problem
 
-## Why it is still lagging
-The previous debounce reduced the data filtering work, but the UI still receives the raw `searchQuery` immediately while typing. That means even before the debounced results are ready, the accordion tree is told “search is active”, so it starts re-rendering/expanding a large amount of question-bank UI.
+In the AI chatbot, short-note repetition counts are correct, but the **Top Essay Questions** list (e.g. "important questions in forensic medicine") is ordered wrong — high-frequency essays are not at the top, and counts don't match what the Question Bank UI shows on the same essay.
 
-There are also extra render loops in the accordion components:
-- `TopicAccordion` and `SubtopicAccordion` create new `Object.keys(...)` arrays on every render.
-- Their `useEffect` depends on those new arrays, so it can repeatedly call `setLocalExpandedItems` during search renders.
-- Every accordion render also recalculates progress counts, which walks question data and checks `localStorage` many times.
+## Root cause
 
-## Implementation plan
-1. **Use debounced search state for rendering expansion**
-   - Keep the input value instant with `searchQuery`.
-   - Add a hook return value like `activeSearchQuery`/`debouncedQuery` for the rendered question-bank content.
-   - Use that debounced value for:
-     - `NoResultsMessage` visibility
-     - `QuestionBankContent searchQuery`
-     - `TopicAccordion isExpanded`
-   - This keeps the same behavior after the short pause, but stops the huge accordion tree from reacting to every typed character.
+There are two different "count asterisks" implementations, and they disagree.
 
-2. **Stabilize accordion key arrays**
-   - In `TopicAccordion`, memoize `subtopicKeys` with `useMemo`.
-   - In `SubtopicAccordion`, memoize `typeKeys` with `useMemo`.
-   - This prevents effects from firing again just because a new array reference was created.
+1. **Question Bank UI** — `src/components/QuestionCard.tsx` `countAsterisks()`
+   - Matches `[\*★☆⭐]` anywhere in the text and returns the **total count** of all star-like characters.
+   - Falls back to counting exam-date entries inside `(...)` when no stars exist.
+   - This is what the user sees on each card → "correct".
 
-3. **Avoid unnecessary accordion state updates**
-   - Only call `setLocalExpandedItems(...)` when the desired expanded keys are actually different from the current state.
-   - Preserve current manual accordion behavior when not searching.
+2. **AI high-yield path** — `src/lib/high-yield-query.ts` `countAsterisks()` (used by `getRankedQuestions` → "Top 10 Essays" in chat)
+   ```ts
+   const matches = q.match(/\*+/g);
+   return matches.reduce((m, r) => Math.max(m, r.length), 0);
+   ```
+   - Only matches plain `*` (ignores `★ ☆ ⭐`).
+   - Returns the **max length of any single run**, not the total. So `** ... ***` → 3 instead of 5, and `*  *  *` → 1 instead of 3.
+   - No date-based fallback.
 
-4. **Memoize progress-count work**
-   - Update `useProgressCount` so collecting/counting questions is memoized for the current node/tab.
-   - Keep completion tracking exactly the same.
+   Result: essays with stars split across the string, or written with `★`, get under-counted or all collapse to the same value, so sort order looks random vs the UI.
 
-5. **Verify behavior**
-   - Type quickly in the Question Bank search box.
-   - Confirm the input no longer freezes.
-   - Confirm results still appear after the debounce pause.
-   - Confirm search results still auto-expand and clearing search restores the full bank.
+3. **Legacy fallback path** — `src/hooks/use-ai-chat.ts` `extractQuestions()` uses `question.match(/\*+/)` (first run only, no `g` flag). Same family of bug; runs only when the high-yield path doesn't match the request.
 
-## Files to change
-- `src/hooks/use-question-bank.ts`
-- `src/components/QuestionBank.tsx`
-- `src/components/question-bank/QuestionBankContent.tsx`
-- `src/components/TopicAccordion.tsx`
-- `src/components/SubtopicAccordion.tsx`
-- `src/hooks/use-progress-count.ts`
+## Fix
 
-No search features or UI design will be changed.
+Make both AI-side counters behave exactly like the Question Bank UI counter.
+
+### 1. `src/lib/high-yield-query.ts`
+
+Replace `countAsterisks` with the UI's logic:
+
+```ts
+function countAsterisks(q: string): number {
+  const starMatches = q.match(/[\*★☆⭐]/g);
+  if (starMatches && starMatches.length > 0) return starMatches.length;
+
+  // Fallback: count exam-date entries in (Jan 23, Jun 24; ...) style
+  const datePattern = /\(((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2,4}[,;]?\s*)+)\)/i;
+  const dateMatch = q.match(datePattern);
+  if (dateMatch && dateMatch[1]) {
+    return dateMatch[1].split(/[;,]/).map(s => s.trim()).filter(Boolean).length;
+  }
+  return 0;
+}
+```
+
+Also extend `cleanQuestionText` to strip `★ ☆ ⭐` along with `*` so the displayed essay text stays clean.
+
+### 2. `src/hooks/use-ai-chat.ts` `extractQuestions`
+
+Use the same shared logic (sum of all star-like chars + date fallback) instead of `/\*+/` first-match.
+
+### 3. Optional consolidation
+
+Export a single `countAsterisks` helper from `src/lib/question-count.ts` (or `high-yield-query.ts`) and import it from `QuestionCard.tsx`, `QuestionCardEnhanced.tsx`, `high-yield-query.ts`, and `use-ai-chat.ts` so this never drifts again. Behavior-preserving for the UI.
+
+## Out of scope
+
+No changes to the Edge Function (`ask-gemini`), the question bank data, or the chat UI. Short-note counts already work and stay unchanged — they go through the same fixed helper so they'll keep working.
+
+## Verification
+
+- Ask in chat: "important questions in forensic medicine" → top of the essay list should be the same essays that show the highest 🔥 badge in the Question Bank UI for Forensic Medicine.
+- Spot-check 2–3 essays: count shown in chat == count shown on the card.
+- Short-notes ordering for the same query remains correct.
