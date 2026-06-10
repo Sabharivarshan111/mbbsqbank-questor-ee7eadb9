@@ -32,6 +32,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   
   const pageNumber = extractPageNumber(question);
   
+  useEffect(() => {
+    try {
+      setIsCompleted(localStorage.getItem(questionId) === 'true');
+    } catch {
+      setIsCompleted(false);
+    }
+  }, [questionId]);
+  
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
