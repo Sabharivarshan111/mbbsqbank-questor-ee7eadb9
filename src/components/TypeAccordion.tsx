@@ -9,6 +9,7 @@ import QuestionSection from "./QuestionSection";
 import { SubTopicContent } from "./QuestionBank";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
+import { useMemo } from "react";
 
 
 
@@ -22,10 +23,12 @@ interface TypeAccordionProps {
 }
 
 const TypeAccordion = ({ typeKey, type, isExpanded = false, activeTab, isFirstYear, yearKey }: TypeAccordionProps) => {
-  const derivedSubtopics = (type as any)?.subtopics ?? {
-    ...(type as any)?.essay ? { essay: (type as any).essay } : {},
-    ...(((type as any)?.["short-notes"] || (type as any)?.["short-note"]) ? { "short-notes": (type as any)["short-notes"] || (type as any)["short-note"] } : {})
-  };
+  const derivedSubtopics = useMemo(() => (
+    (type as any)?.subtopics ?? {
+      ...(type as any)?.essay ? { essay: (type as any).essay } : {},
+      ...(((type as any)?.["short-notes"] || (type as any)?.["short-note"]) ? { "short-notes": (type as any)["short-notes"] || (type as any)["short-note"] } : {})
+    }
+  ), [type]);
   const { done, total: count } = useProgressCount(derivedSubtopics, activeTab);
   return (
     <AccordionItem 

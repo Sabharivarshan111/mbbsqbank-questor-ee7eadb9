@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   QUESTION_PROGRESS_EVENT,
   collectQuestions,
@@ -8,10 +8,11 @@ import {
 type Tab = "essay" | "short-notes";
 
 export function useProgressCount(node: any, tab: Tab) {
-  const compute = () => {
-    const qs = collectQuestions(node, tab);
+  const questions = useMemo(() => collectQuestions(node, tab), [node, tab]);
+  const compute = useCallback(() => {
+    const qs = questions;
     return { done: countDone(qs), total: qs.length };
-  };
+  }, [questions]);
   const [stats, setStats] = useState(compute);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function useProgressCount(node: any, tab: Tab) {
       window.removeEventListener("storage", update);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [node, tab]);
+  }, [compute]);
 
   return stats;
 }
