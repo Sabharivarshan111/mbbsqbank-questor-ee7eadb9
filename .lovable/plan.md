@@ -1,43 +1,49 @@
-# Fix: Question Bank search lag (behavior preserved)
-
 ## Goal
-Stop the Question Bank from freezing while typing in the search bar. **Every existing search behavior stays exactly the same** — same results, same auto-expand of all topics on search, same empty state, same tabs.
+Make the Question Bank search stop hanging/lagging while keeping the same visible behavior: same search results, same tabs, same no-results message, and same auto-expanded search results.
 
-## Root cause
-`src/hooks/use-question-bank.ts` re-walks the entire `QUESTION_BANK_DATA` tree on every keystroke (twice — essays + short-notes), and:
-1. **No debounce** — the heavy walk fires on every keystroke.
-2. **`setState` inside `useMemo`** (`setHasSearchResults`, `setIsSearching` inside `getFilteredData`) — forces an extra render after each memo run.
-3. **Cloning every node** with object spread even when no children matched, allocating large objects unnecessarily.
+## Why it is still lagging
+The previous debounce reduced the data filtering work, but the UI still receives the raw `searchQuery` immediately while typing. That means even before the debounced results are ready, the accordion tree is told “search is active”, so it starts re-rendering/expanding a large amount of question-bank UI.
 
-## Fix (only `src/hooks/use-question-bank.ts`)
+There are also extra render loops in the accordion components:
+- `TopicAccordion` and `SubtopicAccordion` create new `Object.keys(...)` arrays on every render.
+- Their `useEffect` depends on those new arrays, so it can repeatedly call `setLocalExpandedItems` during search renders.
+- Every accordion render also recalculates progress counts, which walks question data and checks `localStorage` many times.
 
-1. **Debounce filtering by ~180 ms.**
-   - `searchQuery` (what the input shows) stays instant.
-   - A new internal `debouncedQuery` drives the filter memos.
-   - Auto-expand effect also runs on `debouncedQuery` so the accordion only updates once typing settles — no behavior change, just smoother.
+## Implementation plan
+1. **Use debounced search state for rendering expansion**
+   - Keep the input value instant with `searchQuery`.
+   - Add a hook return value like `activeSearchQuery`/`debouncedQuery` for the rendered question-bank content.
+   - Use that debounced value for:
+     - `NoResultsMessage` visibility
+     - `QuestionBankContent searchQuery`
+     - `TopicAccordion isExpanded`
+   - This keeps the same behavior after the short pause, but stops the huge accordion tree from reacting to every typed character.
 
-2. **Move `hasSearchResults` / `isSearching` out of `useMemo`.**
-   - Compute them as derived values from the memoized filtered data (no `setState` inside memos).
-   - External API of the hook is unchanged.
+2. **Stabilize accordion key arrays**
+   - In `TopicAccordion`, memoize `subtopicKeys` with `useMemo`.
+   - In `SubtopicAccordion`, memoize `typeKeys` with `useMemo`.
+   - This prevents effects from firing again just because a new array reference was created.
 
-3. **Avoid needless cloning in `filterNestedContent`.**
-   - When a child returns unchanged or nothing was pruned, return the original reference instead of spreading into a new object.
-   - Pure perf; output shape is identical.
+3. **Avoid unnecessary accordion state updates**
+   - Only call `setLocalExpandedItems(...)` when the desired expanded keys are actually different from the current state.
+   - Preserve current manual accordion behavior when not searching.
 
-4. **Keep auto-expand-all on search.** No UI change.
+4. **Memoize progress-count work**
+   - Update `useProgressCount` so collecting/counting questions is memoized for the current node/tab.
+   - Keep completion tracking exactly the same.
 
-## What is NOT changing
-- Search matching logic, case-insensitive substring match.
-- Auto-expansion of all topics when a search is active.
-- Empty-state ("No results") behavior.
-- Tabs (Essay / Short Notes / Extras).
-- Component files, styling, anything outside this hook.
+5. **Verify behavior**
+   - Type quickly in the Question Bank search box.
+   - Confirm the input no longer freezes.
+   - Confirm results still appear after the debounce pause.
+   - Confirm search results still auto-expand and clearing search restores the full bank.
 
-## File touched
-- `src/hooks/use-question-bank.ts` only.
+## Files to change
+- `src/hooks/use-question-bank.ts`
+- `src/components/QuestionBank.tsx`
+- `src/components/question-bank/QuestionBankContent.tsx`
+- `src/components/TopicAccordion.tsx`
+- `src/components/SubtopicAccordion.tsx`
+- `src/hooks/use-progress-count.ts`
 
-## Verification
-- Typing fast in the search bar feels smooth on mobile (no freeze).
-- After a brief pause results appear and all topics auto-expand (same as today).
-- Clearing search collapses topics and restores full bank (same as today).
-- "No results" still appears when nothing matches.
+No search features or UI design will be changed.

@@ -42,6 +42,7 @@ export interface QuestionBankData {
 const QuestionBank = () => {
   const {
     searchQuery,
+    activeSearchQuery,
     activeTab,
     expandedItems,
     hasSearchResults,
@@ -155,8 +156,8 @@ const QuestionBank = () => {
           )}
 
           <ScrollArea className="h-[calc(100vh-12rem)] min-h-[500px]">
-            {!hasSearchResults && searchQuery.trim() !== "" && (
-              <NoResultsMessage searchQuery={searchQuery} />
+            {!hasSearchResults && activeSearchQuery.trim() !== "" && (
+              <NoResultsMessage searchQuery={activeSearchQuery} />
             )}
             
             <TabsContent value="extras" className="mt-0 min-h-[500px] bg-transparent">
@@ -169,7 +170,7 @@ const QuestionBank = () => {
                 hasContentToDisplay={hasContentToDisplay}
                 filteredData={essayFilteredData}
                 expandedItems={expandedItems}
-                searchQuery={searchQuery}
+                searchQuery={activeSearchQuery}
               />
             </TabsContent>
 
@@ -179,7 +180,7 @@ const QuestionBank = () => {
                 hasContentToDisplay={hasContentToDisplay}
                 filteredData={shortNotesFilteredData}
                 expandedItems={expandedItems}
-                searchQuery={searchQuery}
+                searchQuery={activeSearchQuery}
               />
             </TabsContent>
           </ScrollArea>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import TypeAccordion from "./TypeAccordion";
 import { SubTopic } from "./QuestionBank";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
 
@@ -25,20 +25,23 @@ interface SubtopicAccordionProps {
 }
 
 const SubtopicAccordion = ({ subtopicKey, subtopic, isExpanded = false, activeTab, isFirstYear, yearKey }: SubtopicAccordionProps) => {
-  const typeKeys = Object.keys(subtopic.subtopics);
+  const typeKeys = useMemo(() => Object.keys(subtopic.subtopics), [subtopic.subtopics]);
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(
     isExpanded ? typeKeys : []
   );
 
   useEffect(() => {
     if (isExpanded) {
-      setLocalExpandedItems(typeKeys);
+      setLocalExpandedItems((prev) =>
+        prev.length === typeKeys.length && prev.every((k, i) => k === typeKeys[i])
+          ? prev
+          : typeKeys
+      );
     }
   }, [isExpanded, typeKeys]);
 
   const handleAccordionValueChange = (value: string[]) => {
     setLocalExpandedItems(value);
-    console.log("Subtopic expanded items:", value);
   };
 
   // Determine icon based on paper key

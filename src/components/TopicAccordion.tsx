@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import SubtopicAccordion from "./SubtopicAccordion";
 import { Topic } from "./QuestionBank";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
 
@@ -21,20 +21,23 @@ interface TopicAccordionProps {
 }
 
 const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: TopicAccordionProps) => {
-  const subtopicKeys = Object.keys(topic.subtopics);
+  const subtopicKeys = useMemo(() => Object.keys(topic.subtopics), [topic.subtopics]);
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(
     isExpanded ? subtopicKeys : []
   );
 
   useEffect(() => {
     if (isExpanded) {
-      setLocalExpandedItems(subtopicKeys);
+      setLocalExpandedItems((prev) =>
+        prev.length === subtopicKeys.length && prev.every((k, i) => k === subtopicKeys[i])
+          ? prev
+          : subtopicKeys
+      );
     }
   }, [isExpanded, subtopicKeys]);
 
   const handleAccordionValueChange = (value: string[]) => {
     setLocalExpandedItems(value);
-    console.log("Topic expanded items:", value);
   };
 
   // Use GraduationCap icon for Second Year, Book for others
