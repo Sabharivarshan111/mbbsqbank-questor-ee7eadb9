@@ -172,6 +172,7 @@ export const useQuestionBank = () => {
 
   return {
     searchQuery,
+    activeSearchQuery: debouncedQuery,
     isMobile,
     activeTab,
     expandedItems,
