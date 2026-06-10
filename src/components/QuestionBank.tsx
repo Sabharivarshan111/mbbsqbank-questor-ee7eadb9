@@ -42,6 +42,7 @@ export interface QuestionBankData {
 const QuestionBank = () => {
   const {
     searchQuery,
+    activeSearchQuery,
     activeTab,
     expandedItems,
     hasSearchResults,
