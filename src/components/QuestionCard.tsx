@@ -12,7 +12,14 @@ interface QuestionCardProps {
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear }) => {
-  const [isCompleted, setIsCompleted] = useState(false);
+  const questionId = `question-${question.slice(0, 50).replace(/\s+/g, '-')}`;
+  const [isCompleted, setIsCompleted] = useState(() => {
+    try {
+      return localStorage.getItem(questionId) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [tapStatus, setTapStatus] = useState<'idle' | 'processing-answer' | 'processing-mcq'>('idle');
   const asteriskCount = countAsterisks(question);
   const displayCount = isFirstYear ? (asteriskCount === 0 ? 1 : asteriskCount) : asteriskCount;
@@ -23,20 +30,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   const lastTapTime = useRef(0);
   const tapTimeoutRef = useRef<number | null>(null);
   
-  const questionId = `question-${question.slice(0, 50).replace(/\s+/g, '-')}`;
   const pageNumber = extractPageNumber(question);
-  
-  useEffect(() => {
-    const savedStatus = localStorage.getItem(questionId);
-    if (savedStatus) {
-      setIsCompleted(savedStatus === 'true');
-    }
-  }, [questionId]);
-  
-  useEffect(() => {
-    localStorage.setItem(questionId, isCompleted.toString());
-    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
-  }, [isCompleted, questionId]);
   
   // Clean up timeout on unmount
   useEffect(() => {
@@ -130,6 +124,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   
   const handleCheckboxChange = (checked: boolean) => {
     setIsCompleted(checked);
+    try {
+      localStorage.setItem(questionId, checked.toString());
+      window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+    } catch {}
   };
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
