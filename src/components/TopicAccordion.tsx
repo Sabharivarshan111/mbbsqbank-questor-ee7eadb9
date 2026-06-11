@@ -1,4 +1,4 @@
-
+import React, { useState, useEffect, useMemo, memo } from "react";
 import { Book, GraduationCap } from "lucide-react";
 import {
   Accordion,
@@ -8,10 +8,8 @@ import {
 } from "@/components/ui/accordion";
 import SubtopicAccordion from "./SubtopicAccordion";
 import { Topic } from "./QuestionBank";
-import { useState, useEffect, useMemo, memo } from "react";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
-
 
 interface TopicAccordionProps {
   topicKey: string;
@@ -40,7 +38,6 @@ const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }:
     setLocalExpandedItems(value);
   };
 
-  // Use GraduationCap icon for Second Year, Book for others
   const isSecondYear = topicKey === "second-year";
   const IconComponent = isSecondYear ? GraduationCap : Book;
   const iconClass = isSecondYear ? "text-blue-600 dark:text-blue-400" : "text-indigo-600 dark:text-indigo-400";
@@ -86,9 +83,13 @@ const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }:
   );
 });
 
-const TopicBadge = ({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
+TopicAccordion.displayName = "TopicAccordion";
+
+const TopicBadge = memo(({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
   const { done, total } = useProgressCount(topic, activeTab);
   return <CountBadge count={total} done={done} tab={activeTab} />;
 });
+
+TopicBadge.displayName = "TopicBadge";
 
 export default TopicAccordion;

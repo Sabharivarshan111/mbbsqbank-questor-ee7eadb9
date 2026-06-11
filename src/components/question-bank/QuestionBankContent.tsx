@@ -1,10 +1,8 @@
-import React, { memo } from "react";
-
+import React, { memo, useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import TopicAccordion from "@/components/TopicAccordion";
 import { QuestionBankData } from "@/components/QuestionBank";
 import NoContentMessage from "./NoContentMessage";
-import { useState, useEffect } from "react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface QuestionBankContentProps {
@@ -25,7 +23,6 @@ const QuestionBankContent = memo(({
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(expandedItems);
   const { theme } = useTheme();
 
-  // Update local state when prop changes
   useEffect(() => {
     setLocalExpandedItems(expandedItems);
   }, [expandedItems]);
@@ -34,10 +31,9 @@ const QuestionBankContent = memo(({
     return <NoContentMessage />;
   }
 
-  // Handle accordion item value change
   const handleAccordionValueChange = (value: string[]) => {
     setLocalExpandedItems(value);
-  });
+  };
 
   const accordionClassName = `w-full text-gray-800 dark:text-gray-200 ${
     theme === "blackpink" ? "question-bank-content" : ""
@@ -64,5 +60,7 @@ const QuestionBankContent = memo(({
     </div>
   );
 });
+
+QuestionBankContent.displayName = "QuestionBankContent";
 
 export default QuestionBankContent;
