@@ -243,10 +243,10 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
             )}
             
             <AnimatePresence initial={false}>
-              {messages.length === 0 ? (
+              {messages.filter(m => !m.hidden).length === 0 ? (
                 <EmptyChatState />
               ) : (
-                messages.map((message) => (
+                messages.filter(m => !m.hidden).map((message) => (
                   <ChatMessageItem 
                     key={message.id}
                     message={message}
