@@ -11,7 +11,7 @@ interface QuestionCardProps {
   isFirstYear?: boolean;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = memo(({ question, index, isFirstYear }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear }) => {
   const questionId = `question-${question.slice(0, 50).replace(/\s+/g, '-')}`;
   const [isCompleted, setIsCompleted] = useState(() => {
     try {
@@ -250,7 +250,7 @@ const QuestionCard: React.FC<QuestionCardProps> = memo(({ question, index, isFir
       </Card>
     </div>
   );
-});
+};
 
 function countAsterisks(question: string): number {
   // Count ALL asterisk-like characters (*, ★, ☆, ⭐) anywhere in the text
