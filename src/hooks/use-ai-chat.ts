@@ -517,14 +517,21 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
 
   const handleSubmitQuestion = useCallback(async (question: string) => {
     if (!question.trim()) return;
-    
+
+    // Detect MCQ double-tap early so we can hide the prompt and reshape it.
+    const isDoubleTapEarly = /^double-tapped:/i.test(question);
+    const isMCQRequestEarly = isDoubleTapEarly ||
+      /generate\s+(?:10|ten)\s+mcqs?|create\s+(?:10|ten)\s+mcqs?|make\s+(?:10|ten)\s+mcqs?|ten\s+mcqs?|10\s+mcqs?|generate\s+mcqs?/i.test(question);
+
     const userMessage: ChatMessage = {
       id: uuidv4(),
       role: 'user',
       content: question,
       timestamp: new Date(),
+      // Hide the auto-generated MCQ trigger from the chat transcript.
+      hidden: isMCQRequestEarly,
     };
-    
+
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsLoading(true);
     setPrompt(""); // Clear the input immediately when processing starts
