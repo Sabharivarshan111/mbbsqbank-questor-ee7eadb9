@@ -38,6 +38,7 @@ const QuestionBankContent = memo(({
   const accordionClassName = `w-full text-gray-800 dark:text-gray-200 ${
     theme === "blackpink" ? "question-bank-content" : ""
   }`;
+  const isSearching = searchQuery.trim() !== "";
 
   return (
     <div className="grid gap-4">
@@ -52,7 +53,8 @@ const QuestionBankContent = memo(({
             key={topicKey}
             topicKey={topicKey}
             topic={topic}
-            isExpanded={searchQuery.trim() !== ""}
+            isExpanded={isSearching}
+            isSearching={isSearching}
             activeTab={activeTab}
           />
         ))}
