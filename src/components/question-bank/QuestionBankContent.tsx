@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 
 import { Accordion } from "@/components/ui/accordion";
 import TopicAccordion from "@/components/TopicAccordion";
@@ -14,7 +15,7 @@ interface QuestionBankContentProps {
   searchQuery: string;
 }
 
-const QuestionBankContent = ({
+const QuestionBankContent = memo(({
   activeTab,
   hasContentToDisplay,
   filteredData,
@@ -36,7 +37,7 @@ const QuestionBankContent = ({
   // Handle accordion item value change
   const handleAccordionValueChange = (value: string[]) => {
     setLocalExpandedItems(value);
-  };
+  });
 
   const accordionClassName = `w-full text-gray-800 dark:text-gray-200 ${
     theme === "blackpink" ? "question-bank-content" : ""
@@ -62,6 +63,6 @@ const QuestionBankContent = ({
       </Accordion>
     </div>
   );
-};
+});
 
 export default QuestionBankContent;

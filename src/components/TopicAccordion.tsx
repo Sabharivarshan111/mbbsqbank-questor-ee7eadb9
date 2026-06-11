@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import SubtopicAccordion from "./SubtopicAccordion";
 import { Topic } from "./QuestionBank";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
 
@@ -20,7 +20,7 @@ interface TopicAccordionProps {
   activeTab: "essay" | "short-notes";
 }
 
-const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: TopicAccordionProps) => {
+const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }: TopicAccordionProps) => {
   const subtopicKeys = useMemo(() => Object.keys(topic.subtopics), [topic.subtopics]);
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(
     isExpanded ? subtopicKeys : []
@@ -84,11 +84,11 @@ const TopicAccordion = ({ topicKey, topic, isExpanded = false, activeTab }: Topi
       </AccordionContent>
     </AccordionItem>
   );
-};
+});
 
 const TopicBadge = ({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
   const { done, total } = useProgressCount(topic, activeTab);
   return <CountBadge count={total} done={done} tab={activeTab} />;
-};
+});
 
 export default TopicAccordion;

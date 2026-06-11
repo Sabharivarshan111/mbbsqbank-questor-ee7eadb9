@@ -1,3 +1,4 @@
+import { memo } from "react";
 
 import { QuestionType } from "./QuestionBank";
 import QuestionCard from "./QuestionCard";
@@ -12,7 +13,7 @@ interface QuestionSectionProps {
   yearKey?: string;
 }
 
-const QuestionSection = ({ subtopics, activeTab, isFirstYear, yearKey }: QuestionSectionProps) => {
+const QuestionSection = memo(({ subtopics, activeTab, isFirstYear, yearKey }: QuestionSectionProps) => {
   if (!subtopics || typeof subtopics !== 'object') return null;
 
   // Check if we should show "No essays found" message
@@ -72,6 +73,6 @@ const QuestionSection = ({ subtopics, activeTab, isFirstYear, yearKey }: Questio
       })}
     </>
   );
-};
+});
 
 export default QuestionSection;
