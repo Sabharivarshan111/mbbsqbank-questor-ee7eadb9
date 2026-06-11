@@ -9,14 +9,22 @@ type Tab = "essay" | "short-notes";
 
 export function useProgressCount(node: any, tab: Tab) {
   const questions = useMemo(() => collectQuestions(node, tab), [node, tab]);
+  
   const compute = useCallback(() => {
-    const qs = questions;
-    return { done: countDone(qs), total: qs.length };
+    return { done: countDone(questions), total: questions.length };
   }, [questions]);
+  
   const [stats, setStats] = useState(compute);
 
   useEffect(() => {
-    const update = () => setStats(compute());
+    const update = () => {
+      const next = compute();
+      setStats(prev => {
+        if (prev.done === next.done && prev.total === next.total) return prev;
+        return next;
+      });
+    };
+    
     update();
     window.addEventListener(QUESTION_PROGRESS_EVENT, update);
     window.addEventListener("storage", update);
@@ -24,7 +32,6 @@ export function useProgressCount(node: any, tab: Tab) {
       window.removeEventListener(QUESTION_PROGRESS_EVENT, update);
       window.removeEventListener("storage", update);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compute]);
 
   return stats;

@@ -1,9 +1,8 @@
-
+import React, { memo, useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import TopicAccordion from "@/components/TopicAccordion";
 import { QuestionBankData } from "@/components/QuestionBank";
 import NoContentMessage from "./NoContentMessage";
-import { useState, useEffect } from "react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface QuestionBankContentProps {
@@ -14,7 +13,7 @@ interface QuestionBankContentProps {
   searchQuery: string;
 }
 
-const QuestionBankContent = ({
+const QuestionBankContent = memo(({
   activeTab,
   hasContentToDisplay,
   filteredData,
@@ -24,7 +23,6 @@ const QuestionBankContent = ({
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(expandedItems);
   const { theme } = useTheme();
 
-  // Update local state when prop changes
   useEffect(() => {
     setLocalExpandedItems(expandedItems);
   }, [expandedItems]);
@@ -33,7 +31,6 @@ const QuestionBankContent = ({
     return <NoContentMessage />;
   }
 
-  // Handle accordion item value change
   const handleAccordionValueChange = (value: string[]) => {
     setLocalExpandedItems(value);
   };
@@ -62,6 +59,8 @@ const QuestionBankContent = ({
       </Accordion>
     </div>
   );
-};
+});
+
+QuestionBankContent.displayName = "QuestionBankContent";
 
 export default QuestionBankContent;

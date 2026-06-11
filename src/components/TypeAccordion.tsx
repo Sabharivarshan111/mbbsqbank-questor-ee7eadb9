@@ -9,7 +9,7 @@ import QuestionSection from "./QuestionSection";
 import { SubTopicContent } from "./QuestionBank";
 import CountBadge from "./question-bank/CountBadge";
 import { useProgressCount } from "@/hooks/use-progress-count";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 
 
 
@@ -22,7 +22,7 @@ interface TypeAccordionProps {
   yearKey?: string;
 }
 
-const TypeAccordion = ({ typeKey, type, isExpanded = false, activeTab, isFirstYear, yearKey }: TypeAccordionProps) => {
+const TypeAccordion = memo(({ typeKey, type, isExpanded = false, activeTab, isFirstYear, yearKey }: TypeAccordionProps) => {
   const derivedSubtopics = useMemo(() => (
     (type as any)?.subtopics ?? {
       ...(type as any)?.essay ? { essay: (type as any).essay } : {},
@@ -54,6 +54,6 @@ const TypeAccordion = ({ typeKey, type, isExpanded = false, activeTab, isFirstYe
       </AccordionContent>
     </AccordionItem>
   );
-};
+});
 
 export default TypeAccordion;
