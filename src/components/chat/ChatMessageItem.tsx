@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn, isValidMedicalSourceUrl } from "@/lib/utils";
 import { ChatMessage } from "@/models/ChatMessage";
 import { ReferencesSection } from "./ReferencesSection";
+import { McqMessage } from "./McqMessage";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
