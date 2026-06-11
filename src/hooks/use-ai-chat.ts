@@ -605,11 +605,43 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
       const isNeedingClarification = /i don't understand|can't understand|explain|similar|more detail/i.test(question.toLowerCase());
       
       console.log("Request type:", { isTripleTap, isDoubleTap, isMCQRequest, isImportantQuestionsRequest, isNeedingClarification });
-      
+
+      // For MCQ requests, rewrite the prompt to force a strict JSON shape we can render as cards.
+      let outgoingPrompt = question;
+      if (isMCQRequest) {
+        // Extract the topic from the double-tap trigger if present
+        const topic = question
+          .replace(/^double-tapped:\s*/i, "")
+          .replace(/generate\s+10\s+usmle\/?neet\s*pg\s*style\s+mcqs?\s*on\s*/i, "")
+          .replace(/generate\s+(?:10|ten)\s+mcqs?\s*(?:on|about|for)?\s*/i, "")
+          .trim() || "high-yield medical topics";
+
+        outgoingPrompt = `Generate exactly 10 high-yield NEET PG / USMLE style MCQs on: ${topic}.
+
+RESPOND WITH ONLY A VALID JSON ARRAY (no prose before or after, no markdown fences) of this exact shape:
+[
+  {
+    "topic": "short topic label",
+    "question": "the clinical/conceptual question",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "correct": "A",
+    "explanation": "2-3 short sentences explaining the correct answer."
+  }
+]
+
+Rules:
+- Exactly 10 items.
+- Each item must have all 4 options A-D.
+- "correct" must be one of "A","B","C","D".
+- Keep options concise (under 12 words each).
+- Keep explanation short (under 60 words).
+- Output JSON only.`;
+      }
+
       // Use Supabase edge function - using ask-gemini which supports all the advanced features
       const { data, error } = await supabase.functions.invoke('ask-gemini', {
         body: { 
-          prompt: question,
+          prompt: outgoingPrompt,
           conversationHistory,
           isTripleTap,
           isDoubleTap,
@@ -647,7 +679,8 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
         role: 'assistant',
         content: data.response,
         timestamp: new Date(),
-        references: data.references // Include the references if any
+        references: data.references, // Include the references if any
+        kind: isMCQRequest ? 'mcq' : undefined,
       };
       
       setMessages(prevMessages => [...prevMessages, aiMessage]);
