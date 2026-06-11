@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BookOpen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -16,12 +16,13 @@ interface SubtopicAccordionProps {
   subtopicKey: string;
   subtopic: SubTopic;
   isExpanded?: boolean;
+  isSearching?: boolean;
   activeTab: "essay" | "short-notes";
   isFirstYear?: boolean;
   yearKey?: string;
 }
 
-const SubtopicAccordion = memo(({ subtopicKey, subtopic, isExpanded = false, activeTab, isFirstYear, yearKey }: SubtopicAccordionProps) => {
+const SubtopicAccordion = ({ subtopicKey, subtopic, isExpanded = false, isSearching = false, activeTab, isFirstYear, yearKey }: SubtopicAccordionProps) => {
   const typeKeys = useMemo(() => Object.keys(subtopic.subtopics), [subtopic.subtopics]);
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(
     isExpanded ? typeKeys : []
@@ -73,6 +74,7 @@ const SubtopicAccordion = memo(({ subtopicKey, subtopic, isExpanded = false, act
                     subtopicKey={typeKey}
                     subtopic={type as SubTopic}
                     isExpanded={isExpanded}
+                    isSearching={isSearching}
                     activeTab={activeTab}
                     isFirstYear={isFirstYear}
                     yearKey={yearKey}
@@ -85,6 +87,7 @@ const SubtopicAccordion = memo(({ subtopicKey, subtopic, isExpanded = false, act
                     typeKey={typeKey}
                     type={type}
                     isExpanded={isExpanded}
+                    isSearching={isSearching}
                     activeTab={activeTab}
                     isFirstYear={isFirstYear}
                     yearKey={yearKey}
@@ -97,15 +100,11 @@ const SubtopicAccordion = memo(({ subtopicKey, subtopic, isExpanded = false, act
       </AccordionContent>
     </AccordionItem>
   );
-});
+};
 
-SubtopicAccordion.displayName = "SubtopicAccordion";
-
-const SubtopicBadge = memo(({ subtopic, activeTab }: { subtopic: SubTopic; activeTab: "essay" | "short-notes" }) => {
+const SubtopicBadge = ({ subtopic, activeTab }: { subtopic: SubTopic; activeTab: "essay" | "short-notes" }) => {
   const { done, total } = useProgressCount(subtopic, activeTab);
   return <CountBadge count={total} done={done} tab={activeTab} />;
-});
-
-SubtopicBadge.displayName = "SubtopicBadge";
+};
 
 export default SubtopicAccordion;
