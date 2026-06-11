@@ -1,8 +1,9 @@
-import React, { memo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import TopicAccordion from "@/components/TopicAccordion";
 import { QuestionBankData } from "@/components/QuestionBank";
 import NoContentMessage from "./NoContentMessage";
+import SearchResults from "./SearchResults";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface QuestionBankContentProps {
@@ -13,12 +14,12 @@ interface QuestionBankContentProps {
   searchQuery: string;
 }
 
-const QuestionBankContent = memo(({
+const QuestionBankContent = ({
   activeTab,
   hasContentToDisplay,
   filteredData,
   expandedItems,
-  searchQuery
+  searchQuery,
 }: QuestionBankContentProps) => {
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(expandedItems);
   const { theme } = useTheme();
@@ -31,38 +32,41 @@ const QuestionBankContent = memo(({
     return <NoContentMessage />;
   }
 
-  const handleAccordionValueChange = (value: string[]) => {
-    setLocalExpandedItems(value);
-  };
+  const isSearching = searchQuery.trim() !== "";
+
+  // Fast path during search: flat batched list, no nested accordions / progress badges.
+  if (isSearching) {
+    return (
+      <div className="grid gap-4">
+        <SearchResults data={filteredData} activeTab={activeTab} />
+      </div>
+    );
+  }
 
   const accordionClassName = `w-full text-gray-800 dark:text-gray-200 ${
     theme === "blackpink" ? "question-bank-content" : ""
   }`;
-  const isSearching = searchQuery.trim() !== "";
 
   return (
     <div className="grid gap-4">
-      <Accordion 
-        type="multiple" 
+      <Accordion
+        type="multiple"
         value={localExpandedItems}
-        onValueChange={handleAccordionValueChange}
+        onValueChange={setLocalExpandedItems}
         className={accordionClassName}
       >
         {Object.entries(filteredData).map(([topicKey, topic]) => (
-          <TopicAccordion 
+          <TopicAccordion
             key={topicKey}
             topicKey={topicKey}
             topic={topic}
-            isExpanded={isSearching}
-            isSearching={isSearching}
+            isExpanded={false}
             activeTab={activeTab}
           />
         ))}
       </Accordion>
     </div>
   );
-});
-
-QuestionBankContent.displayName = "QuestionBankContent";
+};
 
 export default QuestionBankContent;
