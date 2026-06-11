@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Book, GraduationCap } from "lucide-react";
 import {
   Accordion,
@@ -15,10 +15,11 @@ interface TopicAccordionProps {
   topicKey: string;
   topic: Topic;
   isExpanded?: boolean;
+  isSearching?: boolean;
   activeTab: "essay" | "short-notes";
 }
 
-const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }: TopicAccordionProps) => {
+const TopicAccordion = ({ topicKey, topic, isExpanded = false, isSearching = false, activeTab }: TopicAccordionProps) => {
   const subtopicKeys = useMemo(() => Object.keys(topic.subtopics), [topic.subtopics]);
   const [localExpandedItems, setLocalExpandedItems] = useState<string[]>(
     isExpanded ? subtopicKeys : []
@@ -71,6 +72,7 @@ const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }:
                 subtopicKey={subtopicKey}
                 subtopic={subtopic}
                 isExpanded={isExpanded}
+                isSearching={isSearching}
                 activeTab={activeTab}
                 isFirstYear={topicKey === "first-year"}
                 yearKey={topicKey}
@@ -81,15 +83,11 @@ const TopicAccordion = memo(({ topicKey, topic, isExpanded = false, activeTab }:
       </AccordionContent>
     </AccordionItem>
   );
-});
+};
 
-TopicAccordion.displayName = "TopicAccordion";
-
-const TopicBadge = memo(({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
+const TopicBadge = ({ topic, activeTab }: { topic: Topic; activeTab: "essay" | "short-notes" }) => {
   const { done, total } = useProgressCount(topic, activeTab);
   return <CountBadge count={total} done={done} tab={activeTab} />;
-});
-
-TopicBadge.displayName = "TopicBadge";
+};
 
 export default TopicAccordion;

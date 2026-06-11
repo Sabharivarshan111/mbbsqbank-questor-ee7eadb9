@@ -1,11 +1,10 @@
-import { memo } from "react";
 interface CountBadgeProps {
   count: number;
   tab: "essay" | "short-notes";
   done?: number;
 }
 
-const CountBadge = memo(({ count, tab, done }: CountBadgeProps) => {
+const CountBadge = ({ count, tab, done }: CountBadgeProps) => {
   if (!count) return null;
   const label = tab === "essay" ? "ESSAY" : "SHORT";
   const cls = "bg-amber-500/15 text-amber-600 dark:text-amber-400";
@@ -17,6 +16,6 @@ const CountBadge = memo(({ count, tab, done }: CountBadgeProps) => {
       {text} {label}
     </span>
   );
-});
+};
 
 export default CountBadge;

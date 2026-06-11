@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { useEffect, useState } from "react";
 
 import { QuestionType } from "./QuestionBank";
 import QuestionCard from "./QuestionCard";
@@ -9,11 +9,12 @@ interface QuestionSectionProps {
     [key: string]: QuestionType | { name: string; questions: any[] };
   };
   activeTab: "essay" | "short-notes";
+  isSearching?: boolean;
   isFirstYear?: boolean;
   yearKey?: string;
 }
 
-const QuestionSection = memo(({ subtopics, activeTab, isFirstYear, yearKey }: QuestionSectionProps) => {
+const QuestionSection = ({ subtopics, activeTab, isSearching = false, isFirstYear, yearKey }: QuestionSectionProps) => {
   if (!subtopics || typeof subtopics !== 'object') return null;
 
   // Check if we should show "No essays found" message
@@ -56,14 +57,11 @@ const QuestionSection = memo(({ subtopics, activeTab, isFirstYear, yearKey }: Qu
                 {typedQuestionType.name}
               </h6>
               <div className="space-y-4 max-w-full">
-                {typedQuestionType.questions.map((question, index) => (
-                  <QuestionCard
-                    key={index}
-                    question={question}
-                    index={index}
-                    isFirstYear={isFirstYear}
-                  />
-                ))}
+                <QuestionList
+                  questions={typedQuestionType.questions}
+                  isSearching={isSearching}
+                  isFirstYear={isFirstYear}
+                />
               </div>
             </div>
           );
@@ -73,6 +71,50 @@ const QuestionSection = memo(({ subtopics, activeTab, isFirstYear, yearKey }: Qu
       })}
     </>
   );
-});
+};
+
+const SEARCH_INITIAL_RENDER_COUNT = 16;
+const SEARCH_RENDER_BATCH_SIZE = 24;
+
+const QuestionList = ({
+  questions,
+  isSearching,
+  isFirstYear,
+}: {
+  questions: string[];
+  isSearching: boolean;
+  isFirstYear?: boolean;
+}) => {
+  const [visibleCount, setVisibleCount] = useState(() =>
+    isSearching ? Math.min(SEARCH_INITIAL_RENDER_COUNT, questions.length) : questions.length
+  );
+
+  useEffect(() => {
+    setVisibleCount(isSearching ? Math.min(SEARCH_INITIAL_RENDER_COUNT, questions.length) : questions.length);
+  }, [isSearching, questions]);
+
+  useEffect(() => {
+    if (!isSearching || visibleCount >= questions.length) return;
+
+    const id = window.setTimeout(() => {
+      setVisibleCount((current) => Math.min(current + SEARCH_RENDER_BATCH_SIZE, questions.length));
+    }, 16);
+
+    return () => window.clearTimeout(id);
+  }, [isSearching, questions.length, visibleCount]);
+
+  return (
+    <>
+      {questions.slice(0, visibleCount).map((question, index) => (
+        <QuestionCard
+          key={`${question.slice(0, 40)}-${index}`}
+          question={question}
+          index={index}
+          isFirstYear={isFirstYear}
+        />
+      ))}
+    </>
+  );
+};
 
 export default QuestionSection;
