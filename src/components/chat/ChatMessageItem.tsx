@@ -68,7 +68,9 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
         )}
       </div>
       <div className="text-sm">
-        {message.role === 'assistant' ? (
+        {message.role === 'assistant' && message.kind === 'mcq' ? (
+          <McqMessage content={cleanContent} />
+        ) : message.role === 'assistant' ? (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
