@@ -37,6 +37,8 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
   const [connectionError, setConnectionError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
   // Lock body scroll when fullscreen
   useEffect(() => {
     if (!isFullscreen) return;
@@ -44,6 +46,21 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
   }, [isFullscreen]);
+
+  // Track visual viewport so the input stays above the on-screen keyboard
+  useEffect(() => {
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+    if (!vv) return;
+    const update = () => setViewportHeight(vv.height);
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+
 
   // Scroll to bottom when messages change, but not on first load
   useEffect(() => {
@@ -277,15 +294,17 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       <div
         style={{
           position: 'fixed',
-          inset: 0,
+          left: 0,
+          top: 0,
           width: '100vw',
-          height: '100dvh',
+          height: viewportHeight ? `${viewportHeight}px` : '100dvh',
           zIndex: 2147483000,
           isolation: 'isolate',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
         className={`flex flex-col p-2 ${isLiquid ? "bg-[hsl(var(--background))]" : "bg-background"}`}
       >
+
         {isLiquid && (
           <div
             aria-hidden

@@ -532,9 +532,23 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
       hidden: isMCQRequestEarly,
     };
 
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    const loadingMcqId = isMCQRequestEarly ? uuidv4() : null;
+    setMessages(prevMessages => {
+      const next = [...prevMessages, userMessage];
+      if (loadingMcqId) {
+        next.push({
+          id: loadingMcqId,
+          role: 'assistant',
+          content: '__MCQ_LOADING__',
+          timestamp: new Date(),
+          kind: 'mcq',
+        });
+      }
+      return next;
+    });
     setIsLoading(true);
     setPrompt(""); // Clear the input immediately when processing starts
+
     
     try {
       // 0. NEW: High-yield intent (essays/short-notes ranked by asterisk count).
@@ -658,6 +672,9 @@ Rules:
       if (data.isRateLimit) {
         setIsRateLimited(true);
         setIsLoading(false);
+        if (loadingMcqId) {
+          setMessages(prev => prev.filter(m => m.id !== loadingMcqId));
+        }
         toast({
           title: "Rate limit reached",
           description: data.error || "Please wait a moment before sending another message.",
@@ -665,6 +682,7 @@ Rules:
         });
         return;
       }
+
       
       if (data.error) {
         throw new Error(data.error);
@@ -683,7 +701,12 @@ Rules:
         kind: isMCQRequest ? 'mcq' : undefined,
       };
       
-      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      setMessages(prevMessages => {
+        if (loadingMcqId) {
+          return prevMessages.map(m => m.id === loadingMcqId ? { ...aiMessage, id: loadingMcqId } : m);
+        }
+        return [...prevMessages, aiMessage];
+      });
     } catch (error) {
       handleError(error);
       
@@ -695,10 +718,14 @@ Rules:
         timestamp: new Date(),
       };
       
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages(prevMessages => {
+        const filtered = loadingMcqId ? prevMessages.filter(m => m.id !== loadingMcqId) : prevMessages;
+        return [...filtered, errorMessage];
+      });
     } finally {
       setIsLoading(false);
     }
+
   }, [messages, toast]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
