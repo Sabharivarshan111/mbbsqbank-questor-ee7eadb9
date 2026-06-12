@@ -672,6 +672,9 @@ Rules:
       if (data.isRateLimit) {
         setIsRateLimited(true);
         setIsLoading(false);
+        if (loadingMcqId) {
+          setMessages(prev => prev.filter(m => m.id !== loadingMcqId));
+        }
         toast({
           title: "Rate limit reached",
           description: data.error || "Please wait a moment before sending another message.",
@@ -679,6 +682,7 @@ Rules:
         });
         return;
       }
+
       
       if (data.error) {
         throw new Error(data.error);
