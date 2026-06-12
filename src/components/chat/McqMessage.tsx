@@ -105,13 +105,24 @@ function tryParseText(content: string): McqData[] | null {
   return mcqs.length ? mcqs : null;
 }
 
-export const McqMessage = ({ content }: McqMessageProps) => {
+export const McqMessage = ({ content, messageId }: McqMessageProps) => {
+  const isLoading = content === MCQ_LOADING_SENTINEL;
+
   const mcqs = useMemo(() => {
+    if (isLoading) return null;
     return tryParseJson(content) ?? tryParseText(content);
-  }, [content]);
+  }, [content, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 rounded-2xl bg-card/60 border border-border/60 p-3 backdrop-blur-sm">
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        <span className="text-sm text-foreground/80">Generating MCQs, please wait…</span>
+      </div>
+    );
+  }
 
   if (!mcqs || mcqs.length === 0) {
-    // Fallback: show raw text so the user still sees something useful
     return (
       <div className="text-sm whitespace-pre-wrap text-foreground/80">{content}</div>
     );
@@ -120,8 +131,9 @@ export const McqMessage = ({ content }: McqMessageProps) => {
   return (
     <div className="space-y-3">
       {mcqs.map((mcq, i) => (
-        <McqCard key={i} mcq={mcq} index={i} total={mcqs.length} />
+        <McqCard key={i} mcq={mcq} index={i} total={mcqs.length} messageId={messageId} />
       ))}
     </div>
   );
 };
+
