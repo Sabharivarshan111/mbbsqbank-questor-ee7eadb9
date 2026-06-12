@@ -294,15 +294,17 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       <div
         style={{
           position: 'fixed',
-          inset: 0,
+          left: 0,
+          top: 0,
           width: '100vw',
-          height: '100dvh',
+          height: viewportHeight ? `${viewportHeight}px` : '100dvh',
           zIndex: 2147483000,
           isolation: 'isolate',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
         className={`flex flex-col p-2 ${isLiquid ? "bg-[hsl(var(--background))]" : "bg-background"}`}
       >
+
         {isLiquid && (
           <div
             aria-hidden
