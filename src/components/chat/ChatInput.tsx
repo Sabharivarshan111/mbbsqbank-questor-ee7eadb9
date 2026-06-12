@@ -66,7 +66,14 @@ export const ChatInput = ({ prompt, setPrompt, onSubmit, isLoading, isDisabled }
             adjustTextareaHeight();
           }}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            // Wait for the on-screen keyboard to open, then scroll the input into view
+            setTimeout(() => {
+              textareaRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }, 300);
+          }}
           className={`min-h-[36px] max-h-[80px] resize-none text-sm flex-grow ${getTextareaClass()} ${isDisabled ? 'opacity-60' : ''}`}
+
           disabled={isLoading || isDisabled}
         />
         <Button 
