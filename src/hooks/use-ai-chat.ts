@@ -532,9 +532,23 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
       hidden: isMCQRequestEarly,
     };
 
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    const loadingMcqId = isMCQRequestEarly ? uuidv4() : null;
+    setMessages(prevMessages => {
+      const next = [...prevMessages, userMessage];
+      if (loadingMcqId) {
+        next.push({
+          id: loadingMcqId,
+          role: 'assistant',
+          content: '__MCQ_LOADING__',
+          timestamp: new Date(),
+          kind: 'mcq',
+        });
+      }
+      return next;
+    });
     setIsLoading(true);
     setPrompt(""); // Clear the input immediately when processing starts
+
     
     try {
       // 0. NEW: High-yield intent (essays/short-notes ranked by asterisk count).
