@@ -697,7 +697,12 @@ Rules:
         kind: isMCQRequest ? 'mcq' : undefined,
       };
       
-      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      setMessages(prevMessages => {
+        if (loadingMcqId) {
+          return prevMessages.map(m => m.id === loadingMcqId ? { ...aiMessage, id: loadingMcqId } : m);
+        }
+        return [...prevMessages, aiMessage];
+      });
     } catch (error) {
       handleError(error);
       
@@ -709,10 +714,14 @@ Rules:
         timestamp: new Date(),
       };
       
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages(prevMessages => {
+        const filtered = loadingMcqId ? prevMessages.filter(m => m.id !== loadingMcqId) : prevMessages;
+        return [...filtered, errorMessage];
+      });
     } finally {
       setIsLoading(false);
     }
+
   }, [messages, toast]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
