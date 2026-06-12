@@ -1,8 +1,12 @@
 import { useMemo } from "react";
+import { Loader2 } from "lucide-react";
 import { McqCard, type McqData } from "./McqCard";
+
+export const MCQ_LOADING_SENTINEL = "__MCQ_LOADING__";
 
 interface McqMessageProps {
   content: string;
+  messageId: string;
 }
 
 /** Try to extract a JSON array of MCQs from the model output. */
