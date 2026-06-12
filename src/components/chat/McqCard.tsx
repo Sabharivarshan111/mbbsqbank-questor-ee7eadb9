@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useMcqAnswer } from "@/lib/mcq-answer-store";
 
 export interface McqData {
   topic?: string;
@@ -14,10 +14,11 @@ interface McqCardProps {
   mcq: McqData;
   index: number;
   total: number;
+  messageId: string;
 }
 
-export const McqCard = ({ mcq, index, total }: McqCardProps) => {
-  const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
+export const McqCard = ({ mcq, index, total, messageId }: McqCardProps) => {
+  const [selected, setSelected] = useMcqAnswer(messageId, index);
   const answered = selected !== null;
 
   const handleSelect = (key: "A" | "B" | "C" | "D") => {
