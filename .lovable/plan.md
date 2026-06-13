@@ -1,60 +1,34 @@
-# Weekly Leaderboard, Global Celebrations & XP Tips
+## Problem
 
-## 1. Weekly leaderboard (new) + Lifetime tab
+1. When you rename yourself (e.g. "Gg") in Progress, the XP toast on Essay/Short-notes screens still says "Great work, Dr. Sunny!" — the old name.
+2. The Leaderboard sometimes keeps showing the old name after a rename.
+3. Renaming must keep the same XP, streak and badges (only the label changes).
 
-**Database (migration):**
-- New table `public.weekly_xp` to track XP earned per ISO week per user:
-  - `user_id uuid`, `week_start date` (Monday), `xp int default 0`, `streak_snapshot int default 0`
-  - PK: `(user_id, week_start)`
-  - RLS: authenticated read all (for leaderboard), users update only their own row via RPC
-  - GRANTs + enable realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.weekly_xp;`
-- Update `public.record_question_done` RPC: also `INSERT … ON CONFLICT` into `weekly_xp` for the current week (`date_trunc('week', CURRENT_DATE)`), incrementing `xp` by 1.
-- New RPC `get_weekly_leaderboard(_year, _limit)` returns top users for current week joined with `profiles` (display_name, year, streak, xp lifetime) so a single query feeds the UI.
+## Root cause
 
-**Frontend `Leaderboard.tsx`:**
-- Add a second tabs row: `Weekly | Lifetime` (in addition to existing `My Year | Global`).
-- Weekly mode: query `weekly_xp` joined with `profiles`; show `weekly XP`, lifetime XP small, streak flame, and a tiny **badge chip** (highest XP badge from `rewards.ts`, e.g. 🥇 Gold Scholar) next to the name.
-- Lifetime mode: existing behavior, but also render badge chip + streak.
-- Realtime: subscribe to both `profiles` and `weekly_xp` channels; refetch on change.
-- Add a small countdown "Resets in 3d 4h" header to the weekly tab (computed client-side until next Monday 00:00 UTC).
+`useProfile()` is called twice — once in `ProgressDashboard` and once in `GlobalCelebrations` (which feeds the toast). Each call has its own React state. When you save a new name, only the dashboard's copy updates; the global celebration copy keeps the stale name and feeds it to `useXpStream`.
 
-## 2. Tips card — split XP tips and Streak tips
+The leaderboard already refetches on `profiles` UPDATE via realtime, and the DB row is the same user id, so XP/streak/badges are automatically preserved on rename. The "old name" feeling in the leaderboard is the same stale-state issue surfacing through the toast plus a missed local refresh when another tab updates the row.
 
-Refactor `StreakTipsCard.tsx` into two stacked compact rows inside one card:
-- **Earn more XP** — rotating contextual tip ("Finish 5 MCQs for +5 XP", "Open any Essay topic and mark a question done", "Hit Level X with N more XP").
-- **Grow your streak** — ("Open the app daily — even 1 question keeps it alive", "Streak resets after 48h of inactivity", "Reach 7 days for the Blaze badge 🔥").
-Each row uses its own icon (Zap for XP, Flame for streak) and theme-aware accent.
+## Fix
 
-## 3. Global congratulations (everywhere, not only Progress tab)
+1. **Broadcast profile changes across all hook instances**
+   - In `src/hooks/use-profile.ts`, after `saveProfile` writes to localStorage + DB, dispatch a `window` `CustomEvent("orbit-profile-changed", { detail: profile })`.
+   - Every `useProfile()` instance listens for that event (and the existing `storage` event) and updates its own `local` state. Result: `GlobalCelebrations` immediately sees the new `display_name`.
+   - Also subscribe to the user's own `profiles` row via realtime inside `useProfile` so cloud-side name changes (other device) propagate too.
 
-Move the celebration listener up to the app root so toasts + confetti fire on **any** screen (Essay, Short Notes, Home, etc.).
+2. **Always pass the freshest name to the toast**
+   - In `src/hooks/use-xp-stream.ts`, read `displayName` via a `ref` that is updated whenever the prop changes, so the toast text uses the current name even if the closure was created earlier.
 
-- Promote `useXpStream` + `CelebrationOverlay` into a new `<GlobalCelebrations />` component mounted once inside `App.tsx`.
-- Remove the duplicate mount from `ProgressDashboard.tsx` (single source of truth so we don't double-fire).
-- Add Essay/Short-Notes-specific milestone messages: when XP increment happens while user is on an essay/short-notes route, toast copy switches to "🎉 +1 XP — keep crushing those essays!" / "📝 Short note done — +1 XP".
-- Home-screen specific: when a streak milestone or level-up fires, the celebration overlay shows on whatever screen the user is on (it's a fixed-position modal already).
+3. **Confirm rename keeps progress**
+   - `saveProfile` already does `upsert({ id, display_name, year })` without touching `xp`/`streak`/badges. No change needed — call this out so the user knows badges/XP/streak survive the rename. The on-device badge unlocks live in `localStorage` (`orbit-rewards-v1`) keyed by badge id, not by name, so they also survive.
 
-## 4. Realtime everywhere
+4. **Leaderboard freshness**
+   - No schema change. `useWeeklyLeaderboard` and `useLeaderboard` already refetch on `profiles` UPDATE. Verified `profiles` is in the `supabase_realtime` publication. The fix in step 1 also ensures the *current user's* row in the local leaderboard render updates instantly (since `currentUserId` highlight and "(you)" badge rely on the same profile state).
 
-- Leaderboard (both tabs) already uses `postgres_changes` — extend to `weekly_xp`.
-- `useXpStream` already subscribes to `profiles` row updates — keep.
-- Ensure `weekly_xp` is added to the realtime publication in the migration.
+## Files to edit
 
-## Files
+- `src/hooks/use-profile.ts` — dispatch + listen for `orbit-profile-changed`, add realtime subscription on own profile row.
+- `src/hooks/use-xp-stream.ts` — keep `displayName` in a ref so toast copy is always current.
 
-**Migration (1):** create `weekly_xp` + grants + RLS + realtime, update `record_question_done`, add `get_weekly_leaderboard` RPC.
-
-**New:**
-- `src/components/GlobalCelebrations.tsx`
-- `src/hooks/use-weekly-leaderboard.ts`
-
-**Edit:**
-- `src/App.tsx` — mount `<GlobalCelebrations />`
-- `src/components/progress/Leaderboard.tsx` — Weekly/Lifetime tabs, badge chip, streak
-- `src/components/progress/ProgressDashboard.tsx` — remove local celebration mount
-- `src/components/progress/StreakTipsCard.tsx` — split into XP + Streak tip rows
-- `src/hooks/use-xp-stream.ts` — route-aware toast copy
-
-## Out of scope
-- No new visual themes / gradients (kept from previous pass).
-- No badge schema changes — badges remain client-side from `rewards.ts`.
+No DB migration, no new components, no change to XP/streak/badge logic.

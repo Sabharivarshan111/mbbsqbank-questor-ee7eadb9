@@ -31,6 +31,8 @@ export function useXpStream({
 }: Options) {
   const prevXp = useRef<number>(Math.max(cloudXp, readLocalXp()));
   const prevStreak = useRef<number>(cloudStreak);
+  const nameRef = useRef<string | undefined>(displayName);
+  useEffect(() => { nameRef.current = displayName; }, [displayName]);
 
   // Sync refs when cloud values arrive
   useEffect(() => {
