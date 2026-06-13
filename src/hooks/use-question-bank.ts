@@ -9,7 +9,7 @@ export const useQuestionBank = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTab, setActiveTab] = useState<"progress" | "materials" | "essay" | "short-notes">("essay");
+  const [activeTab, setActiveTab] = useState<"extras" | "essay" | "short-notes">("essay");
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isRendered, setIsRendered] = useState(false);
 
