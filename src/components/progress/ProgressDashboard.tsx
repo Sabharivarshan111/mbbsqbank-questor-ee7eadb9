@@ -8,13 +8,20 @@ import SubjectsList from "./SubjectsList";
 import StreakXPCard from "./StreakXPCard";
 import Leaderboard from "./Leaderboard";
 import GoogleSyncButton from "./GoogleSyncButton";
+import RewardsShelf from "./RewardsShelf";
+import StreakTipsCard from "./StreakTipsCard";
+import CelebrationOverlay, { type CelebrationEvent } from "./CelebrationOverlay";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import { useXpStream } from "@/hooks/use-xp-stream";
+import { readLocalXp } from "@/lib/rewards";
 
 const ProgressDashboard = () => {
   const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
   const [tick, setTick] = useState(0);
+  const [celebrationQueue, setCelebrationQueue] = useState<CelebrationEvent[]>([]);
+  const [activeCelebration, setActiveCelebration] = useState<CelebrationEvent | null>(null);
 
   useEffect(() => {
     const h = () => setTick((t) => t + 1);
@@ -38,6 +45,29 @@ const ProgressDashboard = () => {
     return { completed: countDone(all), total: all.length };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, local, tick]);
+
+  const xp = Math.max(cloud?.xp ?? 0, readLocalXp(), completed);
+  const streak = cloud?.streak ?? 0;
+
+  // Drain queue when no active celebration
+  useEffect(() => {
+    if (!activeCelebration && celebrationQueue.length > 0) {
+      const [next, ...rest] = celebrationQueue;
+      setActiveCelebration(next);
+      setCelebrationQueue(rest);
+    }
+  }, [activeCelebration, celebrationQueue]);
+
+  useXpStream({
+    userId,
+    cloudXp: cloud?.xp ?? 0,
+    cloudStreak: streak,
+    displayName: local?.display_name,
+    onCelebrate: (ev) => {
+      setCelebrationQueue((q) => [...q, { ...ev, id: Date.now() + Math.random() }]);
+    },
+    onXpDelta: () => {},
+  });
 
   if (!local) {
     return (
@@ -73,7 +103,9 @@ const ProgressDashboard = () => {
       <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
 
       <YearRingCard completed={completed} total={total} />
-      <StreakXPCard xp={cloud?.xp ?? completed} streak={cloud?.streak ?? 0} />
+      <StreakXPCard xp={xp} streak={streak} />
+      <StreakTipsCard xp={xp} streak={streak} />
+      <RewardsShelf xp={xp} streak={streak} />
       <Leaderboard year={year} currentUserId={userId} enabled={!!userId} />
       <SubjectsList year={year} />
 
@@ -85,6 +117,8 @@ const ProgressDashboard = () => {
         onSave={(name, year) => saveProfile({ display_name: name, year })}
         title="Edit profile"
       />
+
+      <CelebrationOverlay event={activeCelebration} onClose={() => setActiveCelebration(null)} />
     </div>
   );
 };
