@@ -22,6 +22,7 @@ import Pathology from "./pages/subjects/Pathology";
 import Pharmacology from "./pages/subjects/Pharmacology";
 import Biochemistry from "./pages/subjects/Biochemistry";
 import Microbiology from "./pages/subjects/Microbiology";
+import GlobalCelebrations from "./components/GlobalCelebrations";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <GlobalCelebrations />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

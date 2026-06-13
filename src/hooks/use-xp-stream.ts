@@ -51,10 +51,14 @@ export function useXpStream({
 
   function handleXpChange(from: number, to: number, delta: number) {
     onXpDelta(delta);
-    toast.success(`+${delta} XP`, {
-      description: displayName ? `Great work, Dr. ${displayName}!` : "Keep going!",
-      duration: 2000,
-    });
+    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    const inSubject = path.startsWith("/subjects/");
+    const desc = inSubject
+      ? "📝 Keep crushing it — every question counts!"
+      : displayName
+      ? `Great work, Dr. ${displayName}!`
+      : "Keep going!";
+    toast.success(`+${delta} XP`, { description: desc, duration: 2000 });
     const unlocks = detectNewUnlocks(to, prevStreak.current);
     if (unlocks.leveledUp) {
       onCelebrate({ kind: "level", value: unlocks.leveledUp });
