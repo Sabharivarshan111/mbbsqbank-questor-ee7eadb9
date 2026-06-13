@@ -9,6 +9,7 @@ import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
 import ProgressDashboard from "./progress/ProgressDashboard";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { getThemeGradient } from "@/lib/theme-gradients";
 
 export interface QuestionType {
   name: string;
@@ -92,12 +93,13 @@ const QuestionBank = () => {
     return "bg-gray-100 dark:bg-gray-950";
   };
 
+  const themeGrad = getThemeGradient(theme);
   const topTriggerClass =
     "text-base sm:text-lg font-semibold rounded-md transition-all " +
     "data-[state=active]:text-white data-[state=active]:shadow-lg " +
-    "data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-500 data-[state=active]:via-pink-500 data-[state=active]:to-orange-400 " +
+    `data-[state=active]:${themeGrad.bg.replace("bg-gradient-to-r ", "bg-gradient-to-r ")} ` +
     (theme === "blackpink"
-      ? "text-[#FF5C8D]/70 data-[state=active]:from-[#FF5C8D] data-[state=active]:via-pink-500 data-[state=active]:to-black"
+      ? "text-[#FF5C8D]/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF5C8D] data-[state=active]:via-pink-500 data-[state=active]:to-black"
       : "text-gray-700 dark:text-gray-300");
 
   const isTopTab = activeTab === "progress" || activeTab === "materials";
