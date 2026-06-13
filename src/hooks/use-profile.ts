@@ -18,9 +18,14 @@ function readLocal(): LocalProfile | null {
   }
 }
 
+const PROFILE_EVENT = "orbit-profile-changed";
+
 function writeLocal(p: LocalProfile) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(p));
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: p }));
   } catch {}
 }
 
