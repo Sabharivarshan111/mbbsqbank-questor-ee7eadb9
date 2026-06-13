@@ -6,7 +6,8 @@ import { useQuestionBank } from "@/hooks/use-question-bank";
 import SearchBar from "./question-bank/SearchBar";
 import NoResultsMessage from "./question-bank/NoResultsMessage";
 import QuestionBankContent from "./question-bank/QuestionBankContent";
-import ExtrasContent from "./question-bank/ExtrasContent";
+import ProgressPage from "./question-bank/ProgressPage";
+import StudyMaterialsPage from "./question-bank/StudyMaterialsPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 export interface QuestionType {
@@ -39,6 +40,10 @@ export interface QuestionBankData {
   [key: string]: Topic;
 }
 
+type TabKey = "progress" | "materials" | "essay" | "short-notes";
+
+const TAB_ORDER: TabKey[] = ["progress", "materials", "essay", "short-notes"];
+
 const QuestionBank = () => {
   const {
     searchQuery,
@@ -54,23 +59,17 @@ const QuestionBank = () => {
     setExpandedItems,
     handleSearch
   } = useQuestionBank();
-  
+
   const { theme } = useTheme();
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
-      if (activeTab === "extras") {
-        setActiveTab("essay");
-      } else if (activeTab === "essay") {
-        setActiveTab("short-notes");
-      }
+      const i = TAB_ORDER.indexOf(activeTab);
+      if (i < TAB_ORDER.length - 1) setActiveTab(TAB_ORDER[i + 1]);
     },
     onSwipedRight: () => {
-      if (activeTab === "short-notes") {
-        setActiveTab("essay");
-      } else if (activeTab === "essay") {
-        setActiveTab("extras");
-      }
+      const i = TAB_ORDER.indexOf(activeTab);
+      if (i > 0) setActiveTab(TAB_ORDER[i - 1]);
     },
     trackMouse: true
   });
@@ -83,16 +82,17 @@ const QuestionBank = () => {
     );
   }
 
-  const googleDriveLink = "https://drive.google.com/drive/folders/1FT6Tg6K4POa5jfet_twGk7iC3nH2yJdm";
+  const isTopPage = activeTab === "progress" || activeTab === "materials";
 
-  const getExtraButtonClass = () => {
+  const topButtonClass = (key: "progress" | "materials") => {
+    const isActive = activeTab === key;
     if (theme === "blackpink") {
-      return activeTab === "extras" 
-        ? "bg-black text-[#FF5C8D] border-2 border-[#FF5C8D] shadow-[0_0_10px_rgba(255,92,141,0.5)] font-semibold" 
+      return isActive
+        ? "bg-black text-[#FF5C8D] border-2 border-[#FF5C8D] shadow-[0_0_10px_rgba(255,92,141,0.5)] font-semibold"
         : "bg-black text-[#FF5C8D]/70 border border-[#FF5C8D]/30 hover:border-[#FF5C8D]/50";
     }
-    return activeTab === "extras" 
-      ? "bg-blue-600 text-white" 
+    return isActive
+      ? "bg-blue-600 text-white"
       : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700";
   };
 
@@ -106,50 +106,53 @@ const QuestionBank = () => {
   return (
     <div className="bg-white dark:bg-black h-full min-h-[600px]">
       <div className="flex-1 p-4 max-w-4xl mx-auto space-y-4" {...handlers}>
-        {/* Extras Tab as a separate section above the main tabs */}
-        <div className="w-full mb-4" data-tour="qbank-header">
-          <button 
-            onClick={() => setActiveTab("extras")}
-            data-active={activeTab === "extras"}
-            className={`extras-tab-button w-full py-3 text-lg font-medium rounded-lg ${getExtraButtonClass()} transition-colors`}
+        {/* Two top buttons: Your Progress | Study Materials */}
+        <div className="w-full mb-4 grid grid-cols-2 gap-2" data-tour="qbank-header">
+          <button
+            onClick={() => setActiveTab("progress")}
+            data-active={activeTab === "progress"}
+            className={`w-full py-3 text-base sm:text-lg font-medium rounded-lg transition-colors ${topButtonClass("progress")}`}
           >
-            {theme === "blackpink" && activeTab === "extras" && (
-              <span className="relative">
-                MEDICOS ZONE study material
-                <span className="absolute -bottom-1 left-1/4 right-1/4 h-0.5 bg-[#FF5C8D]"></span>
-              </span>
-            )}
-            {!(theme === "blackpink" && activeTab === "extras") && "MEDICOS ZONE study material"}
+            Your Progress
+          </button>
+          <button
+            onClick={() => setActiveTab("materials")}
+            data-active={activeTab === "materials"}
+            className={`w-full py-3 text-base sm:text-lg font-medium rounded-lg transition-colors ${topButtonClass("materials")}`}
+          >
+            Study Materials
           </button>
         </div>
-        
-        <Tabs 
-          defaultValue="essay" 
+
+        <Tabs
+          defaultValue="essay"
           value={activeTab}
           className="w-full"
-          onValueChange={(value) => setActiveTab(value as "extras" | "essay" | "short-notes")}
+          onValueChange={(value) => setActiveTab(value as TabKey)}
         >
-          <TabsList className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-4`}>
-            <TabsTrigger 
-              value="essay" 
-              className={`text-lg font-medium ${theme === "blackpink" 
-                ? "text-[#FF5C8D]/70 data-[state=active]:text-[#FF5C8D]" 
-                : "text-gray-700 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-white"}`}
-            >
-              Essay
-            </TabsTrigger>
-            <TabsTrigger 
-              value="short-notes"
-              className={`text-lg font-medium ${theme === "blackpink" 
-                ? "text-[#FF5C8D]/70 data-[state=active]:text-[#FF5C8D]" 
-                : "text-gray-700 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-white"}`}
-            >
-              Short notes
-            </TabsTrigger>
-          </TabsList>
+          {!isTopPage && (
+            <TabsList className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-4`}>
+              <TabsTrigger
+                value="essay"
+                className={`text-lg font-medium ${theme === "blackpink"
+                  ? "text-[#FF5C8D]/70 data-[state=active]:text-[#FF5C8D]"
+                  : "text-gray-700 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-white"}`}
+              >
+                Essay
+              </TabsTrigger>
+              <TabsTrigger
+                value="short-notes"
+                className={`text-lg font-medium ${theme === "blackpink"
+                  ? "text-[#FF5C8D]/70 data-[state=active]:text-[#FF5C8D]"
+                  : "text-gray-700 dark:text-gray-400 data-[state=active]:text-black dark:data-[state=active]:text-white"}`}
+              >
+                Short notes
+              </TabsTrigger>
+            </TabsList>
+          )}
 
-          {activeTab !== "extras" && (
-            <SearchBar 
+          {!isTopPage && (
+            <SearchBar
               searchQuery={searchQuery}
               handleSearch={handleSearch}
             />
@@ -159,11 +162,15 @@ const QuestionBank = () => {
             {!hasSearchResults && activeSearchQuery.trim() !== "" && (
               <NoResultsMessage searchQuery={activeSearchQuery} />
             )}
-            
-            <TabsContent value="extras" className="mt-0 min-h-[500px] bg-transparent">
-              <ExtrasContent driveLink={googleDriveLink} />
+
+            <TabsContent value="progress" className="mt-0 min-h-[500px] bg-transparent">
+              <ProgressPage />
             </TabsContent>
-            
+
+            <TabsContent value="materials" className="mt-0 min-h-[500px] bg-transparent">
+              <StudyMaterialsPage />
+            </TabsContent>
+
             <TabsContent value="essay" className="mt-0 min-h-[500px] bg-transparent">
               <QuestionBankContent
                 activeTab="essay"
