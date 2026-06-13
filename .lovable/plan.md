@@ -1,85 +1,60 @@
-# Progress Area Gamification & Polish
+# Weekly Leaderboard, Global Celebrations & XP Tips
 
-Make the Progress tab feel like a premium game: real-time celebrations for every XP gain and streak milestone, contextual tips to grow the streak, theme-aware gradients on the top tabs, and a richer reward system with unlockable badges/cards.
+## 1. Weekly leaderboard (new) + Lifetime tab
 
-## 1. Real-time XP & Streak notifications
+**Database (migration):**
+- New table `public.weekly_xp` to track XP earned per ISO week per user:
+  - `user_id uuid`, `week_start date` (Monday), `xp int default 0`, `streak_snapshot int default 0`
+  - PK: `(user_id, week_start)`
+  - RLS: authenticated read all (for leaderboard), users update only their own row via RPC
+  - GRANTs + enable realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.weekly_xp;`
+- Update `public.record_question_done` RPC: also `INSERT … ON CONFLICT` into `weekly_xp` for the current week (`date_trunc('week', CURRENT_DATE)`), incrementing `xp` by 1.
+- New RPC `get_weekly_leaderboard(_year, _limit)` returns top users for current week joined with `profiles` (display_name, year, streak, xp lifetime) so a single query feeds the UI.
 
-- Subscribe to `question_progress` events (already dispatched via `QUESTION_PROGRESS_EVENT`) and to Supabase realtime on the `profiles` row for the current user.
-- On every XP change:
-  - Sonner toast: "+1 XP · Great work, Dr. {name}!" with a gradient accent.
-  - Floating "+1 XP" number that rises and fades over the StreakXP card.
-  - Confetti burst (lightweight, canvas-based, no heavy lib) when XP crosses a level (every 50 XP) or a badge threshold (10 / 50 / 100 / 500).
-- On streak increase:
-  - Toast: "🔥 {n}-day streak! Keep the flame alive."
-  - Flame icon pulses + scales once; subtle screen-edge glow.
-  - Milestones (3, 7, 14, 30, 60, 100 days) trigger a full celebration modal with confetti and a shareable "Streak card".
+**Frontend `Leaderboard.tsx`:**
+- Add a second tabs row: `Weekly | Lifetime` (in addition to existing `My Year | Global`).
+- Weekly mode: query `weekly_xp` joined with `profiles`; show `weekly XP`, lifetime XP small, streak flame, and a tiny **badge chip** (highest XP badge from `rewards.ts`, e.g. 🥇 Gold Scholar) next to the name.
+- Lifetime mode: existing behavior, but also render badge chip + streak.
+- Realtime: subscribe to both `profiles` and `weekly_xp` channels; refetch on change.
+- Add a small countdown "Resets in 3d 4h" header to the weekly tab (computed client-side until next Monday 00:00 UTC).
 
-## 2. Streak & XP growth tips
+## 2. Tips card — split XP tips and Streak tips
 
-Add a small "How to grow" card under StreakXP with rotating, dismissible tips:
-- "Answer 1 question a day to keep your streak alive."
-- "Hit Level {next} with just {n} more XP."
-- "Complete a full subtopic for a 10-XP bonus." (future)
-- "Open the app daily — even a single question counts."
+Refactor `StreakTipsCard.tsx` into two stacked compact rows inside one card:
+- **Earn more XP** — rotating contextual tip ("Finish 5 MCQs for +5 XP", "Open any Essay topic and mark a question done", "Hit Level X with N more XP").
+- **Grow your streak** — ("Open the app daily — even 1 question keeps it alive", "Streak resets after 48h of inactivity", "Reach 7 days for the Blaze badge 🔥").
+Each row uses its own icon (Zap for XP, Flame for streak) and theme-aware accent.
 
-Card shows the most actionable tip first (computed from current state: low streak → streak tip; near level-up → XP tip; near badge → badge tip).
+## 3. Global congratulations (everywhere, not only Progress tab)
 
-## 3. Themed gradients on top tabs (Your Progress / Study Materials)
+Move the celebration listener up to the app root so toasts + confetti fire on **any** screen (Essay, Short Notes, Home, etc.).
 
-Currently both top tabs use the same fuchsia→pink→orange gradient regardless of theme. Make the active-tab gradient match the current theme, mirroring how Essay / Short notes already adapt:
+- Promote `useXpStream` + `CelebrationOverlay` into a new `<GlobalCelebrations />` component mounted once inside `App.tsx`.
+- Remove the duplicate mount from `ProgressDashboard.tsx` (single source of truth so we don't double-fire).
+- Add Essay/Short-Notes-specific milestone messages: when XP increment happens while user is on an essay/short-notes route, toast copy switches to "🎉 +1 XP — keep crushing those essays!" / "📝 Short note done — +1 XP".
+- Home-screen specific: when a streak milestone or level-up fires, the celebration overlay shows on whatever screen the user is on (it's a fixed-position modal already).
 
-- light / dark: fuchsia → pink → orange (current)
-- blackpink: hot pink → black (current variant, keep)
-- Add per-theme gradients for any other themes defined in `ThemeProvider` (e.g. ocean → teal/blue, sunset → amber/red, forest → emerald/lime). I'll read `ThemeProvider.tsx` to enumerate themes and define a gradient map in one place (`src/lib/theme-gradients.ts`) reused by both the top tab row and the StreakXP progress bar / badges so the whole Progress area feels cohesive per theme.
+## 4. Realtime everywhere
 
-## 4. Luxurious animations across Progress area
+- Leaderboard (both tabs) already uses `postgres_changes` — extend to `weekly_xp`.
+- `useXpStream` already subscribes to `profiles` row updates — keep.
+- Ensure `weekly_xp` is added to the realtime publication in the migration.
 
-- `YearRingCard`: animated SVG ring that sweeps from 0 → current % on mount with easing, soft inner glow, count-up percentage.
-- `StreakXPCard`: shimmer sweep across the XP bar, badge unlock = scale-in + glow pulse, locked badges get a subtle "shimmer on hover" tease.
-- `SubjectsList`: stagger fade-in rows, per-row gradient progress with sheen.
-- `Leaderboard`: gold/silver/bronze gradient rows for top 3, crown icon for #1, subtle row hover lift.
-- Use existing tailwind keyframes (`fade-in`, `scale-in`) + add `shimmer` and `float-up` keyframes in `tailwind.config.ts` / `index.css`.
+## Files
 
-## 5. Reward & badge system (video-game style)
+**Migration (1):** create `weekly_xp` + grants + RLS + realtime, update `record_question_done`, add `get_weekly_leaderboard` RPC.
 
-Extend the current 4-badge strip into a proper rewards shelf:
+**New:**
+- `src/components/GlobalCelebrations.tsx`
+- `src/hooks/use-weekly-leaderboard.ts`
 
-- Tiered badges with icons: Bronze (10), Silver (50), Gold (100), Platinum (250), Diamond (500), Legendary (1000).
-- Streak badges: 🔥3, 🔥7, 🔥14, 🔥30, 🔥100.
-- Each unlock fires confetti + toast + writes to `localStorage` (`orbit-rewards-v1`) so the celebration only plays once.
-- New "Rewards" collapsible section showing all badges with locked/unlocked states, progress-to-next, and unlock date.
-- Optional: "Daily login bonus" — first open of the day gives +2 XP with a small chest-open animation.
-
-All purely client-side; no schema changes required (XP / streak already exist on `profiles`).
+**Edit:**
+- `src/App.tsx` — mount `<GlobalCelebrations />`
+- `src/components/progress/Leaderboard.tsx` — Weekly/Lifetime tabs, badge chip, streak
+- `src/components/progress/ProgressDashboard.tsx` — remove local celebration mount
+- `src/components/progress/StreakTipsCard.tsx` — split into XP + Streak tip rows
+- `src/hooks/use-xp-stream.ts` — route-aware toast copy
 
 ## Out of scope
-
-- Backend leaderboard ranking changes.
-- Push notifications outside the app.
-- New Supabase tables.
-
-## Technical details
-
-**Files to create**
-- `src/lib/theme-gradients.ts` — map theme → gradient class strings.
-- `src/lib/rewards.ts` — badge definitions, unlock detection, localStorage tracking.
-- `src/components/progress/RewardsShelf.tsx`
-- `src/components/progress/StreakTipsCard.tsx`
-- `src/components/progress/CelebrationOverlay.tsx` — confetti + modal for milestones.
-- `src/hooks/use-xp-stream.ts` — subscribes to `QUESTION_PROGRESS_EVENT` + Supabase realtime on `profiles`, emits `{ deltaXp, newXp, newStreak, unlocked }`.
-- `src/hooks/use-floating-number.ts` — small util for "+1 XP" floats.
-
-**Files to edit**
-- `src/components/QuestionBank.tsx` — `topTriggerClass` reads from `theme-gradients.ts`.
-- `src/components/progress/ProgressDashboard.tsx` — mount `useXpStream`, render `RewardsShelf`, `StreakTipsCard`, `CelebrationOverlay`.
-- `src/components/progress/StreakXPCard.tsx` — shimmer, floating-number anchor, themed gradient.
-- `src/components/progress/YearRingCard.tsx` — animated ring + count-up.
-- `src/components/progress/Leaderboard.tsx` — top-3 styling.
-- `src/components/progress/SubjectsList.tsx` — stagger + sheen.
-- `tailwind.config.ts` + `src/index.css` — `shimmer`, `float-up`, `ring-fill` keyframes; gradient utility tokens.
-
-**Confetti**: tiny custom canvas implementation (~60 lines) in `CelebrationOverlay.tsx` — no new dependency.
-
-**Realtime**: `supabase.channel('profile:'+userId).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: 'id=eq.'+userId }, ...)`. Falls back to polling the existing `QUESTION_PROGRESS_EVENT` if realtime is disabled.
-
-**Once-only celebrations**: `localStorage['orbit-rewards-v1'] = { unlockedBadges: [...], lastLevel, lastStreakMilestone }` — compared on every update to decide whether to fire confetti.
+- No new visual themes / gradients (kept from previous pass).
+- No badge schema changes — badges remain client-side from `rewards.ts`.
