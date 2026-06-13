@@ -35,17 +35,21 @@ export function useProfile() {
   const [local, setLocal] = useState<LocalProfile | null>(readLocal);
   const [cloud, setCloud] = useState<CloudProfile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
+  const [email, setEmail] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(!readLocal());
   const [loading, setLoading] = useState(false);
 
   // Watch auth
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserId(data.session?.user?.id ?? null);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUserId(session?.user?.id ?? null);
-    });
+    const apply = (session: any) => {
+      const user = session?.user;
+      setUserId(user?.id ?? null);
+      setEmail(user?.email ?? null);
+      setIsAnonymous(!!user?.is_anonymous);
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session));
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -80,7 +84,6 @@ export function useProfile() {
         if (!uid) {
           const { data, error } = await supabase.auth.signInAnonymously();
           if (error) {
-            // Anonymous sign-in not enabled - keep local only
             console.warn("Anonymous auth disabled:", error.message);
             setLoading(false);
             return;
@@ -110,5 +113,24 @@ export function useProfile() {
     [userId]
   );
 
-  return { local, cloud, userId, needsOnboarding, loading, saveProfile, setNeedsOnboarding };
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setCloud(null);
+    setUserId(null);
+    setEmail(null);
+    setIsAnonymous(true);
+  }, []);
+
+  return {
+    local,
+    cloud,
+    userId,
+    email,
+    isAnonymous,
+    needsOnboarding,
+    loading,
+    saveProfile,
+    setNeedsOnboarding,
+    signOut,
+  };
 }
