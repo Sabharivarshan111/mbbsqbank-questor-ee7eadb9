@@ -16,8 +16,15 @@ export function isQuestionDone(question: string): boolean {
 
 export function setQuestionDone(question: string, done: boolean) {
   try {
+    const wasDone = isQuestionDone(question);
     localStorage.setItem(getQuestionId(question), done.toString());
     window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+    // Fire-and-forget cloud sync when transitioning to done
+    if (done && !wasDone) {
+      import("@/integrations/supabase/client").then(({ supabase }) => {
+        supabase.rpc("record_question_done", { _question_id: getQuestionId(question) }).then(() => {});
+      }).catch(() => {});
+    }
   } catch {}
 }
 
