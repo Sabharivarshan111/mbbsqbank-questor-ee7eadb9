@@ -9,7 +9,6 @@ import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
 import ProgressDashboard from "./progress/ProgressDashboard";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { getThemeGradient } from "@/lib/theme-gradients";
 
 export interface QuestionType {
   name: string;
