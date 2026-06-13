@@ -10,10 +10,8 @@ import Leaderboard from "./Leaderboard";
 import GoogleSyncButton from "./GoogleSyncButton";
 import RewardsShelf from "./RewardsShelf";
 import StreakTipsCard from "./StreakTipsCard";
-import CelebrationOverlay, { type CelebrationEvent } from "./CelebrationOverlay";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
-import { useXpStream } from "@/hooks/use-xp-stream";
 import { readLocalXp } from "@/lib/rewards";
 
 const ProgressDashboard = () => {
