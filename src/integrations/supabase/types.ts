@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_activity: {
+        Row: {
+          date: string
+          opens: number
+          questions_done: number
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          opens?: number
+          questions_done?: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          opens?: number
+          questions_done?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          last_active_date: string | null
+          streak: number
+          updated_at: string
+          xp: number
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id: string
+          last_active_date?: string | null
+          streak?: number
+          updated_at?: string
+          xp?: number
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          last_active_date?: string | null
+          streak?: number
+          updated_at?: string
+          xp?: number
+          year?: Database["public"]["Enums"]["app_year"]
+        }
+        Relationships: []
+      }
+      question_progress: {
+        Row: {
+          completed_at: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_presence: {
         Row: {
           device_id: string
@@ -31,13 +103,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      weekly_leaders: {
+        Row: {
+          display_name: string | null
+          id: string | null
+          streak: number | null
+          week_done: number | null
+          week_opens: number | null
+          xp: number | null
+          year: Database["public"]["Enums"]["app_year"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      record_question_done: {
+        Args: { _question_id: string }
+        Returns: undefined
+      }
+      register_open: {
+        Args: never
+        Returns: {
+          last_active_date: string
+          streak: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_year: "first" | "second" | "third" | "final"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -164,6 +257,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_year: ["first", "second", "third", "final"],
+    },
   },
 } as const
