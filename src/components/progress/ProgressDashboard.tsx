@@ -93,15 +93,6 @@ const ProgressDashboard = () => {
         onSave={(name, year) => saveProfile({ display_name: name, year })}
         title="Edit profile"
       />
-
-      <OnboardingDialog
-        open={editOpen}
-        initialName={local.display_name}
-        initialYear={local.year}
-        onClose={() => setEditOpen(false)}
-        onSave={(name, year) => saveProfile({ display_name: name, year })}
-        title="Edit profile"
-      />
     </div>
   );
 };
