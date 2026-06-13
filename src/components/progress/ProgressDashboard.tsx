@@ -7,11 +7,12 @@ import YearRingCard from "./YearRingCard";
 import SubjectsList from "./SubjectsList";
 import StreakXPCard from "./StreakXPCard";
 import Leaderboard from "./Leaderboard";
+import GoogleSyncButton from "./GoogleSyncButton";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 
 const ProgressDashboard = () => {
-  const { local, cloud, userId, needsOnboarding, saveProfile, setNeedsOnboarding } = useProfile();
+  const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
   const [tick, setTick] = useState(0);
 
