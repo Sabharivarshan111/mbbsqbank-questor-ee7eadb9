@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LogOut, Check } from "lucide-react";
+import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
 
 interface Props {
   isAnonymous: boolean;
@@ -42,13 +43,19 @@ const GoogleSyncButton = ({ isAnonymous, email, onSignOut }: Props) => {
   const handleLink = async () => {
     setBusy(true);
     try {
-      // linkIdentity preserves anonymous progress; falls back to signInWithOAuth if no session
+      if (isNative()) {
+        // Android APK: open Google OAuth in Chrome Custom Tabs (system browser)
+        // to avoid Google's "disallowed_useragent" block on in-app WebViews.
+        await nativeGoogleSignIn();
+        return;
+      }
+
+      // Web: linkIdentity preserves anonymous progress; fall back to signInWithOAuth
       const { error } = await supabase.auth.linkIdentity({
         provider: "google",
         options: { redirectTo: window.location.origin },
       } as any);
       if (error) {
-        // Try plain OAuth as fallback
         const { error: e2 } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: { redirectTo: window.location.origin },
