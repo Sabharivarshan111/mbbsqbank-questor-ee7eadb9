@@ -26,8 +26,7 @@ const SubjectsList = ({ year }: Props) => {
   return (
     <div className="space-y-3">
       <p className="text-xs tracking-widest text-muted-foreground">SUBJECTS</p>
-      {subjects.map((s) => {
-        // include both essay and short-notes questions
+      {subjects.map((s, i) => {
         const allQs = [
           ...collectQuestions(s.node, "essay"),
           ...collectQuestions(s.node, "short-notes"),
@@ -37,14 +36,18 @@ const SubjectsList = ({ year }: Props) => {
         const done = countDone(unique);
         const pct = total ? Math.round((done / total) * 100) : 0;
         return (
-          <div key={s.key + tick} className="rounded-xl bg-card border p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+          <div
+            key={s.key + tick}
+            className="rounded-xl bg-card border p-3 flex items-center gap-3 animate-fade-in hover:shadow-md hover:border-primary/40 transition-all"
+            style={{ animationDelay: `${i * 60}ms` }}
+          >
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-fuchsia-500/20 to-orange-400/20 text-primary flex items-center justify-center flex-shrink-0">
               <FlaskConical className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-medium truncate">{s.name}</p>
-                <span className="text-xs font-semibold text-primary">{pct}%</span>
+                <span className="text-xs font-semibold bg-gradient-to-r from-fuchsia-500 to-orange-400 bg-clip-text text-transparent">{pct}%</span>
               </div>
               <Progress value={pct} className="h-1.5 mt-1" />
               <p className="text-[11px] text-muted-foreground mt-1">{done} / {total} questions</p>
