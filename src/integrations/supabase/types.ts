@@ -101,6 +101,27 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_xp: {
+        Row: {
+          updated_at: string
+          user_id: string
+          week_start: string
+          xp: number
+        }
+        Insert: {
+          updated_at?: string
+          user_id: string
+          week_start: string
+          xp?: number
+        }
+        Update: {
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       weekly_leaders: {
@@ -117,6 +138,17 @@ export type Database = {
       }
     }
     Functions: {
+      get_weekly_leaderboard: {
+        Args: { _limit?: number; _year?: string }
+        Returns: {
+          display_name: string
+          id: string
+          streak: number
+          weekly_xp: number
+          xp: number
+          year: string
+        }[]
+      }
       record_question_done: {
         Args: { _question_id: string }
         Returns: undefined
