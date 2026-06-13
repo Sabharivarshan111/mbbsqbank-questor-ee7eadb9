@@ -93,14 +93,23 @@ const QuestionBank = () => {
     return "bg-gray-100 dark:bg-gray-950";
   };
 
-  const themeGrad = getThemeGradient(theme);
+  // Static per-theme gradient strings so Tailwind JIT picks them up.
+  const topActiveGradient =
+    theme === "blackpink"
+      ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF5C8D] data-[state=active]:via-pink-500 data-[state=active]:to-black"
+      : theme === "light"
+      ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:via-fuchsia-500 data-[state=active]:to-rose-400"
+      : theme === "liquid-glass"
+      ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-400 data-[state=active]:via-sky-500 data-[state=active]:to-indigo-500"
+      : theme === "custom"
+      ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:via-pink-500 data-[state=active]:to-orange-400"
+      : "data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-500 data-[state=active]:via-pink-500 data-[state=active]:to-orange-400";
+
   const topTriggerClass =
     "text-base sm:text-lg font-semibold rounded-md transition-all " +
     "data-[state=active]:text-white data-[state=active]:shadow-lg " +
-    `data-[state=active]:${themeGrad.bg.replace("bg-gradient-to-r ", "bg-gradient-to-r ")} ` +
-    (theme === "blackpink"
-      ? "text-[#FF5C8D]/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF5C8D] data-[state=active]:via-pink-500 data-[state=active]:to-black"
-      : "text-gray-700 dark:text-gray-300");
+    topActiveGradient + " " +
+    (theme === "blackpink" ? "text-[#FF5C8D]/70" : "text-gray-700 dark:text-gray-300");
 
   const isTopTab = activeTab === "progress" || activeTab === "materials";
 
