@@ -46,9 +46,12 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
           return (
             <div
               key={r.id}
-              className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm ${
-                isMe ? "bg-primary/15 border border-primary/30" : "bg-muted/40"
+              className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm animate-fade-in transition-all ${
+                isMe
+                  ? "bg-gradient-to-r from-fuchsia-500/15 via-pink-500/15 to-orange-400/15 ring-2 ring-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
+                  : "bg-muted/40 hover:bg-muted/60"
               }`}
+              style={{ animationDelay: `${i * 40}ms` }}
             >
               <span className="w-6 text-center text-xs font-bold text-muted-foreground">#{i + 1}</span>
               <span className="flex-1 truncate font-medium">{r.display_name}{isMe && " (you)"}</span>
