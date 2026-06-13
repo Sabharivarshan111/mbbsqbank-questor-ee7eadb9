@@ -85,18 +85,6 @@ const QuestionBank = () => {
   const googleDriveLink =
     "https://drive.google.com/drive/folders/1FT6Tg6K4POa5jfet_twGk7iC3nH2yJdm";
 
-  const getTopButtonClass = (value: TabValue) => {
-    const active = activeTab === value;
-    if (theme === "blackpink") {
-      return active
-        ? "bg-black text-[#FF5C8D] border-2 border-[#FF5C8D] shadow-[0_0_10px_rgba(255,92,141,0.5)] font-semibold"
-        : "bg-black text-[#FF5C8D]/70 border border-[#FF5C8D]/30 hover:border-[#FF5C8D]/50";
-    }
-    return active
-      ? "bg-blue-600 text-white"
-      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700";
-  };
-
   const getTabsListClass = () => {
     if (theme === "blackpink") {
       return "bg-black border border-[#FF5C8D]/30";
@@ -104,42 +92,38 @@ const QuestionBank = () => {
     return "bg-gray-100 dark:bg-gray-950";
   };
 
+  const topTriggerClass =
+    "text-base sm:text-lg font-semibold rounded-md transition-all " +
+    "data-[state=active]:text-white data-[state=active]:shadow-lg " +
+    "data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-500 data-[state=active]:via-pink-500 data-[state=active]:to-orange-400 " +
+    (theme === "blackpink"
+      ? "text-[#FF5C8D]/70 data-[state=active]:from-[#FF5C8D] data-[state=active]:via-pink-500 data-[state=active]:to-black"
+      : "text-gray-700 dark:text-gray-300");
+
   const isTopTab = activeTab === "progress" || activeTab === "materials";
 
   return (
     <div className="bg-white dark:bg-black h-full min-h-[600px]">
       <div className="flex-1 p-4 max-w-4xl mx-auto space-y-4" {...handlers}>
-        {/* Top row: Your Progress + Study Materials */}
-        <div
-          className="w-full mb-4 grid grid-cols-2 gap-3"
-          data-tour="qbank-header"
-        >
-          <button
-            onClick={() => setActiveTab("progress")}
-            data-active={activeTab === "progress"}
-            className={`w-full py-3 text-base sm:text-lg font-medium rounded-lg transition-colors ${getTopButtonClass(
-              "progress"
-            )}`}
-          >
-            Your Progress
-          </button>
-          <button
-            onClick={() => setActiveTab("materials")}
-            data-active={activeTab === "materials"}
-            className={`extras-tab-button w-full py-3 text-base sm:text-lg font-medium rounded-lg transition-colors ${getTopButtonClass(
-              "materials"
-            )}`}
-          >
-            Study Materials
-          </button>
-        </div>
-
         <Tabs
           defaultValue="essay"
           value={activeTab}
           className="w-full"
           onValueChange={(value) => setActiveTab(value as TabValue)}
         >
+          {/* Top row: Your Progress / Study Materials — single TabsList with gradient */}
+          <TabsList
+            data-tour="qbank-header"
+            className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-3 p-1`}
+          >
+            <TabsTrigger value="progress" className={topTriggerClass}>
+              Your Progress
+            </TabsTrigger>
+            <TabsTrigger value="materials" className={`extras-tab-button ${topTriggerClass}`}>
+              Study Materials
+            </TabsTrigger>
+          </TabsList>
+
           <TabsList
             className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-4`}
           >
