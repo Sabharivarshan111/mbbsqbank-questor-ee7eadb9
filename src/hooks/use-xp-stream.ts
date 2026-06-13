@@ -31,6 +31,8 @@ export function useXpStream({
 }: Options) {
   const prevXp = useRef<number>(Math.max(cloudXp, readLocalXp()));
   const prevStreak = useRef<number>(cloudStreak);
+  const nameRef = useRef<string | undefined>(displayName);
+  useEffect(() => { nameRef.current = displayName; }, [displayName]);
 
   // Sync refs when cloud values arrive
   useEffect(() => {
@@ -53,10 +55,11 @@ export function useXpStream({
     onXpDelta(delta);
     const path = typeof window !== "undefined" ? window.location.pathname : "";
     const inSubject = path.startsWith("/subjects/");
+    const currentName = nameRef.current;
     const desc = inSubject
       ? "📝 Keep crushing it — every question counts!"
-      : displayName
-      ? `Great work, Dr. ${displayName}!`
+      : currentName
+      ? `Great work, Dr. ${currentName}!`
       : "Keep going!";
     toast.success(`+${delta} XP`, { description: desc, duration: 2000 });
     const unlocks = detectNewUnlocks(to, prevStreak.current);

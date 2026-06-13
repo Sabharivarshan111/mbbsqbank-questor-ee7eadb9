@@ -18,9 +18,14 @@ function readLocal(): LocalProfile | null {
   }
 }
 
+const PROFILE_EVENT = "orbit-profile-changed";
+
 function writeLocal(p: LocalProfile) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(p));
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: p }));
   } catch {}
 }
 
@@ -52,6 +57,49 @@ export function useProfile() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session));
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Sync local profile across all useProfile() instances (same tab + other tabs)
+  useEffect(() => {
+    const onCustom = (e: Event) => {
+      const detail = (e as CustomEvent<LocalProfile>).detail;
+      if (detail) setLocal(detail);
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LS_KEY) {
+        const next = readLocal();
+        if (next) setLocal(next);
+      }
+    };
+    window.addEventListener(PROFILE_EVENT, onCustom);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(PROFILE_EVENT, onCustom);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  // Realtime: own profile row changes (e.g. rename on another device)
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`own-profile:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row) return;
+          setCloud((c) => (c ? { ...c, ...row } : (row as CloudProfile)));
+          const next = { display_name: row.display_name, year: row.year as Year };
+          setLocal(next);
+          writeLocal(next);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   // Load cloud profile + register open
   useEffect(() => {
