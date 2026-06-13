@@ -7,11 +7,12 @@ import YearRingCard from "./YearRingCard";
 import SubjectsList from "./SubjectsList";
 import StreakXPCard from "./StreakXPCard";
 import Leaderboard from "./Leaderboard";
+import GoogleSyncButton from "./GoogleSyncButton";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 
 const ProgressDashboard = () => {
-  const { local, cloud, userId, needsOnboarding, saveProfile, setNeedsOnboarding } = useProfile();
+  const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
   const [tick, setTick] = useState(0);
 
@@ -58,7 +59,7 @@ const ProgressDashboard = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Dr. {local.display_name}</h3>
@@ -68,6 +69,8 @@ const ProgressDashboard = () => {
           <Pencil className="h-4 w-4" />
         </Button>
       </div>
+
+      <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
 
       <YearRingCard completed={completed} total={total} />
       <StreakXPCard xp={cloud?.xp ?? completed} streak={cloud?.streak ?? 0} />
