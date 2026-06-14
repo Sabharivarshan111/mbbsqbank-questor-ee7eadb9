@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import type { Year } from "@/lib/year-subjects";
 import { YEAR_LABELS } from "@/lib/year-subjects";
+import { validateDisplayName } from "@/lib/profanity";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   open: boolean;
@@ -20,13 +22,23 @@ const OnboardingDialog = ({ open, initialName = "", initialYear = "first", onClo
   const [name, setName] = useState(initialName);
   const [year, setYear] = useState<Year>(initialYear);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!name.trim()) return;
+    const check = validateDisplayName(name);
+    if (!check.ok) {
+      setError(check.reason ?? "Invalid name.");
+      toast({ title: "Choose a different name", description: check.reason, variant: "destructive" });
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       await onSave(name.trim(), year);
       onClose?.();
+    } catch (e: any) {
+      setError(e?.message ?? "Could not save profile.");
     } finally {
       setSaving(false);
     }
