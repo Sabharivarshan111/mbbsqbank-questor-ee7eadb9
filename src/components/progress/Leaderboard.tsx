@@ -124,9 +124,11 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
       (a, b) =>
         b.primary - a.primary ||
         b.streak - a.streak ||
+        b.tiebreak_seconds - a.tiebreak_seconds ||
         a.display_name.localeCompare(b.display_name)
     );
   }, [period, weekly.rows, lifetime.rows, currentUserId, localYearXp]);
+
 
   const me = useMemo<UserStat | null>(() => {
     if (!currentUserId) return null;
@@ -140,9 +142,12 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
           year_xp: r.year_xp,
           weekly_xp: r.weekly_xp,
           streak: r.streak,
+          year_seconds: r.year_seconds,
+          weekly_seconds: r.weekly_seconds,
         }
       : null;
   }, [rows, currentUserId]);
+
 
   if (!enabled) {
     return (
