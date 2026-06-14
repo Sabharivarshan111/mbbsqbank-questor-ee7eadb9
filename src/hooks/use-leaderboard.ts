@@ -10,6 +10,8 @@ export interface LeaderRow {
   xp: number;       // lifetime
   year_xp: number;  // questions solved for this year (= xp when "all")
   streak: number;
+  year_seconds: number;
+
 }
 
 export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
@@ -38,6 +40,7 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
               xp: r.xp,
               year_xp: r.xp,
               streak: r.streak,
+              year_seconds: 0,
             }))
           );
         }
@@ -55,6 +58,8 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
               xp: r.xp,
               year_xp: r.year_xp,
               streak: r.streak,
+              year_seconds: Number(r.year_seconds ?? 0),
+
             }))
           );
         }
