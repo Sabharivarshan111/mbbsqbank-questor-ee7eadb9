@@ -7,6 +7,7 @@ export interface WeeklyRow {
   display_name: string;
   year: Year;
   weekly_xp: number;
+  year_xp: number;
   xp: number;
   streak: number;
 }

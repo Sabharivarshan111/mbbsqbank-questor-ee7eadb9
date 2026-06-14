@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProfile } from "@/hooks/use-profile";
 import { YEAR_LABELS, type Year } from "@/lib/year-subjects";
+import { validateDisplayName } from "@/lib/profanity";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   onDone: () => void;
@@ -15,13 +17,23 @@ const WalkthroughProfileSetup = ({ onDone }: Props) => {
   const [name, setName] = useState(local?.display_name ?? "");
   const [year, setYear] = useState<Year>(local?.year ?? "first");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!name.trim()) return;
+    const check = validateDisplayName(name);
+    if (!check.ok) {
+      setError(check.reason ?? "Invalid name.");
+      toast({ title: "Choose a different name", description: check.reason, variant: "destructive" });
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       await saveProfile({ display_name: name.trim(), year });
       onDone();
+    } catch (e: any) {
+      setError(e?.message ?? "Could not save profile.");
     } finally {
       setSaving(false);
     }
@@ -35,10 +47,11 @@ const WalkthroughProfileSetup = ({ onDone }: Props) => {
           id="wt-name"
           placeholder="Dr. ___"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value); if (error) setError(null); }}
           maxLength={40}
           autoFocus
         />
+        {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs">Year</Label>

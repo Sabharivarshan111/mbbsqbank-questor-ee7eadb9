@@ -20,24 +20,28 @@ export type Database = {
           opens: number
           questions_done: number
           user_id: string
+          year: Database["public"]["Enums"]["app_year"] | null
         }
         Insert: {
           date?: string
           opens?: number
           questions_done?: number
           user_id: string
+          year?: Database["public"]["Enums"]["app_year"] | null
         }
         Update: {
           date?: string
           opens?: number
           questions_done?: number
           user_id?: string
+          year?: Database["public"]["Enums"]["app_year"] | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
           created_at: string
+          device_id: string | null
           display_name: string
           id: string
           last_active_date: string | null
@@ -48,6 +52,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          device_id?: string | null
           display_name: string
           id: string
           last_active_date?: string | null
@@ -58,6 +63,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          device_id?: string | null
           display_name?: string
           id?: string
           last_active_date?: string | null
@@ -73,16 +79,19 @@ export type Database = {
           completed_at: string
           question_id: string
           user_id: string
+          year: Database["public"]["Enums"]["app_year"] | null
         }
         Insert: {
           completed_at?: string
           question_id: string
           user_id: string
+          year?: Database["public"]["Enums"]["app_year"] | null
         }
         Update: {
           completed_at?: string
           question_id?: string
           user_id?: string
+          year?: Database["public"]["Enums"]["app_year"] | null
         }
         Relationships: []
       }
@@ -107,18 +116,21 @@ export type Database = {
           user_id: string
           week_start: string
           xp: number
+          year: Database["public"]["Enums"]["app_year"]
         }
         Insert: {
           updated_at?: string
           user_id: string
           week_start: string
           xp?: number
+          year: Database["public"]["Enums"]["app_year"]
         }
         Update: {
           updated_at?: string
           user_id?: string
           week_start?: string
           xp?: number
+          year?: Database["public"]["Enums"]["app_year"]
         }
         Relationships: []
       }
@@ -138,6 +150,30 @@ export type Database = {
       }
     }
     Functions: {
+      claim_or_merge_profile: {
+        Args: {
+          _device_id: string
+          _display_name: string
+          _year: Database["public"]["Enums"]["app_year"]
+        }
+        Returns: {
+          created_at: string
+          device_id: string | null
+          display_name: string
+          id: string
+          last_active_date: string | null
+          streak: number
+          updated_at: string
+          xp: number
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_weekly_leaderboard: {
         Args: { _limit?: number; _year?: string }
         Returns: {
@@ -147,7 +183,23 @@ export type Database = {
           weekly_xp: number
           xp: number
           year: string
+          year_xp: number
         }[]
+      }
+      get_year_leaderboard: {
+        Args: { _limit?: number; _year: string }
+        Returns: {
+          display_name: string
+          id: string
+          streak: number
+          xp: number
+          year: string
+          year_xp: number
+        }[]
+      }
+      get_year_lifetime_xp: {
+        Args: { _user_id: string; _year: string }
+        Returns: number
       }
       record_question_done: {
         Args: { _question_id: string }

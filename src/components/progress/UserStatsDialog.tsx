@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Flame, Zap, Trophy, BookOpen, Calendar, Sparkles } from "lucide-react";
+import { Flame, Zap, Trophy, BookOpen, Calendar, Sparkles, GraduationCap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { XP_BADGES } from "@/lib/rewards";
 import { YEAR_LABELS, type Year } from "@/lib/year-subjects";
@@ -8,7 +8,8 @@ export interface UserStat {
   id: string;
   display_name: string;
   year: Year;
-  xp: number;
+  xp: number;         // lifetime
+  year_xp: number;    // questions solved for this user's current year
   weekly_xp: number;
   streak: number;
 }
@@ -96,7 +97,12 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
   const next = nextXpBadge(target.xp);
   const pct = next ? Math.min(100, Math.round((target.xp / next.threshold) * 100)) : 100;
 
-  const xpGap = me ? target.xp - me.xp : 0;
+  const sameYear = !!(me && me.year === target.year);
+  // Use year XP for the head-to-head when both are in the same year; otherwise fall back to lifetime.
+  const meCompare = me ? (sameYear ? me.year_xp : me.xp) : 0;
+  const themCompare = sameYear ? target.year_xp : target.xp;
+
+  const xpGap = me ? themCompare - meCompare : 0;
   const streakGap = me ? target.streak - me.streak : 0;
   const weeklyGap = me ? target.weekly_xp - me.weekly_xp : 0;
 
@@ -105,9 +111,9 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
     if (xpGap > 0) {
       if (xpGap <= 10) pep = `So close! Just ${xpGap} more question${xpGap === 1 ? "" : "s"} to tie.`;
       else if (xpGap <= 50) pep = `Within reach — knock out ${xpGap} more questions to catch up.`;
-      else pep = `Big climb — ${xpGap} XP behind. Chip away one session at a time.`;
+      else pep = `Big climb — ${xpGap} ${sameYear ? "year" : "lifetime"} XP behind. Chip away one session at a time.`;
     } else if (xpGap < 0) {
-      pep = `You're ahead by ${Math.abs(xpGap)} XP. Keep the lead! 🚀`;
+      pep = `You're ahead by ${Math.abs(xpGap)} ${sameYear ? "year" : "lifetime"} XP. Keep the lead! 🚀`;
     } else {
       pep = `Dead tie! One question decides it.`;
     }
@@ -153,10 +159,10 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
 
         {/* Stat tiles */}
         <div className="grid grid-cols-4 gap-2">
-          <Stat icon={<Zap className="h-4 w-4" />} label="Lifetime XP" value={target.xp} color="text-primary" />
+          <Stat icon={<GraduationCap className="h-4 w-4" />} label={`${YEAR_LABELS[target.year].replace(" Year", "")} Yr XP`} value={target.year_xp} color="text-emerald-500" />
+          <Stat icon={<Zap className="h-4 w-4" />} label="Lifetime" value={target.xp} color="text-primary" />
           <Stat icon={<Sparkles className="h-4 w-4" />} label="This week" value={target.weekly_xp} color="text-fuchsia-500" />
           <Stat icon={<Flame className="h-4 w-4" />} label="Streak" value={target.streak} color="text-orange-500" />
-          <Stat icon={<BookOpen className="h-4 w-4" />} label="Solved" value={target.xp} color="text-emerald-500" />
         </div>
 
         {/* Comparison */}
@@ -167,7 +173,19 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
               <span className="text-center">vs</span>
               <span className="text-left text-amber-500 truncate">{target.display_name}</span>
             </div>
-            <Compare label="Lifetime XP" me={me.xp} them={target.xp} />
+            {sameYear ? (
+              <>
+                <Compare label={`${YEAR_LABELS[target.year].replace(" Year", "")} Yr XP`} me={me.year_xp} them={target.year_xp} />
+                <Compare label="Lifetime XP" me={me.xp} them={target.xp} />
+              </>
+            ) : (
+              <>
+                <Compare label="Lifetime XP" me={me.xp} them={target.xp} />
+                <div className="text-[10px] text-center text-muted-foreground italic py-0.5">
+                  You're in different years — comparing lifetime totals.
+                </div>
+              </>
+            )}
             <Compare label="This week" me={me.weekly_xp} them={target.weekly_xp} />
             <Compare label="Streak" me={me.streak} them={target.streak} unit="d" />
             <Compare label="Solved" me={me.xp} them={target.xp} />
@@ -176,13 +194,13 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
               {xpGap > 0 && (
                 <p className="text-xs">
                   <Trophy className="inline h-3.5 w-3.5 mr-1 text-amber-500" />
-                  Solve <b>{xpGap}</b> more question{xpGap === 1 ? "" : "s"} to tie, <b>{xpGap + 1}</b> to overtake.
+                  Solve <b>{xpGap}</b> more {sameYear ? "year" : ""} question{xpGap === 1 ? "" : "s"} to tie, <b>{xpGap + 1}</b> to overtake.
                 </p>
               )}
               {xpGap < 0 && (
                 <p className="text-xs">
                   <Trophy className="inline h-3.5 w-3.5 mr-1 text-primary" />
-                  You lead by <b>{Math.abs(xpGap)}</b> XP — stay ahead!
+                  You lead by <b>{Math.abs(xpGap)}</b> {sameYear ? "year" : "lifetime"} XP — stay ahead!
                 </p>
               )}
               {streakGap > 0 && (
