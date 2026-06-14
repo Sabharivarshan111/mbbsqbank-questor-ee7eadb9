@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
 import { validateDisplayName } from "@/lib/profanity";
-import { syncLocalProgressToCloud } from "@/lib/question-progress";
+import { syncLocalProgressToCloud, reconcileProgressWithCloud } from "@/lib/question-progress";
 
 export interface LocalProfile {
   display_name: string;
