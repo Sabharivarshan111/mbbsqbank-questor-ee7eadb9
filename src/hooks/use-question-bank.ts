@@ -143,7 +143,10 @@ export const useQuestionBank = () => {
       }
       for (const k of wantKeys) if ((node as any)[k] && walk((node as any)[k])) return true;
       if (node.subtopics && typeof node.subtopics === "object") {
-        for (const v of Object.values(node.subtopics)) if (walk(v)) return true;
+        for (const [k, v] of Object.entries(node.subtopics)) {
+          if (skipKeys.has(k)) continue;
+          if (walk(v)) return true;
+        }
       }
       for (const [k, v] of Object.entries(node)) {
         if (k === "name" || k === "subtopics" || skipKeys.has(k) || wantKeys.includes(k)) continue;
