@@ -42,7 +42,7 @@ export function useWeeklyLeaderboard(filterYear: Year | "all", enabled: boolean)
       .on("postgres_changes", { event: "*", schema: "public", table: "question_progress" }, () => fetchRows())
       .subscribe();
 
-    const onLocal = () => fetchRows();
+    const onLocal = () => { setTimeout(fetchRows, 400); };
     window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
 
     return () => {
