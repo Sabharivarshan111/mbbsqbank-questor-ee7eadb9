@@ -80,6 +80,9 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
             weekly_xp: r.weekly_xp,
             xp: r.xp,
             streak: r.streak,
+            tiebreak_seconds: r.weekly_seconds,
+            year_seconds: r.year_seconds,
+            weekly_seconds: r.weekly_seconds,
           }))
         : lifetime.rows.map((r) => ({
             id: r.id,
@@ -90,7 +93,11 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
             weekly_xp: 0,
             xp: r.xp,
             streak: r.streak,
+            tiebreak_seconds: r.year_seconds,
+            year_seconds: r.year_seconds,
+            weekly_seconds: 0,
           }));
+
 
     // Dedupe by name+year
     const seen = new Map<string, typeof source[number]>();
