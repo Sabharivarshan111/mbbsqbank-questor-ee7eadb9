@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
+import { QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 
 export interface LeaderRow {
   id: string;
@@ -77,9 +78,13 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
       )
       .subscribe();
 
+    const onLocal = () => fetchRows();
+    window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
+
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
+      window.removeEventListener(QUESTION_PROGRESS_EVENT, onLocal);
     };
   }, [filterYear, enabled]);
 

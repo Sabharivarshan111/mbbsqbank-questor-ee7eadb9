@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
+import { QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 
 export interface WeeklyRow {
   id: string;
@@ -38,11 +39,16 @@ export function useWeeklyLeaderboard(filterYear: Year | "all", enabled: boolean)
       .channel("weekly-leaderboard")
       .on("postgres_changes", { event: "*", schema: "public", table: "weekly_xp" }, () => fetchRows())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetchRows())
+      .on("postgres_changes", { event: "*", schema: "public", table: "question_progress" }, () => fetchRows())
       .subscribe();
+
+    const onLocal = () => fetchRows();
+    window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
 
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
+      window.removeEventListener(QUESTION_PROGRESS_EVENT, onLocal);
     };
   }, [filterYear, enabled]);
 
