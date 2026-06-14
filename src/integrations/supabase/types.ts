@@ -205,6 +205,10 @@ export type Database = {
         Args: { _question_id: string }
         Returns: undefined
       }
+      record_question_undone: {
+        Args: { _question_id: string }
+        Returns: undefined
+      }
       record_questions_done: {
         Args: { _question_ids: string[] }
         Returns: number
