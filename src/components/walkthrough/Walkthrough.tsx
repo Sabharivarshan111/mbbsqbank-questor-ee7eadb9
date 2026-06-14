@@ -306,6 +306,13 @@ export const Walkthrough = () => {
           {step.description}
         </p>
 
+        {step.component === 'profile-setup' && (
+          <div className="mb-4">
+            <WalkthroughProfileSetup onDone={next} />
+          </div>
+        )}
+
+
         <div className="flex items-center gap-1 mb-4">
           {walkthroughSteps.map((s, i) => (
             <span
