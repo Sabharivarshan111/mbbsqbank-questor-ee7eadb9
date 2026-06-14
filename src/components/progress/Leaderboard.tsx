@@ -5,8 +5,8 @@ import { useLeaderboard } from "@/hooks/use-leaderboard";
 import { useWeeklyLeaderboard } from "@/hooks/use-weekly-leaderboard";
 import type { Year } from "@/lib/year-subjects";
 import { YEAR_LABELS } from "@/lib/year-subjects";
-import { XP_BADGES, readLocalXp } from "@/lib/rewards";
-import { QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import { XP_BADGES } from "@/lib/rewards";
+import { QUESTION_PROGRESS_EVENT, countLocalYearXp } from "@/lib/question-progress";
 import UserStatsDialog, { type UserStat } from "./UserStatsDialog";
 
 interface Props {
