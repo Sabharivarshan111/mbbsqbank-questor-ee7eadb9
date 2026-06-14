@@ -1,4 +1,4 @@
-
+import { useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSwipeable } from "react-swipeable";
@@ -74,6 +74,18 @@ const QuestionBank = () => {
     trackMouse: true,
   });
 
+  // Walkthrough can request a tab switch.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail;
+      if (tab === "progress" || tab === "materials" || tab === "essay" || tab === "short-notes") {
+        setActiveTab(tab as TabValue);
+      }
+    };
+    window.addEventListener("orbit:set-tab", handler);
+    return () => window.removeEventListener("orbit:set-tab", handler);
+  }, [setActiveTab]);
+
   if (!isRendered) {
     return (
       <div className="bg-white dark:bg-black h-full min-h-[600px] flex items-center justify-center">
@@ -126,10 +138,10 @@ const QuestionBank = () => {
             data-tour="qbank-header"
             className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-3 p-1`}
           >
-            <TabsTrigger value="progress" className={topTriggerClass}>
+            <TabsTrigger value="progress" data-tour="progress-tab" className={topTriggerClass}>
               Your Progress
             </TabsTrigger>
-            <TabsTrigger value="materials" className={`extras-tab-button ${topTriggerClass}`}>
+            <TabsTrigger value="materials" data-tour="study-materials-tab" className={`extras-tab-button ${topTriggerClass}`}>
               Study Materials
             </TabsTrigger>
           </TabsList>

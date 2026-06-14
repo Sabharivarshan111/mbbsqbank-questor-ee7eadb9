@@ -1,34 +1,55 @@
-## Problem
+## 1. Tap a leaderboard entry → user details + head-to-head
 
-1. When you rename yourself (e.g. "Gg") in Progress, the XP toast on Essay/Short-notes screens still says "Great work, Dr. Sunny!" — the old name.
-2. The Leaderboard sometimes keeps showing the old name after a rename.
-3. Renaming must keep the same XP, streak and badges (only the label changes).
+In `src/components/progress/Leaderboard.tsx` each row becomes a button that opens a new `UserStatsDialog` (`src/components/progress/UserStatsDialog.tsx`).
 
-## Root cause
+Dialog content for the tapped user:
+- Avatar circle (initials) + display name + year badge
+- Highest XP badge earned (from `XP_BADGES` in `src/lib/rewards.ts`) with name + emoji, plus next-badge progress bar
+- Stat tiles: Lifetime XP, This-week XP, Current streak, Questions solved (= `xp`, since `record_question_done` grants 1 XP per unique question — already accurate)
+- "You vs. Dr. {name}" comparison block:
+  - Side-by-side numbers for XP / weekly XP / streak / questions solved
+  - Delta line: e.g. "You're 42 XP behind — solve 42 more questions to tie, 43 to overtake" (or "ahead by N" when current user leads)
+  - If they lead on streak: "Open the app daily for N more days to match their streak"
+- Encouragement footer line based on gap (small/medium/large)
 
-`useProfile()` is called twice — once in `ProgressDashboard` and once in `GlobalCelebrations` (which feeds the toast). Each call has its own React state. When you save a new name, only the dashboard's copy updates; the global celebration copy keeps the stale name and feeds it to `useXpStream`.
+Data: everything needed is already in the leaderboard row (`xp`, `weekly_xp`, `streak`, `year`, `display_name`). Current user's stats come from the same `rows` array (find by `currentUserId`) — no new query, no RLS work, stays realtime.
 
-The leaderboard already refetches on `profiles` UPDATE via realtime, and the DB row is the same user id, so XP/streak/badges are automatically preserved on rename. The "old name" feeling in the leaderboard is the same stale-state issue surfacing through the toast plus a missed local refresh when another tab updates the row.
+Self-tap: dialog shows "This is you" header and skips the comparison block.
 
-## Fix
+## 2. First-run walkthrough revamp
 
-1. **Broadcast profile changes across all hook instances**
-   - In `src/hooks/use-profile.ts`, after `saveProfile` writes to localStorage + DB, dispatch a `window` `CustomEvent("orbit-profile-changed", { detail: profile })`.
-   - Every `useProfile()` instance listens for that event (and the existing `storage` event) and updates its own `local` state. Result: `GlobalCelebrations` immediately sees the new `display_name`.
-   - Also subscribe to the user's own `profiles` row via realtime inside `useProfile` so cloud-side name changes (other device) propagate too.
+Edit `src/components/walkthrough/walkthroughSteps.ts` and `src/components/walkthrough/Walkthrough.tsx`.
 
-2. **Always pass the freshest name to the toast**
-   - In `src/hooks/use-xp-stream.ts`, read `displayName` via a `ref` that is updated whenever the prop changes, so the toast text uses the current name even if the closure was created earlier.
+New ordered steps inserted at the very top, before the existing "qbank" step:
 
-3. **Confirm rename keeps progress**
-   - `saveProfile` already does `upsert({ id, display_name, year })` without touching `xp`/`streak`/badges. No change needed — call this out so the user knows badges/XP/streak survive the rename. The on-device badge unlocks live in `localStorage` (`orbit-rewards-v1`) keyed by badge id, not by name, so they also survive.
+1. **Welcome + Set up your profile** — replaces the current plain "welcome" step. Renders the onboarding form inline inside the walkthrough card (name + year, same fields as `OnboardingDialog`). Saving calls `saveProfile` from `useProfile`; Skip is allowed. This requires a new `step.component` escape hatch in `Walkthrough.tsx` so a step can render custom JSX instead of just title/description.
+2. **Your Progress tab** — points to the Progress tab trigger, explains it's where stats, streaks and leaderboard live. New `data-tour="progress-tab"` on the Progress `TabsTrigger` in `QuestionBank.tsx`.
+3. **XP & Streaks** — targets the StreakXPCard (`data-tour="streak-xp-card"` added). Explains: +1 XP per unique question solved, daily open keeps streak alive, badges unlock at XP milestones.
+4. **Ranking & Stats** — targets RewardsShelf/badges (`data-tour="rewards-shelf"`). Explains badge tiers and how progress is tracked.
+5. **Leaderboard** — targets the Leaderboard card (`data-tour="leaderboard"`). Explains weekly vs lifetime, tap any name to see their stats and how to beat them.
 
-4. **Leaderboard freshness**
-   - No schema change. `useWeeklyLeaderboard` and `useLeaderboard` already refetch on `profiles` UPDATE. Verified `profiles` is in the `supabase_realtime` publication. The fix in step 1 also ensures the *current user's* row in the local leaderboard render updates instantly (since `currentUserId` highlight and "(you)" badge rely on the same profile state).
+Then the existing flow continues (QBank header, AI chat, themes, pomodoro, report-issue, etc.) unchanged in order.
 
-## Files to edit
+Walkthrough auto-switches the active tab to "Your Progress" before steps 2–5 fire and switches back to "Question Bank" for the qbank step. Implemented by extending the `action` union in `walkthroughSteps.ts` with `open-progress-tab` / `open-qbank-tab` and handling them in `Walkthrough.tsx` via a `window` CustomEvent that `QuestionBank.tsx` listens for to call `setTab(...)`.
 
-- `src/hooks/use-profile.ts` — dispatch + listen for `orbit-profile-changed`, add realtime subscription on own profile row.
-- `src/hooks/use-xp-stream.ts` — keep `displayName` in a ref so toast copy is always current.
+## 3. Study Materials walkthrough step (rename cleanup)
 
-No DB migration, no new components, no change to XP/streak/badge logic.
+There is no current step that mentions "Medicoz" — the Question Bank tab was already renamed to "Study Materials" in `QuestionBank.tsx` (line 133) and `StudyMaterialsCard.tsx`. To match the user's intent, add one new walkthrough step right after the qbank step:
+
+- **Study Materials** — targets `data-tour="study-materials-tab"` (added to the Study Materials `TabsTrigger`). Copy: "Tap here for curated notes, PDFs and reference material for every subject." Switches to that tab via `open-study-materials-tab` action.
+
+Also grep the codebase for any stray "Medicoz" string and remove it if found (none expected based on current search).
+
+## Technical details
+
+Files created:
+- `src/components/progress/UserStatsDialog.tsx`
+
+Files edited:
+- `src/components/progress/Leaderboard.tsx` — rows become buttons, manage selected-user state, render dialog
+- `src/components/walkthrough/walkthroughSteps.ts` — new steps, new action types, optional `component` field
+- `src/components/walkthrough/Walkthrough.tsx` — handle `component` rendering, dispatch tab-switch events, handle profile-setup step's Save/Skip
+- `src/components/QuestionBank.tsx` — add `data-tour` attrs (`progress-tab`, `study-materials-tab`), listen for tab-switch CustomEvents
+- `src/components/progress/ProgressDashboard.tsx` — add `data-tour` wrappers on `StreakXPCard`, `RewardsShelf`, `Leaderboard`
+
+No database migration. No RLS changes. No new dependencies. Realtime continues to work because the dialog reads from the same `rows` array driven by the existing realtime subscription.

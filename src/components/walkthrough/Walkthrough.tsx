@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { walkthroughSteps } from "./walkthroughSteps";
+import WalkthroughProfileSetup from "./WalkthroughProfileSetup";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "orbit-walkthrough-completed";
@@ -60,6 +61,15 @@ export const Walkthrough = () => {
     }
     if (step.action === 'open-pomodoro-settings') {
       window.dispatchEvent(new CustomEvent('orbit:open-pomodoro-settings'));
+    }
+    if (step.action === 'open-progress-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'progress' }));
+    }
+    if (step.action === 'open-qbank-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'essay' }));
+    }
+    if (step.action === 'open-materials-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'materials' }));
     }
 
     // Pomodoro visibility override (default: hide if not specified)
@@ -295,6 +305,13 @@ export const Walkthrough = () => {
         <p className="text-sm text-muted-foreground leading-relaxed mb-4">
           {step.description}
         </p>
+
+        {step.component === 'profile-setup' && (
+          <div className="mb-4">
+            <WalkthroughProfileSetup onDone={next} />
+          </div>
+        )}
+
 
         <div className="flex items-center gap-1 mb-4">
           {walkthroughSteps.map((s, i) => (

@@ -1,20 +1,69 @@
+export type WalkthroughAction =
+  | 'open-custom-theme'
+  | 'open-theme-menu'
+  | 'open-pomodoro-settings'
+  | 'open-progress-tab'
+  | 'open-qbank-tab'
+  | 'open-materials-tab';
+
+export type WalkthroughComponent = 'profile-setup';
+
 export interface WalkthroughStep {
   id: string;
   title: string;
   description: string;
   targetSelector?: string;
-  action?: 'open-custom-theme' | 'open-theme-menu' | 'open-pomodoro-settings';
+  action?: WalkthroughAction;
   interactive?: boolean;
   placement?: 'below' | 'above' | 'auto';
   pomodoro?: 'show' | 'minimize' | 'hide';
+  component?: WalkthroughComponent;
 }
 
 export const walkthroughSteps: WalkthroughStep[] = [
   {
-    id: "welcome",
+    id: "profile-setup",
     title: "Welcome to ORBIT MBBS QBANK 👋",
     description:
-      "Let's take a quick 60-second tour so you don't miss any of the features built for you.",
+      "First, tell us your name and year so we can track your XP, streaks, and rank you on the leaderboard.",
+    component: 'profile-setup',
+    pomodoro: 'hide',
+  },
+  {
+    id: "progress-tab",
+    title: "Your Progress Tab",
+    description:
+      "This tab is your command center — track XP, build streaks, unlock badges, and climb the leaderboard.",
+    targetSelector: '[data-tour="progress-tab"]',
+    action: 'open-progress-tab',
+    placement: 'below',
+    pomodoro: 'hide',
+  },
+  {
+    id: "xp-streaks",
+    title: "XP & Streaks 🔥",
+    description:
+      "Earn +1 XP for every unique question you solve. Open the app daily to keep your streak alive — miss a day and it resets!",
+    targetSelector: '[data-tour="streak-xp-card"]',
+    action: 'open-progress-tab',
+    pomodoro: 'hide',
+  },
+  {
+    id: "ranking-stats",
+    title: "Badges & Ranks 🏆",
+    description:
+      "Unlock Bronze, Silver, Gold, Platinum, Diamond and Legendary badges as your XP grows. Streak badges too — Spark, Blaze, Inferno and more.",
+    targetSelector: '[data-tour="rewards-shelf"]',
+    action: 'open-progress-tab',
+    pomodoro: 'hide',
+  },
+  {
+    id: "leaderboard",
+    title: "Leaderboard — Weekly & Lifetime",
+    description:
+      "See how you rank this week and all-time. Tap any name to view their stats and exactly how many questions you need to overtake them.",
+    targetSelector: '[data-tour="leaderboard"]',
+    action: 'open-progress-tab',
     pomodoro: 'hide',
   },
   {
@@ -23,6 +72,17 @@ export const walkthroughSteps: WalkthroughStep[] = [
     description:
       "Browse thousands of MCQs and short answers across every MBBS subject — organized by year, subject and topic.",
     targetSelector: '[data-tour="question-bank"] [data-tour="qbank-header"]',
+    action: 'open-qbank-tab',
+    placement: 'below',
+    pomodoro: 'hide',
+  },
+  {
+    id: "study-materials",
+    title: "Study Materials 📚",
+    description:
+      "Tap here for curated notes, PDFs and reference material for every subject — all in one place.",
+    targetSelector: '[data-tour="study-materials-tab"]',
+    action: 'open-materials-tab',
     placement: 'below',
     pomodoro: 'hide',
   },
