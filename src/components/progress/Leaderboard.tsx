@@ -162,6 +162,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
                   display_name: r.display_name,
                   year: r.year,
                   xp: r.xp,
+                  year_xp: r.year_xp,
                   weekly_xp: r.weekly_xp,
                   streak: r.streak,
                 })
