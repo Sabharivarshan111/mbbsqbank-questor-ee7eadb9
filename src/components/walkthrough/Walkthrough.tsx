@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { walkthroughSteps } from "./walkthroughSteps";
+import WalkthroughProfileSetup from "./WalkthroughProfileSetup";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "orbit-walkthrough-completed";
