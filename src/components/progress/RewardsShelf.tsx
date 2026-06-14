@@ -52,10 +52,12 @@ const BadgeTile = ({ b, unlocked, progress }: { b: BadgeDef; unlocked: boolean; 
 };
 
 const RewardsShelf = ({ xp, streak }: Props) => {
-  const state = useMemo(() => getRewardsState(), [xp, streak]);
   const { theme } = useTheme();
   const grad = getThemeGradient(theme);
-  const totalUnlocked = Object.keys(state.unlocked).length;
+  // Live counts based on current XP/streak — badges reverse when XP drops below threshold.
+  const xpUnlockedCount = XP_BADGES.filter((b) => xp >= b.threshold).length;
+  const streakUnlockedCount = STREAK_BADGES.filter((b) => streak >= b.threshold).length;
+  const totalUnlocked = xpUnlockedCount + streakUnlockedCount;
   const total = XP_BADGES.length + STREAK_BADGES.length;
 
   return (
@@ -78,7 +80,7 @@ const RewardsShelf = ({ xp, streak }: Props) => {
               <BadgeTile
                 key={b.id}
                 b={b}
-                unlocked={!!state.unlocked[b.id] || xp >= b.threshold}
+                unlocked={xp >= b.threshold}
                 progress={(xp / b.threshold) * 100}
               />
             ))}
@@ -91,7 +93,7 @@ const RewardsShelf = ({ xp, streak }: Props) => {
               <BadgeTile
                 key={b.id}
                 b={b}
-                unlocked={!!state.unlocked[b.id] || streak >= b.threshold}
+                unlocked={streak >= b.threshold}
                 progress={(streak / b.threshold) * 100}
               />
             ))}
