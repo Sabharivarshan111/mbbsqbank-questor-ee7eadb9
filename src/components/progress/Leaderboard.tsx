@@ -41,6 +41,7 @@ function useResetCountdown() {
 const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   const [scope, setScope] = useState<"year" | "all">("year");
   const [period, setPeriod] = useState<"weekly" | "lifetime">("weekly");
+  const [selected, setSelected] = useState<UserStat | null>(null);
   const lifetime = useLeaderboard(scope === "year" ? year : "all", enabled && period === "lifetime");
   const weekly = useWeeklyLeaderboard(scope === "year" ? year : "all", enabled && period === "weekly");
   const countdown = useResetCountdown();
@@ -53,6 +54,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
         year: r.year,
         primary: r.weekly_xp,
         xp: r.xp,
+        weekly_xp: r.weekly_xp,
         streak: r.streak,
       }));
     }
@@ -62,9 +64,16 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
       year: r.year,
       primary: r.xp,
       xp: r.xp,
+      weekly_xp: 0,
       streak: r.streak,
     }));
   }, [period, weekly.rows, lifetime.rows]);
+
+  const me = useMemo<UserStat | null>(() => {
+    if (!currentUserId) return null;
+    const r = rows.find((x) => x.id === currentUserId);
+    return r ? { id: r.id, display_name: r.display_name, year: r.year, xp: r.xp, weekly_xp: r.weekly_xp, streak: r.streak } : null;
+  }, [rows, currentUserId]);
 
   const loading = period === "weekly" ? weekly.loading : lifetime.loading;
 
