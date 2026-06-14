@@ -89,15 +89,16 @@ export function useXpStream({
     commitUnlocks(unlocks, prevXp.current, to);
   }
 
-  // Local progress event → recompute local XP
+  // Local progress event → recompute local XP (handles both increases and decreases)
   useEffect(() => {
     const handler = () => {
-      const xp = Math.max(prevXp.current, readLocalXp());
+      const xp = readLocalXp();
       if (xp > prevXp.current) {
         const delta = xp - prevXp.current;
         handleXpChange(prevXp.current, xp, delta);
-        prevXp.current = xp;
       }
+      // Always sync — allows un-tick to lower local XP without celebrating.
+      prevXp.current = xp;
     };
     window.addEventListener(QUESTION_PROGRESS_EVENT, handler);
     return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, handler);
