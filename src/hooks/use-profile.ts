@@ -138,7 +138,11 @@ export function useProfile() {
         setLocal({ display_name: data.display_name, year: data.year as Year });
         writeLocal({ display_name: data.display_name, year: data.year as Year });
       }
-      await supabase.rpc("register_open");
+      const { data: openRes } = await (supabase as any).rpc("register_open");
+      const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
+      if (openRow && typeof openRow.streak === "number") {
+        setCloud((c) => c ? { ...c, streak: openRow.streak, last_active_date: openRow.last_active_date } : c);
+      }
       // Push any locally-completed questions to the cloud so XP/leaderboard catch up
       await syncLocalProgressToCloud();
       // Then reconcile: treat device as source of truth, drop stale server rows
