@@ -81,7 +81,13 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
         { event: "*", schema: "public", table: "question_progress" },
         () => fetchRows()
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "screen_time" },
+        () => fetchRows()
+      )
       .subscribe();
+
 
     const onLocal = () => { setTimeout(fetchRows, 400); setTimeout(fetchRows, 1500); };
     window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);

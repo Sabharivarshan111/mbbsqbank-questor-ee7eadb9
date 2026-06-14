@@ -11,6 +11,9 @@ export interface WeeklyRow {
   year_xp: number;
   xp: number;
   streak: number;
+  weekly_seconds: number;
+  year_seconds: number;
+
 }
 
 export function useWeeklyLeaderboard(filterYear: Year | "all", enabled: boolean) {
@@ -28,9 +31,22 @@ export function useWeeklyLeaderboard(filterYear: Year | "all", enabled: boolean)
         _limit: 50,
       });
       if (!cancelled) {
-        if (!error && data) setRows(data as WeeklyRow[]);
+        if (!error && data) {
+          setRows((data as any[]).map((r) => ({
+            id: r.id,
+            display_name: r.display_name,
+            year: r.year as Year,
+            weekly_xp: r.weekly_xp,
+            year_xp: r.year_xp,
+            xp: r.xp,
+            streak: r.streak,
+            weekly_seconds: Number(r.weekly_seconds ?? 0),
+            year_seconds: Number(r.year_seconds ?? 0),
+          })));
+        }
         setLoading(false);
       }
+
     };
 
     fetchRows();
