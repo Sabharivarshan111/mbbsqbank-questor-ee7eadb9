@@ -1,33 +1,35 @@
+## Goal
+
+When the user switches year, the XP shown in "My Progress" and the leaderboard rank/XP should reflect only that year's completed questions — in realtime, both on tick and un-tick.
+
 ## Root cause
 
-- **Rewards stay unlocked because they read permanent localStorage unlock history**: `RewardsShelf` treats `state.unlocked[b.id]` as enough to keep a badge visible forever, even when current XP drops below the threshold.
-- **XP/rank can stay stale because leaderboard depends on cloud refresh timing**: local un-ticks update localStorage immediately, but leaderboard rows only change after the undo RPC commits and refetch/realtime arrives.
-- **Current user needs an immediate local override**: while Supabase catches up, the app should display the current user's XP/rank from the local tick count so spam tick/untick cannot leave the old rank visible.
+- `readLocalXp()` counts every `question-*` key in localStorage globally, so the local override in `Leaderboard.tsx` always uses lifetime XP instead of year-scoped XP.
+- The Leaderboard local override uses this global `localXp` for `year_xp` and `weekly_xp`, masking year differences when switching years.
+- `ProgressDashboard` already computes year-scoped `completed`, but falls back to cloud `yearXp` only when local is 0, and the XP shown is `completed || yearXp` (works, but should be explicit and update on year change).
 
 ## Plan
 
-1. **Make XP badges reversible in Rewards**
-   - Update `RewardsShelf` so XP badges unlock only from current `xp >= threshold`.
-   - Remove `state.unlocked[b.id]` from XP badge display logic so Bronze disappears when XP drops below 10.
-   - Keep stored unlock history only for celebration/toast suppression, not for current badge ownership.
+1. **Add a year-scoped local XP helper** in `src/lib/question-progress.ts`:
+   - `countLocalYearXp(year: Year): number` — uses `getYearNode(year)` + `collectQuestions` for both `essay` and `short-notes`, dedupes, then counts `isQuestionDone`. This mirrors what `ProgressDashboard` already does.
 
-2. **Keep reward totals based on current XP**
-   - Change the `Rewards` counter (`x / total`) to count badges currently earned from live `xp` and `streak`, instead of permanent localStorage history.
+2. **Update `Leaderboard.tsx`** to use year-scoped local XP:
+   - Replace `readLocalXp()` with `countLocalYearXp(year)`.
+   - Recompute when `year`, `scope`, or `QUESTION_PROGRESS_EVENT` fires (storage event too).
+   - In the current-user override:
+     - `year_xp = scope === "year" ? Math.min(meRow.year_xp, liveYearXp) : meRow.year_xp` (only override when viewing this year's board; global scope keeps cloud lifetime).
+     - `weekly_xp = Math.min(meRow.weekly_xp, liveYearXp)` only when `scope === "year"`.
+     - Leave `xp` (lifetime) cloud-driven; do not lower it from year XP.
+   - Re-sort happens automatically from the existing memo.
 
-3. **Patch the current user row instantly in leaderboard**
-   - In `Leaderboard`, compute the current user's live local XP from checked questions.
-   - While waiting for Supabase, override the current user's displayed `primary`, `xp`, `year_xp`, and `weekly_xp` where appropriate so XP and rank recalculate immediately after un-tick.
-   - Re-sort rows after this override so rank changes in real time.
+3. **Polish `ProgressDashboard`**:
+   - Keep `completed` as the primary XP display (already year-scoped) and rename the variable used for the badge/rewards card to make it explicit: `xp = completed` for the current year. Cloud `yearXp` stays as a backfill only when local is empty after first load.
+   - Ensure switching year forces `xp` recompute (already happens via `year` dep in the memo).
 
-4. **Make cloud refetch more reliable after undo**
-   - In leaderboard hooks, perform two delayed refetches after `QUESTION_PROGRESS_EVENT` (short + longer) so slow RPC commits or delayed realtime cannot leave stale rows.
-   - Keep existing Supabase realtime subscriptions.
-
-5. **Harden backend XP consistency if needed**
-   - Add a safe database function/migration only if required to recompute `profiles.xp` from `question_progress` after undo, ensuring cloud leaderboard cannot stay inflated even if earlier data drifted.
+4. **No backend changes** — `get_year_leaderboard` and `get_year_lifetime_xp` are already year-scoped server-side; this is purely a frontend correctness fix to the optimistic local override.
 
 ## Expected result
 
-- Tick 10 questions: Bronze appears and leaderboard XP/rank rises.
-- Un-tick back below 10: Bronze disappears immediately.
-- Un-tick to 0: rewards show no XP badge, dashboard XP is 0, and leaderboard rank/XP drops in real time.
+- Tick 1 question in 1st Year → 1st Year leaderboard shows 1 XP for you; switching to 2nd Year shows 0 XP and rank drops accordingly, in realtime.
+- Un-ticking in the active year reduces that year's XP and rank instantly.
+- Global ("All years") leaderboard continues to show lifetime XP and is not lowered by year overrides.

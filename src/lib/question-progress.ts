@@ -1,3 +1,5 @@
+import { getYearNode, type Year } from "./year-subjects";
+
 type Tab = "essay" | "short-notes";
 
 export const QUESTION_PROGRESS_EVENT = "question-progress-change";
@@ -67,6 +69,20 @@ export function countDone(questions: string[]): number {
   let n = 0;
   for (const q of questions) if (isQuestionDone(q)) n++;
   return n;
+}
+
+/** Count locally-completed questions scoped to a specific year. */
+export function countLocalYearXp(year: Year): number {
+  try {
+    const node = getYearNode(year);
+    const all = Array.from(new Set([
+      ...collectQuestions(node, "essay"),
+      ...collectQuestions(node, "short-notes"),
+    ]));
+    return countDone(all);
+  } catch {
+    return 0;
+  }
 }
 
 /** Collect every locally-completed question ID (the keys used in localStorage). */
