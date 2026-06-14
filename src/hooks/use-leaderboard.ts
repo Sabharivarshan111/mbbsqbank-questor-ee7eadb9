@@ -78,7 +78,7 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
       )
       .subscribe();
 
-    const onLocal = () => { setTimeout(fetchRows, 400); };
+    const onLocal = () => { setTimeout(fetchRows, 400); setTimeout(fetchRows, 1500); };
     window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
 
     return () => {
