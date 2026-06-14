@@ -31,7 +31,7 @@ const GlobalCelebrations = () => {
 
   useXpStream({
     userId,
-    cloudXp: Math.max(cloud?.xp ?? 0, readLocalXp()),
+    cloudXp: cloud?.xp ?? readLocalXp(),
     cloudStreak: cloud?.streak ?? 0,
     displayName: local?.display_name,
     onCelebrate: (ev) => {
