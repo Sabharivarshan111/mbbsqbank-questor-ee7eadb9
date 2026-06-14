@@ -26,6 +26,7 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
           .from("profiles")
           .select("id, display_name, year, xp, streak")
           .order("xp", { ascending: false })
+          .order("streak", { ascending: false })
           .limit(50);
         if (!cancelled && data) {
           setRows(
