@@ -124,3 +124,38 @@ export async function syncLocalProgressToCloud(): Promise<void> {
     _syncing = false;
   }
 }
+
+let _reconciling = false;
+let _lastReconcileTs = 0;
+
+/**
+ * Reconcile cloud question_progress with what's actually on this device.
+ * The device list is treated as the source of truth: server rows missing from
+ * the device are removed, and missing IDs are inserted. profiles.xp is
+ * recomputed server-side so the leaderboard always matches reality.
+ */
+export async function reconcileProgressWithCloud(force = false): Promise<void> {
+  const now = Date.now();
+  if (_reconciling) return;
+  if (!force && now - _lastReconcileTs < 15_000) return;
+  _reconciling = true;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const ids = collectLocalDoneIds();
+    const { error } = await (supabase as any).rpc("reconcile_question_progress", {
+      _question_ids: ids,
+    });
+    if (error) {
+      console.warn("reconcile_question_progress failed:", error);
+      return;
+    }
+    _lastReconcileTs = Date.now();
+    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+  } catch (e) {
+    console.warn("reconcileProgressWithCloud error:", e);
+  } finally {
+    _reconciling = false;
+  }
+}
