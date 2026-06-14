@@ -175,11 +175,13 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
         </Tabs>
       </div>
 
-      <p className="text-[10px] text-muted-foreground">
+      <p className="text-[10px] text-muted-foreground leading-relaxed">
         {period === "weekly"
           ? `${YEAR_LABELS[year]} • XP earned this week only. Resets in ${formatCountdown(countdown)}.`
           : `${YEAR_LABELS[year]} • All-time XP for this year. No reset.`}
+        <br/>Ties broken by streak, then time spent in the app this year.
       </p>
+
 
       <div className="space-y-1.5 max-h-72 overflow-y-auto">
         {loading && rows.length === 0 && <p className="text-xs text-muted-foreground">Loading…</p>}
@@ -203,8 +205,11 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
                   year_xp: r.year_xp,
                   weekly_xp: r.weekly_xp,
                   streak: r.streak,
+                  year_seconds: r.year_seconds,
+                  weekly_seconds: r.weekly_seconds,
                 })
               }
+
               className={`w-full text-left flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm animate-fade-in transition-all hover:scale-[1.01] active:scale-[0.99] ${
                 isMe
                   ? "bg-gradient-to-r from-fuchsia-500/15 via-pink-500/15 to-orange-400/15 ring-2 ring-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
