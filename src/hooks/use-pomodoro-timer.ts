@@ -156,7 +156,7 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
 
   // Wall-clock interval tick
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning) return undefined;
 
     const tick = () => {
       const ref = runStartRef.current;
@@ -175,6 +175,7 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
     const intervalId = setInterval(tick, 1000);
     return () => clearInterval(intervalId);
   }, [isRunning, completeSession]);
+
 
   // Visibility listener: snap immediately on return
   useEffect(() => {
