@@ -111,26 +111,74 @@ export const useQuestionBank = () => {
   const isSearching = debouncedQuery.trim().length > 0;
   const lowerQuery = useMemo(() => debouncedQuery.trim().toLowerCase(), [debouncedQuery]);
 
-  // Always filter BOTH tabs while searching so we can suggest switching
-  // to the other tab when the active one has no matches.
+  // Filter only the ACTIVE tab — single heavy walk per keystroke.
   const essayFilteredData = useMemo<QuestionBankData>(() => {
     if (!isSearching) return QUESTION_BANK_DATA as unknown as QuestionBankData;
+    if (activeTab !== "essay") return {};
     return filterForTab("essay", lowerQuery);
-  }, [isSearching, lowerQuery, filterForTab]);
+  }, [isSearching, activeTab, lowerQuery, filterForTab]);
 
   const shortNotesFilteredData = useMemo<QuestionBankData>(() => {
     if (!isSearching) return QUESTION_BANK_DATA as unknown as QuestionBankData;
+    if (activeTab !== "short-notes") return {};
     return filterForTab("short-notes", lowerQuery);
-  }, [isSearching, lowerQuery, filterForTab]);
+  }, [isSearching, activeTab, lowerQuery, filterForTab]);
 
-  const essayHasResults = Object.keys(essayFilteredData).length > 0;
-  const shortNotesHasResults = Object.keys(shortNotesFilteredData).length > 0;
-  const activeHasResults = activeTab === "short-notes" ? shortNotesHasResults : essayHasResults;
-  const otherTabHasResults =
-    isSearching && !activeHasResults &&
-    (activeTab === "essay" ? shortNotesHasResults : essayHasResults);
-  const hasSearchResults = !isSearching || activeHasResults;
+  // Cheap existence probe for the inactive tab — early-exits on first hit,
+  // no tree cloning, no allocations. Used only to decide whether to show
+  // the "switch to other tab" hint.
+  const hasAnyMatch = useCallback((type: "essay" | "short-notes", q: string): boolean => {
+    if (!q) return false;
+    const wantKeys = type === "essay" ? ["essay"] : ["short-notes", "short-note"];
+    const skipKeys = type === "essay" ? new Set(["short-notes", "short-note"]) : new Set(["essay"]);
+    const walk = (node: any): boolean => {
+      if (!node || typeof node !== "object") return false;
+      if (Array.isArray(node.questions)) {
+        for (const s of node.questions) if ((s as string).toLowerCase().includes(q)) return true;
+        return false;
+      }
+      for (const k of wantKeys) if ((node as any)[k] && walk((node as any)[k])) return true;
+      if (node.subtopics && typeof node.subtopics === "object") {
+        for (const v of Object.values(node.subtopics)) if (walk(v)) return true;
+      }
+      for (const [k, v] of Object.entries(node)) {
+        if (k === "name" || k === "subtopics" || skipKeys.has(k) || wantKeys.includes(k)) continue;
+        if (walk(v)) return true;
+      }
+      return false;
+    };
+    for (const topic of Object.values(QUESTION_BANK_DATA)) if (walk(topic)) return true;
+    return false;
+  }, []);
+
+  const activeFiltered = activeTab === "short-notes" ? shortNotesFilteredData : essayFilteredData;
+  const activeHasResults = !isSearching || Object.keys(activeFiltered).length > 0;
+  const otherTabHasResults = useMemo(() => {
+    if (!isSearching || activeHasResults) return false;
+    return hasAnyMatch(activeTab === "essay" ? "short-notes" : "essay", lowerQuery);
+  }, [isSearching, activeHasResults, activeTab, lowerQuery, hasAnyMatch]);
+
+  const hasSearchResults = activeHasResults;
   const hasContentToDisplay = hasSearchResults;
+
+  return {
+    searchQuery,
+    activeSearchQuery: debouncedQuery,
+    isMobile,
+    activeTab,
+    expandedItems,
+    hasSearchResults,
+    otherTabHasResults,
+    isSearching,
+    isRendered,
+    essayFilteredData,
+    shortNotesFilteredData,
+    hasContentToDisplay,
+    setActiveTab,
+    setExpandedItems,
+    handleSearch,
+  };
+};
 
   return {
     searchQuery,
