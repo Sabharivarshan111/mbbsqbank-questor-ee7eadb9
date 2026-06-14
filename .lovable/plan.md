@@ -1,51 +1,37 @@
-# Fix toast position + background-safe pomodoro
+## Fix leaderboard ranking — XP first, streak only as tiebreaker
 
-## 1. Move notification pop-ups to the top
+### Problem
+When a user switches year (e.g. Final → First), their lifetime XP and streak travel with them. The current year leaderboard ranks by `year_xp DESC, lifetime xp DESC`, so a high‑lifetime user with **0 XP in the new year** still jumps above other 0‑XP users in that year. Streak is also visually prominent, reinforcing the unfairness.
 
-Toasts (streak, XP, congratulations) currently render at the bottom and overlap the Pomodoro timer card on mobile.
+The correct rule (per your description):
+1. Rank by **questions solved in that year** (year_xp) — or weekly_xp on the weekly tab.
+2. Only when year_xp ties, use **streak** as a tiebreaker.
+3. Never let lifetime XP from another year boost rank inside a year leaderboard.
 
-**Sonner toaster** (`src/components/ui/sonner.tsx`)
-- Add `position="top-center"` to `<Sonner />` so all `toast(...)` calls from `sonner` appear at the top.
+### Changes
 
-**Legacy shadcn toaster viewport** (`src/components/ui/toast.tsx`)
-- Update the `ToastViewport` default classes from bottom anchoring (`sm:bottom-0`) to top anchoring (`top-0 sm:top-0`) and adjust the swipe direction utility classes so the slide-in animation comes from the top. Keep mobile full-width behavior.
+**1. `get_year_leaderboard` (SQL function)**
+- Change `ORDER BY COALESCE(yc.year_xp, 0) DESC, p.xp DESC`
+- To `ORDER BY COALESCE(yc.year_xp, 0) DESC, p.streak DESC, p.display_name ASC`
+- Lifetime xp no longer affects in‑year position.
 
-No component using `toast(...)` needs to change — only the viewports.
+**2. `get_weekly_leaderboard` (SQL function)**
+- Change `ORDER BY COALESCE(wk.weekly_xp, 0) DESC, p.xp DESC`
+- To `ORDER BY COALESCE(wk.weekly_xp, 0) DESC, p.streak DESC, p.display_name ASC`
 
-## 2. Pomodoro keeps running when app is minimized / backgrounded
+**3. Global lifetime tab (`use-leaderboard.ts`, `all` branch)**
+- Current: `.order("xp", { ascending: false })`
+- Change to order by `xp DESC, streak DESC` (chain a second `.order("streak", { ascending: false })`).
 
-Today `usePomodoroTimer` decrements `remainingTime` via `setInterval(..., 1000)`. Mobile browsers throttle or pause timers when the tab/app is hidden, so when the user returns the timer appears "paused" and resumes from where it left off — losing the elapsed wall-clock time.
+**4. Client sort in `Leaderboard.tsx`**
+- `rows.sort((a, b) => b.primary - a.primary)` → also tiebreak by streak: `b.primary - a.primary || b.streak - a.streak`.
+- Keeps dedupe behavior unchanged.
 
-Fix by switching the timer to **wall-clock based** instead of tick-based.
+### Files
+- `supabase/migrations/<new>.sql` — `CREATE OR REPLACE FUNCTION` for both `get_year_leaderboard` and `get_weekly_leaderboard` with the new ORDER BY.
+- `src/hooks/use-leaderboard.ts` — add streak as secondary order on the global query.
+- `src/components/progress/Leaderboard.tsx` — tiebreak client sort by streak.
 
-### Changes in `src/hooks/use-pomodoro-timer.ts`
-
-- Add a `runStartRef = useRef<{ startedAt: number; startRemaining: number } | null>(null)`.
-- When `isRunning` flips to `true`, record `startedAt = Date.now()` and `startRemaining = remainingTime`.
-- Inside the interval, compute `elapsed = Math.floor((Date.now() - startedAt) / 1000)` and set `newRemaining = startRemaining - elapsed` instead of `prev - 1`. This makes a throttled tick (e.g. one tick after 30s of background) immediately snap to the correct remaining time.
-- On completion (`newRemaining <= 0`), use the same existing branch: mark not running, fire `onComplete` with the actual completed minutes computed from `totalTime`, advance mode.
-- Add a `visibilitychange` listener: when `document.visibilityState === 'visible'` and `isRunning`, force-recompute remaining time from `runStartRef` immediately (so the UI updates the second the user reopens the app, without waiting for the next throttled tick). If the recomputed value is `<= 0`, run the same completion path used by the interval (extract it into a small `completeSession()` helper to avoid duplication).
-- When the user pauses (`toggleTimer` to off), reset `runStartRef = null` and freeze `remainingTime` at its current value. When they resume, set a fresh `runStartRef` based on the now-current `remainingTime`.
-- When `resetTimer`, `switchMode`, `resetCycle`, `applyCurrentSettings`, or `handleSubmit` run, clear `runStartRef`.
-
-### Persist across full app close (mobile webview / browser kill)
-
-To also survive the user fully closing and reopening the app:
-
-- When `isRunning` becomes true, write `{ mode, totalTime, endsAt: Date.now() + remainingTime * 1000, pomodoroCount }` to `localStorage` under `pomodoro:session`.
-- On hook mount, read that key:
-  - If `endsAt > Date.now()`: restore `mode`, `totalTime`, `pomodoroCount`, set `remainingTime = Math.ceil((endsAt - Date.now())/1000)`, and set `isRunning = true` so it resumes ticking and the user sees the time it should be.
-  - If `endsAt <= Date.now()`: treat as completed — restore mode/count, run the completion path once (so streak/XP toast fires and mode advances), then clear the key.
-- Clear the key on pause, reset, mode switch, and successful completion.
-
-### Notes
-
-- No DB, RLS, or new dependencies. No edge functions. No backend changes.
-- Existing audio + `onComplete` callbacks (XP, water count, etc.) keep firing through the same `completeSession()` helper.
-- The timer card UI in `PomodoroTimer.tsx` does not need changes — it already reads `remainingTime`, `minutes`, `seconds`, `isRunning` from the hook.
-
-## Files touched
-
-- `src/components/ui/sonner.tsx` — `position="top-center"`.
-- `src/components/ui/toast.tsx` — viewport anchored to top.
-- `src/hooks/use-pomodoro-timer.ts` — wall-clock ticking, visibility listener, localStorage persistence.
+### Out of scope (kept as-is)
+- Streak/XP/badges still display next to each row — only the ranking math changes.
+- Year switching itself (already merges progress via `claim_or_merge_profile`); year_xp is computed from `question_progress.year`, so a Final‑year user who switches to First with no first‑year questions correctly has `year_xp = 0` and will now sit at the bottom of the First‑year board until they solve questions there.
