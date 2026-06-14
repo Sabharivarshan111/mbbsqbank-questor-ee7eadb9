@@ -80,6 +80,10 @@ export const useQuestionBank = () => {
         const subs: Record<string, any> = {};
         let kept = false;
         for (const [k, v] of Object.entries(content.subtopics)) {
+          // Strict type filtering: skip wrong-type buckets even when nested
+          // inside `subtopics` (this is how the data is actually shaped).
+          if (type === "essay" && (k === "short-notes" || k === "short-note")) continue;
+          if (type === "short-notes" && k === "essay") continue;
           const r = walk(v);
           if (r) { subs[k] = r; kept = true; }
         }
@@ -139,7 +143,10 @@ export const useQuestionBank = () => {
       }
       for (const k of wantKeys) if ((node as any)[k] && walk((node as any)[k])) return true;
       if (node.subtopics && typeof node.subtopics === "object") {
-        for (const v of Object.values(node.subtopics)) if (walk(v)) return true;
+        for (const [k, v] of Object.entries(node.subtopics)) {
+          if (skipKeys.has(k)) continue;
+          if (walk(v)) return true;
+        }
       }
       for (const [k, v] of Object.entries(node)) {
         if (k === "name" || k === "subtopics" || skipKeys.has(k) || wantKeys.includes(k)) continue;
