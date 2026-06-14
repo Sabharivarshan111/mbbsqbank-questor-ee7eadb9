@@ -36,11 +36,13 @@ export function useXpStream({
 
   // Sync refs when cloud values arrive
   useEffect(() => {
-    const xp = Math.max(cloudXp, readLocalXp());
+    // Use cloud as the source of truth; local is best-effort and may lag.
+    const xp = cloudXp;
     if (xp > prevXp.current) {
       const delta = xp - prevXp.current;
       handleXpChange(prevXp.current, xp, delta);
     }
+    // Always sync ref (including decreases from un-ticks) so future deltas are correct.
     prevXp.current = xp;
   }, [cloudXp]);
 
