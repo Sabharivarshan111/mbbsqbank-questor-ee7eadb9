@@ -72,15 +72,14 @@ export function countDone(questions: string[]): number {
 }
 
 /** Count locally-completed questions scoped to a specific year. */
-export function countLocalYearXp(year: import("./year-subjects").Year): number {
+export function countLocalYearXp(year: Year): number {
   try {
-    const { getYearNode } = require("./year-subjects");
     const node = getYearNode(year);
     const all = Array.from(new Set([
       ...collectQuestions(node, "essay"),
       ...collectQuestions(node, "short-notes"),
     ]));
-    return countDone(all as string[]);
+    return countDone(all);
   } catch {
     return 0;
   }
