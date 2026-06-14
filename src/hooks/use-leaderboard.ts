@@ -6,7 +6,8 @@ export interface LeaderRow {
   id: string;
   display_name: string;
   year: Year;
-  xp: number;
+  xp: number;       // lifetime
+  year_xp: number;  // questions solved for this year (= xp when "all")
   streak: number;
 }
 
@@ -20,14 +21,42 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
 
     const fetchRows = async () => {
       setLoading(true);
-      let q = supabase
-        .from("profiles")
-        .select("id, display_name, year, xp, streak")
-        .order("xp", { ascending: false })
-        .limit(50);
-      if (filterYear !== "all") q = q.eq("year", filterYear);
-      const { data } = await q;
-      if (!cancelled && data) setRows(data as LeaderRow[]);
+      if (filterYear === "all") {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, display_name, year, xp, streak")
+          .order("xp", { ascending: false })
+          .limit(50);
+        if (!cancelled && data) {
+          setRows(
+            (data as any[]).map((r) => ({
+              id: r.id,
+              display_name: r.display_name,
+              year: r.year as Year,
+              xp: r.xp,
+              year_xp: r.xp,
+              streak: r.streak,
+            }))
+          );
+        }
+      } else {
+        const { data, error } = await (supabase as any).rpc("get_year_leaderboard", {
+          _year: filterYear,
+          _limit: 50,
+        });
+        if (!cancelled && !error && data) {
+          setRows(
+            (data as any[]).map((r) => ({
+              id: r.id,
+              display_name: r.display_name,
+              year: r.year as Year,
+              xp: r.xp,
+              year_xp: r.year_xp,
+              streak: r.streak,
+            }))
+          );
+        }
+      }
       setLoading(false);
     };
 
@@ -38,6 +67,11 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "profiles" },
+        () => fetchRows()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "question_progress" },
         () => fetchRows()
       )
       .subscribe();
