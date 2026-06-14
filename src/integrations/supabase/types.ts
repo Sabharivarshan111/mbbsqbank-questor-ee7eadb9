@@ -231,6 +231,10 @@ export type Database = {
         Args: { _user_id: string; _year: string }
         Returns: number
       }
+      reconcile_question_progress: {
+        Args: { _question_ids: string[] }
+        Returns: undefined
+      }
       record_question_done: {
         Args: { _question_id: string }
         Returns: undefined
