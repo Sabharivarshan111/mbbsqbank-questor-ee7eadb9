@@ -216,7 +216,11 @@ export function useProfile() {
               .maybeSingle()
           ).data;
           if (profileRow) setCloud(profileRow as CloudProfile);
-          await supabase.rpc("register_open");
+          const { data: openRes2 } = await (supabase as any).rpc("register_open");
+          const openRow2 = Array.isArray(openRes2) ? openRes2[0] : openRes2;
+          if (openRow2 && typeof openRow2.streak === "number") {
+            setCloud((c) => c ? { ...c, streak: openRow2.streak, last_active_date: openRow2.last_active_date } : c);
+          }
           await syncLocalProgressToCloud();
           reconcileProgressWithCloud(true);
         }
