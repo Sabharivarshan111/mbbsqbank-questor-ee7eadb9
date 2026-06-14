@@ -11,6 +11,9 @@ interface FlatGroup {
 function flatten(data: QuestionBankData, tab: "essay" | "short-notes"): FlatGroup[] {
   const groups: FlatGroup[] = [];
   const wantKeys = tab === "essay" ? ["essay"] : ["short-notes", "short-note"];
+  const skipKeys = tab === "essay"
+    ? new Set(["short-notes", "short-note"])
+    : new Set(["essay"]);
 
   const walk = (node: any, pathParts: string[], yearKey: string) => {
     if (!node || typeof node !== "object") return;
@@ -29,7 +32,10 @@ function flatten(data: QuestionBankData, tab: "essay" | "short-notes"): FlatGrou
     }
 
     if (node.subtopics && typeof node.subtopics === "object") {
-      for (const v of Object.values(node.subtopics)) {
+      for (const [k, v] of Object.entries(node.subtopics)) {
+        // Strict: never descend into the other type's bucket, even when it
+        // lives inside `subtopics`.
+        if (skipKeys.has(k)) continue;
         const childName = (v as any)?.name;
         const nextPath = node.name && pathParts[pathParts.length - 1] !== node.name
           ? [...pathParts, node.name]
