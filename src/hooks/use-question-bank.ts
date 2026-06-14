@@ -111,21 +111,25 @@ export const useQuestionBank = () => {
   const isSearching = debouncedQuery.trim().length > 0;
   const lowerQuery = useMemo(() => debouncedQuery.trim().toLowerCase(), [debouncedQuery]);
 
-  // Only filter the ACTIVE tab — halves the work per keystroke.
+  // Always filter BOTH tabs while searching so we can suggest switching
+  // to the other tab when the active one has no matches.
   const essayFilteredData = useMemo<QuestionBankData>(() => {
     if (!isSearching) return QUESTION_BANK_DATA as unknown as QuestionBankData;
-    if (activeTab !== "essay") return {};
     return filterForTab("essay", lowerQuery);
-  }, [isSearching, activeTab, lowerQuery, filterForTab]);
+  }, [isSearching, lowerQuery, filterForTab]);
 
   const shortNotesFilteredData = useMemo<QuestionBankData>(() => {
     if (!isSearching) return QUESTION_BANK_DATA as unknown as QuestionBankData;
-    if (activeTab !== "short-notes") return {};
     return filterForTab("short-notes", lowerQuery);
-  }, [isSearching, activeTab, lowerQuery, filterForTab]);
+  }, [isSearching, lowerQuery, filterForTab]);
 
-  const activeFiltered = activeTab === "short-notes" ? shortNotesFilteredData : essayFilteredData;
-  const hasSearchResults = !isSearching || Object.keys(activeFiltered).length > 0;
+  const essayHasResults = Object.keys(essayFilteredData).length > 0;
+  const shortNotesHasResults = Object.keys(shortNotesFilteredData).length > 0;
+  const activeHasResults = activeTab === "short-notes" ? shortNotesHasResults : essayHasResults;
+  const otherTabHasResults =
+    isSearching && !activeHasResults &&
+    (activeTab === "essay" ? shortNotesHasResults : essayHasResults);
+  const hasSearchResults = !isSearching || activeHasResults;
   const hasContentToDisplay = hasSearchResults;
 
   return {
@@ -135,6 +139,7 @@ export const useQuestionBank = () => {
     activeTab,
     expandedItems,
     hasSearchResults,
+    otherTabHasResults,
     isSearching,
     isRendered,
     essayFilteredData,
