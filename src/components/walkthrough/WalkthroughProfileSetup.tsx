@@ -40,7 +40,12 @@ const WalkthroughProfileSetup = ({ onDone }: Props) => {
   };
 
   return (
-    <div className="space-y-3 pt-1">
+    <div
+      className="space-y-3 pt-1"
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="space-y-1.5">
         <Label htmlFor="wt-name" className="text-xs">Your name</Label>
         <Input
@@ -49,7 +54,6 @@ const WalkthroughProfileSetup = ({ onDone }: Props) => {
           value={name}
           onChange={(e) => { setName(e.target.value); if (error) setError(null); }}
           maxLength={40}
-          autoFocus
         />
         {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
@@ -57,7 +61,7 @@ const WalkthroughProfileSetup = ({ onDone }: Props) => {
         <Label className="text-xs">Year</Label>
         <Select value={year} onValueChange={(v) => setYear(v as Year)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[2147483700]">
             {(Object.keys(YEAR_LABELS) as Year[]).map((y) => (
               <SelectItem key={y} value={y}>{YEAR_LABELS[y]}</SelectItem>
             ))}
