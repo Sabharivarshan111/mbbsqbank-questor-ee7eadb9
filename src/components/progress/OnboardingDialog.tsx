@@ -60,10 +60,11 @@ const OnboardingDialog = ({ open, initialName = "", initialYear = "first", onClo
               id="dr-name"
               placeholder="Dr. ___"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => { setName(e.target.value); if (error) setError(null); }}
               maxLength={40}
               autoFocus
             />
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
           <div className="space-y-1.5">
             <Label>Year</Label>
