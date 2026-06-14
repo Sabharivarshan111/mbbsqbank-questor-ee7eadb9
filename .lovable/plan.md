@@ -1,40 +1,31 @@
-## Plan
+Implement leaderboard-safe un-tick behavior so checked questions add XP once, unchecked questions remove that XP, and the leaderboard refreshes immediately.
 
-1. **Fix the real cause of 0 XP in leaderboard**
-   - Update the question checkbox flow so it uses the existing cloud-sync helper instead of only writing to localStorage.
-   - This is why your dashboard can show 10/20 XP locally, but the leaderboard still shows 0 cloud XP.
+1. **Add a Supabase undo RPC**
+   - Create `record_question_undone(_question_id text)`.
+   - It will delete the user’s matching `question_progress` row only if it exists.
+   - If deleted, it will decrement:
+     - `profiles.xp`
+     - `daily_activity.questions_done` for the original completion date
+     - `weekly_xp.xp` for the original completion week/year
+   - Use `GREATEST(..., 0)` so XP never becomes negative.
+   - Grant execute permission to `authenticated`.
 
-2. **Upload existing local progress to cloud**
-   - Add a safe bulk sync so any questions already marked done on the device are pushed to Supabase once the user has a profile/session.
-   - Run this after onboarding/profile save and when the progress dashboard loads.
-   - This fixes users who already have local XP before the bug fix.
+2. **Update checkbox sync logic**
+   - Keep `setQuestionDone(question, true)` calling the existing add-XP RPC.
+   - Make `setQuestionDone(question, false)` call the new undo RPC.
+   - Keep localStorage in sync with the cloud result.
+   - Dispatch the existing local progress event after both tick and un-tick so UI refreshes immediately.
 
-3. **Add a bulk XP database function**
-   - Create a Supabase RPC like `record_questions_done(_question_ids text[])`.
-   - It will insert only new question IDs, count how many were newly added, then update:
-     - profile lifetime XP
-     - current week XP
-     - year-scoped progress
-   - Existing completed questions will not double-count.
+3. **Keep bulk local sync safe**
+   - Continue uploading locally checked questions to cloud.
+   - Do not bulk-delete cloud progress just because a local key is missing, because that could erase progress from another device.
+   - Only explicit user un-ticks should remove XP.
 
-4. **Make leaderboard refresh immediately**
-   - Keep the Supabase realtime subscriptions.
-   - Also listen for the local `question-progress-change` event and refetch after cloud sync, so the leaderboard updates without needing to reopen the page.
-   - Add `question_progress` to the weekly leaderboard hook as an extra refresh trigger.
+4. **Realtime leaderboard refresh**
+   - Existing subscriptions to `profiles`, `weekly_xp`, and `question_progress` will refresh on inserts, updates, and deletes.
+   - Ensure both lifetime and weekly leaderboard hooks refetch after the local progress event.
 
-5. **Make rank/badge display use the correct XP**
-   - Weekly tab will rank/show weekly XP, but the badge/rank tier should use the best available cloud XP for that row.
-   - Lifetime tab will rank/show lifetime/year XP clearly.
-
-## Technical details
-
-- Main files to update:
-  - `src/components/QuestionCard.tsx`
-  - `src/lib/question-progress.ts`
-  - `src/hooks/use-profile.ts`
-  - `src/hooks/use-weekly-leaderboard.ts`
-  - `src/hooks/use-leaderboard.ts`
-  - `src/components/progress/Leaderboard.tsx`
-- Supabase migration:
-  - Add/replace an RPC for bulk local-to-cloud progress sync.
-- I will not change unrelated profile, walkthrough, or study content behavior.
+5. **Verify ranking math**
+   - Leaderboard order should rank higher XP above lower XP.
+   - A user with 10 XP should not appear below users with 0 XP.
+   - Unchecking a question should immediately reduce the user’s XP/rank instead of allowing spam.
