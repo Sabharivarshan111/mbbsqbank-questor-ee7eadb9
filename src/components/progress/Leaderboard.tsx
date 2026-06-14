@@ -47,6 +47,18 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   const weekly = useWeeklyLeaderboard(scope === "year" ? year : "all", enabled && period === "weekly");
   const countdown = useResetCountdown();
 
+  // Live local XP for the current user — overrides cloud row instantly on tick/un-tick.
+  const [localXp, setLocalXp] = useState<number>(() => readLocalXp());
+  useEffect(() => {
+    const h = () => setLocalXp(readLocalXp());
+    window.addEventListener(QUESTION_PROGRESS_EVENT, h);
+    window.addEventListener("storage", h);
+    return () => {
+      window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
+      window.removeEventListener("storage", h);
+    };
+  }, []);
+
   const rows = useMemo(() => {
     const raw = period === "weekly"
       ? weekly.rows.map((r) => ({
@@ -83,6 +95,31 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
       if (r.id === currentUserId) seen.set(key, r);
       else if (prev.id !== currentUserId && r.primary > prev.primary) seen.set(key, r);
     }
+
+    // Override the current user's XP with the live local count so un-ticks
+    // shrink XP and rank instantly without waiting for Supabase.
+    if (currentUserId) {
+      const meRow = seen.get(
+        Array.from(seen.entries()).find(([, v]) => v.id === currentUserId)?.[0] ?? ""
+      );
+      if (meRow) {
+        const liveXp = localXp;
+        const liveYearXp = Math.min(meRow.year_xp, liveXp);
+        // For weekly we can only safely lower (not raise) using local data since
+        // local XP is lifetime-scoped; raise stays cloud-driven.
+        const liveWeekly = Math.min(meRow.weekly_xp, liveXp);
+        const livePrimary = period === "weekly" ? liveWeekly : liveYearXp;
+        const updated = {
+          ...meRow,
+          xp: liveXp,
+          year_xp: liveYearXp,
+          weekly_xp: liveWeekly,
+          primary: livePrimary,
+        };
+        for (const [k, v] of seen) if (v.id === currentUserId) seen.set(k, updated);
+      }
+    }
+
     return Array.from(seen.values()).sort(
       (a, b) =>
         b.primary - a.primary ||
@@ -91,7 +128,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
         b.streak - a.streak ||
         a.display_name.localeCompare(b.display_name)
     );
-  }, [period, weekly.rows, lifetime.rows, currentUserId]);
+  }, [period, weekly.rows, lifetime.rows, currentUserId, localXp]);
 
   const me = useMemo<UserStat | null>(() => {
     if (!currentUserId) return null;
