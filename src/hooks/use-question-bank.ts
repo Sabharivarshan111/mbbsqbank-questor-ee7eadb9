@@ -179,22 +179,3 @@ export const useQuestionBank = () => {
     handleSearch,
   };
 };
-
-  return {
-    searchQuery,
-    activeSearchQuery: debouncedQuery,
-    isMobile,
-    activeTab,
-    expandedItems,
-    hasSearchResults,
-    otherTabHasResults,
-    isSearching,
-    isRendered,
-    essayFilteredData,
-    shortNotesFilteredData,
-    hasContentToDisplay,
-    setActiveTab,
-    setExpandedItems,
-    handleSearch,
-  };
-};
