@@ -47,17 +47,18 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   const weekly = useWeeklyLeaderboard(scope === "year" ? year : "all", enabled && period === "weekly");
   const countdown = useResetCountdown();
 
-  // Live local XP for the current user — overrides cloud row instantly on tick/un-tick.
-  const [localXp, setLocalXp] = useState<number>(() => readLocalXp());
+  // Live local XP for the current user, scoped to the selected year.
+  const [localYearXp, setLocalYearXp] = useState<number>(() => countLocalYearXp(year));
   useEffect(() => {
-    const h = () => setLocalXp(readLocalXp());
-    window.addEventListener(QUESTION_PROGRESS_EVENT, h);
-    window.addEventListener("storage", h);
+    const recompute = () => setLocalYearXp(countLocalYearXp(year));
+    recompute();
+    window.addEventListener(QUESTION_PROGRESS_EVENT, recompute);
+    window.addEventListener("storage", recompute);
     return () => {
-      window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
-      window.removeEventListener("storage", h);
+      window.removeEventListener(QUESTION_PROGRESS_EVENT, recompute);
+      window.removeEventListener("storage", recompute);
     };
-  }, []);
+  }, [year]);
 
   const rows = useMemo(() => {
     const raw = period === "weekly"
