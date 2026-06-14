@@ -23,16 +23,21 @@ import Pharmacology from "./pages/subjects/Pharmacology";
 import Biochemistry from "./pages/subjects/Biochemistry";
 import Microbiology from "./pages/subjects/Microbiology";
 import GlobalCelebrations from "./components/GlobalCelebrations";
+import { useScreenTime } from "./hooks/use-screen-time";
 
 const queryClient = new QueryClient();
 
+const ScreenTimeTracker = () => { useScreenTime(); return null; };
+
 const App = () => (
+
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <GlobalCelebrations />
+        <ScreenTimeTracker />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

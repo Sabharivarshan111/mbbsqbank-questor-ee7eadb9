@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Flame, Zap, Trophy, Calendar, Sparkles, GraduationCap, Info } from "lucide-react";
+import { Flame, Zap, Trophy, Calendar, Sparkles, GraduationCap, Info, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { XP_BADGES } from "@/lib/rewards";
 import { YEAR_LABELS, type Year } from "@/lib/year-subjects";
@@ -10,9 +10,11 @@ export interface UserStat {
   display_name: string;
   year: Year;
   xp: number;         // lifetime
-  year_xp: number;    // questions solved in this user's current year (ranking metric)
+  year_xp: number;
   weekly_xp: number;
   streak: number;
+  year_seconds: number;
+  weekly_seconds: number;
 }
 
 interface Props {
@@ -27,71 +29,74 @@ function highestXpBadge(xp: number) {
   for (const b of XP_BADGES) if (xp >= b.threshold) best = b;
   return best;
 }
-
 function nextXpBadge(xp: number) {
   for (const b of XP_BADGES) if (xp < b.threshold) return b;
   return null;
 }
-
 function initials(name: string) {
   return name.split(" ").map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 }
+function formatTime(seconds: number) {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${s}s`;
+}
 
-type StatKey = "year" | "lifetime" | "week" | "streak";
+type StatKey = "year" | "lifetime" | "week" | "streak" | "time";
 
 const EXPLAIN: Record<StatKey, { title: string; body: string }> = {
   year: {
     title: "Year XP",
-    body: "Questions you've ticked done in your current MBBS year. This is the ONLY metric that drives leaderboard ranking. Tick a question to earn 1 XP; un-tick to lose 1 XP. Switching year shows that year's separate XP and ranking.",
+    body: "Questions you've ticked done in your current MBBS year. This is the primary metric for the Lifetime leaderboard ranking. Tick a question to earn 1 XP; un-tick to lose 1 XP.",
   },
   lifetime: {
     title: "Lifetime XP",
-    body: "Total questions ever ticked across all four years. A long-term record of your study volume. Does not affect leaderboard ranking — it's just for you.",
+    body: "Total questions ever ticked across ALL four years combined. A long-term study record — informational only and does NOT affect leaderboard ranking.",
   },
   week: {
     title: "This week",
-    body: "Questions you ticked since Monday. Resets every Monday at 00:00. Informational only — no longer used for ranking.",
+    body: "Questions you ticked this week in your current year. This is the metric used to rank the Weekly leaderboard tab. Resets every Monday 00:00.",
   },
   streak: {
     title: "Streak",
-    body: "Consecutive days you opened the app. Open ORBIT every day to grow it. Miss a day and it resets to 1 on your next visit.",
+    body: "Consecutive days you opened the app. Open ORBIT every day to grow it. Miss a day and it resets to 1.",
+  },
+  time: {
+    title: "Time in app",
+    body: "Total foreground time you've spent inside ORBIT this year (live-tracked while the app is open). Used as the leaderboard TIEBREAKER — when two students have the same XP and the same streak, whoever spent more time in the app this year ranks higher.",
   },
 };
 
 const StatBtn = ({
-  active,
-  onClick,
-  icon,
-  label,
-  value,
-  color,
+  active, onClick, icon, label, value, color,
 }: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  color: string;
+  active: boolean; onClick: () => void; icon: React.ReactNode;
+  label: string; value: string | number; color: string;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`relative rounded-xl border p-2.5 text-center transition-all ${
+    className={`relative rounded-xl border p-2 text-center transition-all min-w-0 ${
       active
         ? "bg-primary/10 border-primary/60 shadow-[0_0_10px_hsl(var(--primary)/0.25)]"
         : "bg-muted/40 hover:bg-muted/60"
     }`}
   >
     <Info className="absolute top-1 right-1 h-2.5 w-2.5 text-muted-foreground/70" />
-    <div className={`mx-auto mb-1 h-6 w-6 flex items-center justify-center ${color}`}>{icon}</div>
-    <div className="text-base font-bold leading-none">{value}</div>
-    <div className="text-[10px] text-muted-foreground mt-1">{label}</div>
+    <div className={`mx-auto mb-1 h-5 w-5 flex items-center justify-center ${color}`}>{icon}</div>
+    <div className="text-sm font-bold leading-none tabular-nums">{value}</div>
+    <div className="text-[9px] text-muted-foreground mt-1 leading-tight">{label}</div>
   </button>
 );
 
-const Compare = ({ label, me, them, unit = "" }: { label: string; me: number; them: number; unit?: string }) => {
-  const meLeads = me > them;
-  const tie = me === them;
+const Compare = ({ label, me, them, unit = "" }: { label: string; me: string | number; them: string | number; unit?: string }) => {
+  const meNum = typeof me === "number" ? me : 0;
+  const themNum = typeof them === "number" ? them : 0;
+  const meLeads = meNum > themNum;
+  const tie = meNum === themNum;
   return (
     <div className="grid grid-cols-3 items-center gap-2 text-xs py-1.5">
       <div className={`text-right font-semibold tabular-nums ${meLeads ? "text-primary" : "text-muted-foreground"}`}>
@@ -152,7 +157,7 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-1.5">
           <StatBtn active={explain === "year"} onClick={() => toggle("year")}
             icon={<GraduationCap className="h-4 w-4" />}
             label={`${YEAR_LABELS[target.year].replace(" Year", "")} Yr XP`}
@@ -163,6 +168,8 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
             icon={<Sparkles className="h-4 w-4" />} label="This week" value={target.weekly_xp} color="text-fuchsia-500" />
           <StatBtn active={explain === "streak"} onClick={() => toggle("streak")}
             icon={<Flame className="h-4 w-4" />} label="Streak" value={target.streak} color="text-orange-500" />
+          <StatBtn active={explain === "time"} onClick={() => toggle("time")}
+            icon={<Clock className="h-4 w-4" />} label="In app" value={formatTime(target.year_seconds)} color="text-cyan-500" />
         </div>
 
         {explain && (
@@ -180,7 +187,10 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
               <span className="text-left text-amber-500 truncate">{target.display_name}</span>
             </div>
             {sameYear ? (
-              <Compare label={`${YEAR_LABELS[target.year].replace(" Year", "")} Yr XP`} me={me.year_xp} them={target.year_xp} />
+              <>
+                <Compare label={`${YEAR_LABELS[target.year].replace(" Year", "")} Yr XP`} me={me.year_xp} them={target.year_xp} />
+                <Compare label="Time in app" me={formatTime(me.year_seconds)} them={formatTime(target.year_seconds)} />
+              </>
             ) : (
               <div className="text-[10px] text-center text-muted-foreground italic py-1">
                 Different years — rankings are computed per year, so direct XP comparison isn't meaningful.
@@ -199,6 +209,12 @@ const UserStatsDialog = ({ open, onClose, target, me }: Props) => {
                 <p className="text-xs">
                   <Trophy className="inline h-3.5 w-3.5 mr-1 text-primary" />
                   You lead by <b>{Math.abs(xpGap)}</b> XP — stay ahead!
+                </p>
+              )}
+              {sameYear && xpGap === 0 && (
+                <p className="text-xs">
+                  <Clock className="inline h-3.5 w-3.5 mr-1 text-cyan-500" />
+                  Tied on XP — whoever spends more time in the app this year ranks higher.
                 </p>
               )}
               {streakGap > 0 && (

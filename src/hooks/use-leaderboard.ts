@@ -10,6 +10,8 @@ export interface LeaderRow {
   xp: number;       // lifetime
   year_xp: number;  // questions solved for this year (= xp when "all")
   streak: number;
+  year_seconds: number;
+
 }
 
 export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
@@ -38,6 +40,7 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
               xp: r.xp,
               year_xp: r.xp,
               streak: r.streak,
+              year_seconds: 0,
             }))
           );
         }
@@ -55,6 +58,8 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
               xp: r.xp,
               year_xp: r.year_xp,
               streak: r.streak,
+              year_seconds: Number(r.year_seconds ?? 0),
+
             }))
           );
         }
@@ -76,7 +81,13 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
         { event: "*", schema: "public", table: "question_progress" },
         () => fetchRows()
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "screen_time" },
+        () => fetchRows()
+      )
       .subscribe();
+
 
     const onLocal = () => { setTimeout(fetchRows, 400); setTimeout(fetchRows, 1500); };
     window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);

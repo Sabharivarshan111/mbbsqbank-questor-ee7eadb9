@@ -95,6 +95,33 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_time: {
+        Row: {
+          seconds: number
+          updated_at: string
+          user_id: string
+          week_start: string
+          weekly_seconds: number
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Insert: {
+          seconds?: number
+          updated_at?: string
+          user_id: string
+          week_start?: string
+          weekly_seconds?: number
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Update: {
+          seconds?: number
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+          weekly_seconds?: number
+          year?: Database["public"]["Enums"]["app_year"]
+        }
+        Relationships: []
+      }
       study_presence: {
         Row: {
           device_id: string
@@ -180,9 +207,11 @@ export type Database = {
           display_name: string
           id: string
           streak: number
+          weekly_seconds: number
           weekly_xp: number
           xp: number
           year: string
+          year_seconds: number
           year_xp: number
         }[]
       }
@@ -194,6 +223,7 @@ export type Database = {
           streak: number
           xp: number
           year: string
+          year_seconds: number
           year_xp: number
         }[]
       }
@@ -213,6 +243,7 @@ export type Database = {
         Args: { _question_ids: string[] }
         Returns: number
       }
+      record_screen_time: { Args: { _seconds: number }; Returns: undefined }
       register_open: {
         Args: never
         Returns: {
