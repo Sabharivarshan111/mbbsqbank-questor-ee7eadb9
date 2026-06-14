@@ -56,3 +56,41 @@ export function countDone(questions: string[]): number {
   for (const q of questions) if (isQuestionDone(q)) n++;
   return n;
 }
+
+/** Collect every locally-completed question ID (the keys used in localStorage). */
+export function collectLocalDoneIds(): string[] {
+  const ids: string[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("question-") && localStorage.getItem(k) === "true") {
+        ids.push(k);
+      }
+    }
+  } catch {}
+  return ids;
+}
+
+let _syncing = false;
+let _lastSyncedCount = 0;
+
+/** Push all locally-completed questions to the cloud in one batch. Safe to call repeatedly. */
+export async function syncLocalProgressToCloud(): Promise<void> {
+  if (_syncing) return;
+  const ids = collectLocalDoneIds();
+  if (ids.length === 0 || ids.length === _lastSyncedCount) return;
+  _syncing = true;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    // Chunk to keep payload reasonable
+    const CHUNK = 500;
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const slice = ids.slice(i, i + CHUNK);
+      await (supabase as any).rpc("record_questions_done", { _question_ids: slice });
+    }
+    _lastSyncedCount = ids.length;
+    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+  } catch {} finally {
+    _syncing = false;
+  }
+}

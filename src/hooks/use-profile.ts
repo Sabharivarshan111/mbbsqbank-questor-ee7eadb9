@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
 import { validateDisplayName } from "@/lib/profanity";
+import { syncLocalProgressToCloud } from "@/lib/question-progress";
 
 export interface LocalProfile {
   display_name: string;
@@ -138,6 +139,8 @@ export function useProfile() {
         writeLocal({ display_name: data.display_name, year: data.year as Year });
       }
       await supabase.rpc("register_open");
+      // Push any locally-completed questions to the cloud so XP/leaderboard catch up
+      syncLocalProgressToCloud();
     })();
   }, [userId]);
 
@@ -198,6 +201,7 @@ export function useProfile() {
           ).data;
           if (profileRow) setCloud(profileRow as CloudProfile);
           await supabase.rpc("register_open");
+          syncLocalProgressToCloud();
         }
       } finally {
         setLoading(false);

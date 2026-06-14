@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/components/theme/ThemeProvider';
-import { QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
+import { QUESTION_PROGRESS_EVENT, setQuestionDone } from '@/lib/question-progress';
 
 interface QuestionCardProps {
   question: string;
@@ -132,10 +132,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   
   const handleCheckboxChange = (checked: boolean) => {
     setIsCompleted(checked);
-    try {
-      localStorage.setItem(questionId, checked.toString());
-      window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
-    } catch {}
+    setQuestionDone(question, checked);
   };
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
