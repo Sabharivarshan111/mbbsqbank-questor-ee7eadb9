@@ -4,7 +4,8 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { getThemeGradient } from "@/lib/theme-gradients";
 
 interface Props {
-  xp: number;
+  xp: number;          // year XP (primary)
+  lifetimeXp?: number; // lifetime XP (subtitle)
   streak: number;
 }
 
@@ -15,7 +16,7 @@ const BADGES = [
   { n: 500, label: "Legend" },
 ];
 
-const StreakXPCard = ({ xp, streak }: Props) => {
+const StreakXPCard = ({ xp, lifetimeXp, streak }: Props) => {
   const level = Math.floor(xp / 50) + 1;
   const inLevel = xp % 50;
   const pct = (inLevel / 50) * 100;
@@ -23,6 +24,7 @@ const StreakXPCard = ({ xp, streak }: Props) => {
   const xpAnim = useCountUp(xp);
   const { theme } = useTheme();
   const grad = getThemeGradient(theme);
+  const showLifetime = typeof lifetimeXp === "number" && lifetimeXp !== xp;
 
   return (
     <div
@@ -38,9 +40,14 @@ const StreakXPCard = ({ xp, streak }: Props) => {
           />
           <span className="font-semibold">{streakAnim} day streak</span>
         </div>
-        <div className="text-xs text-muted-foreground">
-          Level <span className={`font-bold bg-clip-text text-transparent ${grad.text}`}>{level}</span>
-          <span className="ml-2">· {xpAnim} XP</span>
+        <div className="text-xs text-muted-foreground text-right">
+          <div>
+            Level <span className={`font-bold bg-clip-text text-transparent ${grad.text}`}>{level}</span>
+            <span className="ml-2">· {xpAnim} XP</span>
+          </div>
+          {showLifetime && (
+            <div className="text-[10px] mt-0.5 opacity-80">Lifetime: {lifetimeXp} XP</div>
+          )}
         </div>
       </div>
       <div className="relative">
