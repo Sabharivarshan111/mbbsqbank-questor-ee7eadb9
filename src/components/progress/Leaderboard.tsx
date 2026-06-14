@@ -6,6 +6,7 @@ import { useWeeklyLeaderboard } from "@/hooks/use-weekly-leaderboard";
 import type { Year } from "@/lib/year-subjects";
 import { YEAR_LABELS } from "@/lib/year-subjects";
 import { XP_BADGES } from "@/lib/rewards";
+import UserStatsDialog, { type UserStat } from "./UserStatsDialog";
 
 interface Props {
   year: Year;
