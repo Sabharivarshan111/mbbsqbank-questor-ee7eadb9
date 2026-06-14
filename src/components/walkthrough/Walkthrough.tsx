@@ -62,6 +62,15 @@ export const Walkthrough = () => {
     if (step.action === 'open-pomodoro-settings') {
       window.dispatchEvent(new CustomEvent('orbit:open-pomodoro-settings'));
     }
+    if (step.action === 'open-progress-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'progress' }));
+    }
+    if (step.action === 'open-qbank-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'essay' }));
+    }
+    if (step.action === 'open-materials-tab') {
+      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'materials' }));
+    }
 
     // Pomodoro visibility override (default: hide if not specified)
     const pomo = step.pomodoro ?? 'hide';
