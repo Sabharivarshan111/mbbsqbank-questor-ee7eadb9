@@ -213,7 +213,8 @@ export function useProfile() {
           ).data;
           if (profileRow) setCloud(profileRow as CloudProfile);
           await supabase.rpc("register_open");
-          syncLocalProgressToCloud();
+          await syncLocalProgressToCloud();
+          reconcileProgressWithCloud(true);
         }
       } finally {
         setLoading(false);
