@@ -74,6 +74,18 @@ const QuestionBank = () => {
     trackMouse: true,
   });
 
+  // Walkthrough can request a tab switch.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail;
+      if (tab === "progress" || tab === "materials" || tab === "essay" || tab === "short-notes") {
+        setActiveTab(tab as TabValue);
+      }
+    };
+    window.addEventListener("orbit:set-tab", handler);
+    return () => window.removeEventListener("orbit:set-tab", handler);
+  }, [setActiveTab]);
+
   if (!isRendered) {
     return (
       <div className="bg-white dark:bg-black h-full min-h-[600px] flex items-center justify-center">
