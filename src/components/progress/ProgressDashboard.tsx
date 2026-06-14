@@ -13,6 +13,7 @@ import StreakTipsCard from "./StreakTipsCard";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { readLocalXp } from "@/lib/rewards";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProgressDashboard = () => {
   const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut } = useProfile();
