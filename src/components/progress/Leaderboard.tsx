@@ -127,13 +127,24 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
           const badge = highestXpBadge(r.xp);
           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
           return (
-            <div
+            <button
+              type="button"
               key={r.id}
-              className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm animate-fade-in transition-all ${
+              onClick={() =>
+                setSelected({
+                  id: r.id,
+                  display_name: r.display_name,
+                  year: r.year,
+                  xp: r.xp,
+                  weekly_xp: r.weekly_xp,
+                  streak: r.streak,
+                })
+              }
+              className={`w-full text-left flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm animate-fade-in transition-all hover:scale-[1.01] active:scale-[0.99] ${
                 isMe
                   ? "bg-gradient-to-r from-fuchsia-500/15 via-pink-500/15 to-orange-400/15 ring-2 ring-primary/50 shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
                   : i < 3
-                  ? "bg-gradient-to-r from-amber-500/10 to-transparent"
+                  ? "bg-gradient-to-r from-amber-500/10 to-transparent hover:from-amber-500/20"
                   : "bg-muted/40 hover:bg-muted/60"
               }`}
               style={{ animationDelay: `${i * 40}ms` }}
@@ -154,7 +165,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
               <span className="text-xs font-semibold text-primary w-12 text-right">
                 {r.primary} XP
               </span>
-            </div>
+            </button>
           );
         })}
       </div>
