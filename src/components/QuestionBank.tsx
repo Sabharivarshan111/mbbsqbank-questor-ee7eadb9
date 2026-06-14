@@ -51,6 +51,7 @@ const QuestionBank = () => {
     activeTab,
     expandedItems,
     hasSearchResults,
+    otherTabHasResults,
     isRendered,
     essayFilteredData,
     shortNotesFilteredData,
