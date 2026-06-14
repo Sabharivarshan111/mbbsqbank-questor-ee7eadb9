@@ -169,6 +169,13 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
           );
         })}
       </div>
+
+      <UserStatsDialog
+        open={!!selected}
+        target={selected}
+        me={me}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 };
