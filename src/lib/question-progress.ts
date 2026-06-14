@@ -22,18 +22,22 @@ export function setQuestionDone(question: string, done: boolean) {
     const qid = getQuestionId(question);
     if (done && !wasDone) {
       import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase.rpc("record_question_done", { _question_id: qid }).then(() => {
+        supabase.rpc("record_question_done", { _question_id: qid }).then(({ error }) => {
+          if (error) console.warn("record_question_done failed:", error);
           window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
         });
-      }).catch(() => {});
+      }).catch((e) => console.warn("supabase import failed:", e));
     } else if (!done && wasDone) {
       import("@/integrations/supabase/client").then(({ supabase }) => {
-        (supabase as any).rpc("record_question_undone", { _question_id: qid }).then(() => {
+        (supabase as any).rpc("record_question_undone", { _question_id: qid }).then(({ error }: any) => {
+          if (error) console.warn("record_question_undone failed:", error);
           window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
         });
-      }).catch(() => {});
+      }).catch((e) => console.warn("supabase import failed:", e));
     }
-  } catch {}
+  } catch (e) {
+    console.warn("setQuestionDone error:", e);
+  }
 }
 
 /** Collect all question strings under a node for a given tab. */

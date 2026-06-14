@@ -43,7 +43,7 @@ const ProgressDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, local, tick]);
 
-  const lifetimeXp = Math.max(cloud?.xp ?? 0, readLocalXp(), completed);
+  const lifetimeXp = cloud?.xp ?? completed;
   const streak = cloud?.streak ?? 0;
 
   // Year-scoped XP from cloud (questions completed for the current year)
@@ -67,11 +67,18 @@ const ProgressDashboard = () => {
         () => fetchYearXp()
       )
       .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+    // Also refetch on local progress events (covers tick/untick before realtime arrives)
+    const onLocal = () => { setTimeout(fetchYearXp, 350); };
+    window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+      window.removeEventListener(QUESTION_PROGRESS_EVENT, onLocal);
+    };
   }, [userId, year]);
 
-  // Primary XP shown in the dashboard = year XP (falls back to completed local count when offline).
-  const xp = Math.max(yearXp, completed);
+  // Primary XP shown in the dashboard = local completed count (instant), fallback to cloud year XP.
+  const xp = completed || yearXp;
 
   if (!local) {
     return (

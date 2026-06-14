@@ -36,11 +36,13 @@ export function useXpStream({
 
   // Sync refs when cloud values arrive
   useEffect(() => {
-    const xp = Math.max(cloudXp, readLocalXp());
+    // Use cloud as the source of truth; local is best-effort and may lag.
+    const xp = cloudXp;
     if (xp > prevXp.current) {
       const delta = xp - prevXp.current;
       handleXpChange(prevXp.current, xp, delta);
     }
+    // Always sync ref (including decreases from un-ticks) so future deltas are correct.
     prevXp.current = xp;
   }, [cloudXp]);
 
@@ -87,15 +89,16 @@ export function useXpStream({
     commitUnlocks(unlocks, prevXp.current, to);
   }
 
-  // Local progress event → recompute local XP
+  // Local progress event → recompute local XP (handles both increases and decreases)
   useEffect(() => {
     const handler = () => {
-      const xp = Math.max(prevXp.current, readLocalXp());
+      const xp = readLocalXp();
       if (xp > prevXp.current) {
         const delta = xp - prevXp.current;
         handleXpChange(prevXp.current, xp, delta);
-        prevXp.current = xp;
       }
+      // Always sync — allows un-tick to lower local XP without celebrating.
+      prevXp.current = xp;
     };
     window.addEventListener(QUESTION_PROGRESS_EVENT, handler);
     return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, handler);
