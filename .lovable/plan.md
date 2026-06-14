@@ -1,55 +1,88 @@
-## 1. Tap a leaderboard entry → user details + head-to-head
+## 1. Per-year ranking (year-scoped XP & weekly XP)
 
-In `src/components/progress/Leaderboard.tsx` each row becomes a button that opens a new `UserStatsDialog` (`src/components/progress/UserStatsDialog.tsx`).
+Today every user has a single `profiles.xp` and `weekly_xp.xp`. Switching year in the profile just relabels the same numbers, so a Third Year and First Year user share the same ranking pool. We will scope XP to the year each question was earned in.
 
-Dialog content for the tapped user:
-- Avatar circle (initials) + display name + year badge
-- Highest XP badge earned (from `XP_BADGES` in `src/lib/rewards.ts`) with name + emoji, plus next-badge progress bar
-- Stat tiles: Lifetime XP, This-week XP, Current streak, Questions solved (= `xp`, since `record_question_done` grants 1 XP per unique question — already accurate)
-- "You vs. Dr. {name}" comparison block:
-  - Side-by-side numbers for XP / weekly XP / streak / questions solved
-  - Delta line: e.g. "You're 42 XP behind — solve 42 more questions to tie, 43 to overtake" (or "ahead by N" when current user leads)
-  - If they lead on streak: "Open the app daily for N more days to match their streak"
-- Encouragement footer line based on gap (small/medium/large)
+### Schema migration
 
-Data: everything needed is already in the leaderboard row (`xp`, `weekly_xp`, `streak`, `year`, `display_name`). Current user's stats come from the same `rows` array (find by `currentUserId`) — no new query, no RLS work, stays realtime.
+Add a nullable `year text` column to:
+- `public.question_progress` — the year the user was studying when they completed it
+- `public.weekly_xp` — included in the unique key so weekly XP buckets per (user, week, year)
+- `public.daily_activity` — for future per-year analytics
 
-Self-tap: dialog shows "This is you" header and skips the comparison block.
+Backfill: existing rows get the user's current `profiles.year` value (one-shot UPDATE in the migration).
 
-## 2. First-run walkthrough revamp
+Drop the existing primary key on `weekly_xp(user_id, week_start)` and recreate it as `(user_id, week_start, year)` so the same user studying two years in one week is tracked separately.
 
-Edit `src/components/walkthrough/walkthroughSteps.ts` and `src/components/walkthrough/Walkthrough.tsx`.
+### Function changes
 
-New ordered steps inserted at the very top, before the existing "qbank" step:
+- `record_question_done(_question_id)` — read the caller's `profiles.year`, insert it into `question_progress.year`, and bump `weekly_xp` for that (user, week, year).
+- New RPC `get_year_lifetime_xp(_user_id uuid, _year text)` — returns `COUNT(*)` from `question_progress` for that user+year. Used by the dashboard.
+- Replace `get_weekly_leaderboard(_year, _limit)` with a year-aware version: when `_year` is given, rank by SUM(weekly_xp.xp) for that year only; when null, rank by total weekly XP across years. Join to a CTE that computes per-year lifetime XP from `question_progress` so the row carries `weekly_xp`, `year_lifetime_xp`, and `lifetime_xp`.
+- New RPC `get_year_leaderboard(_year, _limit)` — ranks `question_progress` counts grouped by user for that year, joined to `profiles` for name/streak. Used by lifetime tab when scope = "My Year".
 
-1. **Welcome + Set up your profile** — replaces the current plain "welcome" step. Renders the onboarding form inline inside the walkthrough card (name + year, same fields as `OnboardingDialog`). Saving calls `saveProfile` from `useProfile`; Skip is allowed. This requires a new `step.component` escape hatch in `Walkthrough.tsx` so a step can render custom JSX instead of just title/description.
-2. **Your Progress tab** — points to the Progress tab trigger, explains it's where stats, streaks and leaderboard live. New `data-tour="progress-tab"` on the Progress `TabsTrigger` in `QuestionBank.tsx`.
-3. **XP & Streaks** — targets the StreakXPCard (`data-tour="streak-xp-card"` added). Explains: +1 XP per unique question solved, daily open keeps streak alive, badges unlock at XP milestones.
-4. **Ranking & Stats** — targets RewardsShelf/badges (`data-tour="rewards-shelf"`). Explains badge tiers and how progress is tracked.
-5. **Leaderboard** — targets the Leaderboard card (`data-tour="leaderboard"`). Explains weekly vs lifetime, tap any name to see their stats and how to beat them.
+Streak stays global (one continuous app-usage habit per user — does not split by year).
 
-Then the existing flow continues (QBank header, AI chat, themes, pomodoro, report-issue, etc.) unchanged in order.
+### Client changes
 
-Walkthrough auto-switches the active tab to "Your Progress" before steps 2–5 fire and switches back to "Question Bank" for the qbank step. Implemented by extending the `action` union in `walkthroughSteps.ts` with `open-progress-tab` / `open-qbank-tab` and handling them in `Walkthrough.tsx` via a `window` CustomEvent that `QuestionBank.tsx` listens for to call `setTab(...)`.
+- `src/components/progress/StreakXPCard.tsx` — show the year-scoped XP for the user's current year as the primary number, with "Lifetime: N" as a small subtitle. Streak unchanged.
+- `src/components/progress/YearRingCard.tsx` — already filters by year; unchanged.
+- `src/hooks/use-leaderboard.ts` — when `filterYear !== "all"` use `get_year_leaderboard` RPC; when "all", keep current lifetime-by-profiles.xp query.
+- `src/hooks/use-weekly-leaderboard.ts` — pass `_year` exactly as today; the updated RPC handles the split.
+- `src/components/progress/UserStatsDialog.tsx` — show "Year XP" and "Lifetime XP" as separate stat tiles; comparison block uses year XP when both users are in the same year, otherwise falls back to lifetime.
+- `src/hooks/use-profile.ts` — when the user changes their year via Edit Profile, do NOT touch XP/streak, but fetch the new year's stats afterward so the dashboard re-renders correctly.
 
-## 3. Study Materials walkthrough step (rename cleanup)
+Result: switching from Third Year to First Year shows that user's First Year XP (which may be 0) and ranks them on the First Year leaderboard only.
 
-There is no current step that mentions "Medicoz" — the Question Bank tab was already renamed to "Study Materials" in `QuestionBank.tsx` (line 133) and `StudyMaterialsCard.tsx`. To match the user's intent, add one new walkthrough step right after the qbank step:
+## 2. Fix duplicate users on the leaderboard
 
-- **Study Materials** — targets `data-tour="study-materials-tab"` (added to the Study Materials `TabsTrigger`). Copy: "Tap here for curated notes, PDFs and reference material for every subject." Switches to that tab via `open-study-materials-tab` action.
+Root cause: every call to `supabase.auth.signInAnonymously()` creates a new auth user + profile row. If the Supabase auth localStorage entry is ever cleared (uninstall/reinstall, "clear app data", private mode, switching browsers), the next save creates a brand-new profile with the same display name — leaving the old profile orphaned but still showing on the leaderboard.
 
-Also grep the codebase for any stray "Medicoz" string and remove it if found (none expected based on current search).
+### Fixes
+
+1. **Device fingerprint column.** Add `device_id text` to `profiles` (nullable). On every `saveProfile`, generate/persist a UUID in `localStorage.orbit-device-id` and write it to the profile.
+2. **Reclaim on save.** New RPC `claim_or_merge_profile(_device_id text, _display_name text, _year text)`:
+   - If a profile with the same `device_id` already exists (from a previous anonymous session on this device) and the current user is different, MOVE all `question_progress`, `weekly_xp`, and `daily_activity` rows from the old user to the current user (ON CONFLICT add), recompute `profiles.xp` = COUNT(question_progress), then DELETE the old profile.
+   - Always upsert the current profile with the new name/year/device_id.
+   - Returns the merged profile row.
+3. **`saveProfile` calls the new RPC** instead of plain upsert, so the moment a returning user sets their name the duplicate disappears and their previous XP/streak/badges follow them.
+4. **Client-side dedupe as a safety net.** In `Leaderboard.tsx`, after fetching rows, dedupe by `lowercase(display_name).trim()` keeping the highest-XP row. Belt-and-braces for any duplicates that exist before the merge RPC runs.
+5. **One-shot cleanup migration.** For existing data: for each `(lower(display_name), year)` group with >1 profile, keep the row with highest XP and delete the rest after moving their `question_progress` rows over. Logged as part of the migration so it is auditable.
+
+## 3. Profanity & body-shaming filter for display name
+
+New file `src/lib/profanity.ts` exporting `validateDisplayName(name: string): { ok: boolean; reason?: string }`.
+
+Implementation:
+- Curated word list covering English + Tamil + Telugu + Malayalam + Hindi (transliterated and native scripts) — slurs, sexual terms, body-shaming words. Stored as a TS array of lowercased strings, grouped by language in comments for easy maintenance.
+- Normalize the input: trim → toLowerCase → strip diacritics → collapse repeats (`aaass` → `as`) → strip common leet substitutions (`@`→`a`, `0`→`o`, `1`→`i`, `3`→`e`, `5`→`s`, `$`→`s`) → strip non-alphanumerics.
+- Match against the list with word-boundary regex (so "Assam" doesn't trip "ass"); for the native-script entries use substring match because word boundaries don't work cleanly for Indic scripts.
+- Also reject names that are entirely emojis/punctuation, exceed 40 chars, or are blank.
+
+### Where it's enforced
+- `src/components/progress/OnboardingDialog.tsx` — call `validateDisplayName` on Save; on failure show a toast "Please choose a respectful name — no slurs, hate speech or body-shaming words" and keep the dialog open.
+- `src/components/walkthrough/WalkthroughProfileSetup.tsx` — same validation before `saveProfile`.
+- `src/hooks/use-profile.ts` — also gate inside `saveProfile` so any future call site is protected; throw a typed error the UI can surface.
+
+No DB-level CHECK (not feasible for multilingual matching). Validation is purely client-side because all writes go through `saveProfile`.
 
 ## Technical details
 
-Files created:
-- `src/components/progress/UserStatsDialog.tsx`
+### Files created
+- `supabase/migrations/<timestamp>_year_scoped_xp_and_dedupe.sql` — schema + RPC changes + backfill + dedupe cleanup
+- `src/lib/profanity.ts`
 
-Files edited:
-- `src/components/progress/Leaderboard.tsx` — rows become buttons, manage selected-user state, render dialog
-- `src/components/walkthrough/walkthroughSteps.ts` — new steps, new action types, optional `component` field
-- `src/components/walkthrough/Walkthrough.tsx` — handle `component` rendering, dispatch tab-switch events, handle profile-setup step's Save/Skip
-- `src/components/QuestionBank.tsx` — add `data-tour` attrs (`progress-tab`, `study-materials-tab`), listen for tab-switch CustomEvents
-- `src/components/progress/ProgressDashboard.tsx` — add `data-tour` wrappers on `StreakXPCard`, `RewardsShelf`, `Leaderboard`
+### Files edited
+- `src/hooks/use-profile.ts` — device_id, call `claim_or_merge_profile`, validate name
+- `src/hooks/use-leaderboard.ts` — call `get_year_leaderboard` for year scope
+- `src/hooks/use-weekly-leaderboard.ts` — handle new RPC response shape
+- `src/components/progress/Leaderboard.tsx` — dedupe rows by display_name
+- `src/components/progress/StreakXPCard.tsx` — show year XP + lifetime XP
+- `src/components/progress/UserStatsDialog.tsx` — year XP tile + same-year-aware comparison
+- `src/components/progress/ProgressDashboard.tsx` — fetch year XP for current year and pass down
+- `src/components/progress/OnboardingDialog.tsx` — name validation + toast
+- `src/components/walkthrough/WalkthroughProfileSetup.tsx` — same validation + inline error
 
-No database migration. No RLS changes. No new dependencies. Realtime continues to work because the dialog reads from the same `rows` array driven by the existing realtime subscription.
+### Out of scope
+- Server-side profanity filter via Edge Function (not requested; client validation is the contract).
+- Splitting streaks per year.
+- Real-name verification.
