@@ -138,7 +138,11 @@ export function useProfile() {
         setLocal({ display_name: data.display_name, year: data.year as Year });
         writeLocal({ display_name: data.display_name, year: data.year as Year });
       }
-      await supabase.rpc("register_open");
+      const { data: openRes } = await (supabase as any).rpc("register_open");
+      const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
+      if (openRow && typeof openRow.streak === "number") {
+        setCloud((c) => c ? { ...c, streak: openRow.streak, last_active_date: openRow.last_active_date } : c);
+      }
       // Push any locally-completed questions to the cloud so XP/leaderboard catch up
       await syncLocalProgressToCloud();
       // Then reconcile: treat device as source of truth, drop stale server rows
@@ -212,7 +216,11 @@ export function useProfile() {
               .maybeSingle()
           ).data;
           if (profileRow) setCloud(profileRow as CloudProfile);
-          await supabase.rpc("register_open");
+          const { data: openRes2 } = await (supabase as any).rpc("register_open");
+          const openRow2 = Array.isArray(openRes2) ? openRes2[0] : openRes2;
+          if (openRow2 && typeof openRow2.streak === "number") {
+            setCloud((c) => c ? { ...c, streak: openRow2.streak, last_active_date: openRow2.last_active_date } : c);
+          }
           await syncLocalProgressToCloud();
           reconcileProgressWithCloud(true);
         }
