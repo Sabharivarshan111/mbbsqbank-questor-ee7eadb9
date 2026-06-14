@@ -140,8 +140,20 @@ export function useProfile() {
       }
       await supabase.rpc("register_open");
       // Push any locally-completed questions to the cloud so XP/leaderboard catch up
-      syncLocalProgressToCloud();
+      await syncLocalProgressToCloud();
+      // Then reconcile: treat device as source of truth, drop stale server rows
+      reconcileProgressWithCloud(true);
     })();
+  }, [userId]);
+
+  // Reconcile when the tab becomes visible again (debounced inside the helper)
+  useEffect(() => {
+    if (!userId) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reconcileProgressWithCloud();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [userId]);
 
   const saveProfile = useCallback(
