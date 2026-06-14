@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
 import { validateDisplayName } from "@/lib/profanity";
-import { syncLocalProgressToCloud } from "@/lib/question-progress";
+import { syncLocalProgressToCloud, reconcileProgressWithCloud } from "@/lib/question-progress";
 
 export interface LocalProfile {
   display_name: string;
@@ -140,8 +140,20 @@ export function useProfile() {
       }
       await supabase.rpc("register_open");
       // Push any locally-completed questions to the cloud so XP/leaderboard catch up
-      syncLocalProgressToCloud();
+      await syncLocalProgressToCloud();
+      // Then reconcile: treat device as source of truth, drop stale server rows
+      reconcileProgressWithCloud(true);
     })();
+  }, [userId]);
+
+  // Reconcile when the tab becomes visible again (debounced inside the helper)
+  useEffect(() => {
+    if (!userId) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reconcileProgressWithCloud();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [userId]);
 
   const saveProfile = useCallback(
@@ -201,7 +213,8 @@ export function useProfile() {
           ).data;
           if (profileRow) setCloud(profileRow as CloudProfile);
           await supabase.rpc("register_open");
-          syncLocalProgressToCloud();
+          await syncLocalProgressToCloud();
+          reconcileProgressWithCloud(true);
         }
       } finally {
         setLoading(false);

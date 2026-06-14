@@ -18,18 +18,20 @@ export function isQuestionDone(question: string): boolean {
 
 export function setQuestionDone(question: string, done: boolean) {
   try {
-    const wasDone = isQuestionDone(question);
     localStorage.setItem(getQuestionId(question), done.toString());
     window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
     const qid = getQuestionId(question);
-    if (done && !wasDone) {
+    // Always sync the intent to the cloud — the RPCs are idempotent.
+    // This guarantees that un-ticks always lower XP even if local storage was
+    // cleared / reinstalled and the previous state is no longer remembered.
+    if (done) {
       import("@/integrations/supabase/client").then(({ supabase }) => {
         supabase.rpc("record_question_done", { _question_id: qid }).then(({ error }) => {
           if (error) console.warn("record_question_done failed:", error);
           window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
         });
       }).catch((e) => console.warn("supabase import failed:", e));
-    } else if (!done && wasDone) {
+    } else {
       import("@/integrations/supabase/client").then(({ supabase }) => {
         (supabase as any).rpc("record_question_undone", { _question_id: qid }).then(({ error }: any) => {
           if (error) console.warn("record_question_undone failed:", error);
@@ -120,5 +122,40 @@ export async function syncLocalProgressToCloud(): Promise<void> {
     window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
   } catch {} finally {
     _syncing = false;
+  }
+}
+
+let _reconciling = false;
+let _lastReconcileTs = 0;
+
+/**
+ * Reconcile cloud question_progress with what's actually on this device.
+ * The device list is treated as the source of truth: server rows missing from
+ * the device are removed, and missing IDs are inserted. profiles.xp is
+ * recomputed server-side so the leaderboard always matches reality.
+ */
+export async function reconcileProgressWithCloud(force = false): Promise<void> {
+  const now = Date.now();
+  if (_reconciling) return;
+  if (!force && now - _lastReconcileTs < 15_000) return;
+  _reconciling = true;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const ids = collectLocalDoneIds();
+    const { error } = await (supabase as any).rpc("reconcile_question_progress", {
+      _question_ids: ids,
+    });
+    if (error) {
+      console.warn("reconcile_question_progress failed:", error);
+      return;
+    }
+    _lastReconcileTs = Date.now();
+    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+  } catch (e) {
+    console.warn("reconcileProgressWithCloud error:", e);
+  } finally {
+    _reconciling = false;
   }
 }
