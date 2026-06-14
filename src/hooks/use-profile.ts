@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
+import { validateDisplayName } from "@/lib/profanity";
 
 export interface LocalProfile {
   display_name: string;
@@ -8,6 +9,20 @@ export interface LocalProfile {
 }
 
 const LS_KEY = "orbit-profile-v1";
+const DEVICE_KEY = "orbit-device-id";
+
+function getDeviceId(): string {
+  try {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!id) {
+      id = (crypto as any).randomUUID ? (crypto as any).randomUUID() : `dev-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  } catch {
+    return `dev-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+  }
+}
 
 function readLocal(): LocalProfile | null {
   try {
@@ -27,6 +42,13 @@ function writeLocal(p: LocalProfile) {
   try {
     window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: p }));
   } catch {}
+}
+
+export class DisplayNameError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DisplayNameError";
+  }
 }
 
 export interface CloudProfile extends LocalProfile {
@@ -58,7 +80,7 @@ export function useProfile() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Sync local profile across all useProfile() instances (same tab + other tabs)
+  // Sync local profile across all useProfile() instances
   useEffect(() => {
     const onCustom = (e: Event) => {
       const detail = (e as CustomEvent<LocalProfile>).detail;
@@ -78,7 +100,7 @@ export function useProfile() {
     };
   }, []);
 
-  // Realtime: own profile row changes (e.g. rename on another device)
+  // Realtime: own profile row changes
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -121,10 +143,17 @@ export function useProfile() {
 
   const saveProfile = useCallback(
     async (p: LocalProfile) => {
+      const check = validateDisplayName(p.display_name);
+      if (!check.ok) {
+        throw new DisplayNameError(check.reason ?? "Invalid name.");
+      }
+
       setLoading(true);
       try {
-        writeLocal(p);
-        setLocal(p);
+        const cleanName = p.display_name.trim();
+        const cleanProfile = { display_name: cleanName, year: p.year };
+        writeLocal(cleanProfile);
+        setLocal(cleanProfile);
         setNeedsOnboarding(false);
 
         // Ensure anonymous session
@@ -141,17 +170,33 @@ export function useProfile() {
         }
 
         if (uid) {
-          await supabase.from("profiles").upsert({
-            id: uid,
-            display_name: p.display_name,
-            year: p.year,
-          });
-          const { data } = await supabase
-            .from("profiles")
-            .select("id, display_name, year, xp, streak, last_active_date")
-            .eq("id", uid)
-            .maybeSingle();
-          if (data) setCloud(data as CloudProfile);
+          const deviceId = getDeviceId();
+          // Claim/merge any previous profile on this device, then upsert.
+          const { data: merged, error: mergeErr } = await (supabase as any).rpc(
+            "claim_or_merge_profile",
+            {
+              _device_id: deviceId,
+              _display_name: cleanName,
+              _year: p.year,
+            }
+          );
+          if (mergeErr) {
+            // Fallback: plain upsert
+            await supabase.from("profiles").upsert({
+              id: uid,
+              display_name: cleanName,
+              year: p.year,
+              device_id: deviceId,
+            });
+          }
+          const profileRow = merged ?? (
+            await supabase
+              .from("profiles")
+              .select("id, display_name, year, xp, streak, last_active_date")
+              .eq("id", uid)
+              .maybeSingle()
+          ).data;
+          if (profileRow) setCloud(profileRow as CloudProfile);
           await supabase.rpc("register_open");
         }
       } finally {
