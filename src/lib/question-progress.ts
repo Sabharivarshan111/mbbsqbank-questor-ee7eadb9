@@ -1,3 +1,5 @@
+import { getYearNode, type Year } from "./year-subjects";
+
 type Tab = "essay" | "short-notes";
 
 export const QUESTION_PROGRESS_EVENT = "question-progress-change";
