@@ -43,8 +43,35 @@ const ProgressDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, local, tick]);
 
-  const xp = Math.max(cloud?.xp ?? 0, readLocalXp(), completed);
+  const lifetimeXp = Math.max(cloud?.xp ?? 0, readLocalXp(), completed);
   const streak = cloud?.streak ?? 0;
+
+  // Year-scoped XP from cloud (questions completed for the current year)
+  const [yearXp, setYearXp] = useState<number>(0);
+  useEffect(() => {
+    if (!userId) { setYearXp(0); return; }
+    let cancelled = false;
+    const fetchYearXp = async () => {
+      const { data } = await (supabase as any).rpc("get_year_lifetime_xp", {
+        _user_id: userId,
+        _year: year,
+      });
+      if (!cancelled && typeof data === "number") setYearXp(data);
+    };
+    fetchYearXp();
+    const channel = supabase
+      .channel(`year-xp:${userId}:${year}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "question_progress", filter: `user_id=eq.${userId}` },
+        () => fetchYearXp()
+      )
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [userId, year]);
+
+  // Primary XP shown in the dashboard = year XP (falls back to completed local count when offline).
+  const xp = Math.max(yearXp, completed);
 
   if (!local) {
     return (
