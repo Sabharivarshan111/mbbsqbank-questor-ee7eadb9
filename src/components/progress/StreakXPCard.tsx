@@ -43,7 +43,7 @@ const StreakXPCard = ({ xp, lifetimeXp, streak }: Props) => {
         <div className="text-xs text-muted-foreground text-right">
           <div>
             Level <span className={`font-bold bg-clip-text text-transparent ${grad.text}`}>{level}</span>
-            <span className="ml-2">· {xpAnim} XP</span>
+            <span className="ml-2">· {xpAnim} Year XP</span>
           </div>
           {showLifetime && (
             <div className="text-[10px] mt-0.5 opacity-80">Lifetime: {lifetimeXp} XP</div>

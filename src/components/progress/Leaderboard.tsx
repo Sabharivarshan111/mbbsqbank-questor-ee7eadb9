@@ -1,8 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Flame, Trophy, Clock } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 import { useLeaderboard } from "@/hooks/use-leaderboard";
-import { useWeeklyLeaderboard } from "@/hooks/use-weekly-leaderboard";
 import type { Year } from "@/lib/year-subjects";
 import { YEAR_LABELS } from "@/lib/year-subjects";
 import { XP_BADGES } from "@/lib/rewards";
@@ -21,33 +20,12 @@ function highestXpBadge(xp: number) {
   return best;
 }
 
-function useResetCountdown() {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-  const d = new Date(now);
-  const day = d.getDay(); // 0 Sun
-  const daysToMonday = (8 - (day === 0 ? 7 : day)) % 7 || 7;
-  const next = new Date(d);
-  next.setDate(d.getDate() + daysToMonday);
-  next.setHours(0, 0, 0, 0);
-  const ms = next.getTime() - now;
-  const days = Math.floor(ms / 86_400_000);
-  const hours = Math.floor((ms % 86_400_000) / 3_600_000);
-  return `${days}d ${hours}h`;
-}
-
 const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   const [scope, setScope] = useState<"year" | "all">("year");
-  const [period, setPeriod] = useState<"weekly" | "lifetime">("weekly");
   const [selected, setSelected] = useState<UserStat | null>(null);
-  const lifetime = useLeaderboard(scope === "year" ? year : "all", enabled && period === "lifetime");
-  const weekly = useWeeklyLeaderboard(scope === "year" ? year : "all", enabled && period === "weekly");
-  const countdown = useResetCountdown();
+  const board = useLeaderboard(scope === "year" ? year : "all", enabled);
 
-  // Live local XP for the current user, scoped to the selected year.
+  // Live local year XP for the current user — drives instant rank updates on tick/un-tick.
   const [localYearXp, setLocalYearXp] = useState<number>(() => countLocalYearXp(year));
   useEffect(() => {
     const recompute = () => setLocalYearXp(countLocalYearXp(year));
@@ -61,78 +39,44 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   }, [year]);
 
   const rows = useMemo(() => {
-    const raw = period === "weekly"
-      ? weekly.rows.map((r) => ({
-          id: r.id,
-          display_name: r.display_name,
-          year: r.year,
-          primary: r.weekly_xp,
-          xp: r.xp,
-          weekly_xp: r.weekly_xp,
-          year_xp: r.year_xp,
-          streak: r.streak,
-        }))
-      : lifetime.rows.map((r) => ({
-          id: r.id,
-          display_name: r.display_name,
-          year: r.year,
-          primary: r.year_xp,
-          xp: r.xp,
-          weekly_xp: 0,
-          year_xp: r.year_xp,
-          streak: r.streak,
-        }));
+    const raw = board.rows.map((r) => ({
+      id: r.id,
+      display_name: r.display_name,
+      year: r.year,
+      primary: r.year_xp,
+      xp: r.xp,
+      year_xp: r.year_xp,
+      streak: r.streak,
+    }));
 
-    // Dedupe by (lowercased trimmed name + year). Keep the row with the highest
-    // primary score; preserve the current user's row regardless.
+    // Dedupe by (lowercased name + year), keeping the current user or the higher score.
     const seen = new Map<string, typeof raw[number]>();
     for (const r of raw) {
       const key = `${r.display_name.trim().toLowerCase()}::${r.year}`;
       const prev = seen.get(key);
-      if (!prev) {
-        seen.set(key, r);
-        continue;
-      }
+      if (!prev) { seen.set(key, r); continue; }
       if (r.id === currentUserId) seen.set(key, r);
       else if (prev.id !== currentUserId && r.primary > prev.primary) seen.set(key, r);
     }
 
-    // Override the current user's XP with the live local count so un-ticks
-    // shrink XP and rank instantly without waiting for Supabase.
+    // Override the current user's row with live local year XP so un-ticks shrink rank instantly.
     if (currentUserId) {
-      const meRow = seen.get(
-        Array.from(seen.entries()).find(([, v]) => v.id === currentUserId)?.[0] ?? ""
-      );
-      if (meRow) {
-        // Only override when viewing the year-scoped board; the global "All"
-        // board keeps cloud lifetime values intact.
-        const isYearScoped = scope === "year";
-        const liveYearXp = isYearScoped
-          ? Math.min(meRow.year_xp, localYearXp)
-          : meRow.year_xp;
-        const liveWeekly = isYearScoped
-          ? Math.min(meRow.weekly_xp, localYearXp)
-          : meRow.weekly_xp;
-        const livePrimary = period === "weekly" ? liveWeekly : liveYearXp;
-        const updated = {
-          ...meRow,
-          year_xp: liveYearXp,
-          weekly_xp: liveWeekly,
-          primary: livePrimary,
-        };
-        for (const [k, v] of seen) if (v.id === currentUserId) seen.set(k, updated);
+      for (const [k, v] of seen) {
+        if (v.id === currentUserId) {
+          const live = scope === "year" ? Math.min(v.year_xp, localYearXp) : v.year_xp;
+          seen.set(k, { ...v, year_xp: live, primary: live });
+          break;
+        }
       }
     }
 
     return Array.from(seen.values()).sort(
       (a, b) =>
         b.primary - a.primary ||
-        b.xp - a.xp ||
-        b.year_xp - a.year_xp ||
         b.streak - a.streak ||
         a.display_name.localeCompare(b.display_name)
     );
-  }, [period, scope, weekly.rows, lifetime.rows, currentUserId, localYearXp]);
+  }, [board.rows, currentUserId, localYearXp, scope]);
 
   const me = useMemo<UserStat | null>(() => {
     if (!currentUserId) return null;
@@ -144,13 +88,11 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
           year: r.year,
           xp: r.xp,
           year_xp: r.year_xp,
-          weekly_xp: r.weekly_xp,
+          weekly_xp: 0,
           streak: r.streak,
         }
       : null;
   }, [rows, currentUserId]);
-
-  const loading = period === "weekly" ? weekly.loading : lifetime.loading;
 
   if (!enabled) {
     return (
@@ -176,30 +118,18 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
         </Tabs>
       </div>
 
-      <div className="flex items-center justify-between">
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as "weekly" | "lifetime")}>
-          <TabsList className="h-7">
-            <TabsTrigger value="weekly" className="text-xs h-6 px-2">This Week</TabsTrigger>
-            <TabsTrigger value="lifetime" className="text-xs h-6 px-2">Lifetime</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        {period === "weekly" && (
-          <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" /> resets in {countdown}
-          </span>
-        )}
-      </div>
+      <p className="text-[10px] text-muted-foreground">
+        Ranked by {scope === "year" ? `${YEAR_LABELS[year]} XP` : "each user's year XP"} — 1 XP per question ticked done. Un-tick to lose it.
+      </p>
 
       <div className="space-y-1.5 max-h-72 overflow-y-auto">
-        {loading && rows.length === 0 && <p className="text-xs text-muted-foreground">Loading…</p>}
-        {!loading && rows.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            {period === "weekly" ? "No XP earned this week yet — be the first!" : "No one here yet — be the first!"}
-          </p>
+        {board.loading && rows.length === 0 && <p className="text-xs text-muted-foreground">Loading…</p>}
+        {!board.loading && rows.length === 0 && (
+          <p className="text-xs text-muted-foreground">No one here yet — be the first!</p>
         )}
         {rows.map((r, i) => {
           const isMe = r.id === currentUserId;
-          const badge = highestXpBadge(r.xp);
+          const badge = highestXpBadge(r.year_xp);
           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
           return (
             <button
@@ -212,7 +142,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
                   year: r.year,
                   xp: r.xp,
                   year_xp: r.year_xp,
-                  weekly_xp: r.weekly_xp,
+                  weekly_xp: 0,
                   streak: r.streak,
                 })
               }
@@ -232,9 +162,11 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
                 {r.display_name}{isMe && " (you)"}
                 {badge && <span title={badge.label} className="text-xs">{badge.emoji}</span>}
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-background text-muted-foreground">
-                {YEAR_LABELS[r.year].replace(" Year", "")}
-              </span>
+              {scope === "all" && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-background text-muted-foreground">
+                  {YEAR_LABELS[r.year].replace(" Year", "")}
+                </span>
+              )}
               <span className="flex items-center gap-0.5 text-xs text-orange-500">
                 <Flame className="h-3 w-3" />{r.streak}
               </span>
