@@ -82,7 +82,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
       if (r.id === currentUserId) seen.set(key, r);
       else if (prev.id !== currentUserId && r.primary > prev.primary) seen.set(key, r);
     }
-    return Array.from(seen.values()).sort((a, b) => b.primary - a.primary);
+    return Array.from(seen.values()).sort((a, b) => b.primary - a.primary || b.streak - a.streak);
   }, [period, weekly.rows, lifetime.rows, currentUserId]);
 
   const me = useMemo<UserStat | null>(() => {
