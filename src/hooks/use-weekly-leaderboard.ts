@@ -63,10 +63,33 @@ export function useWeeklyLeaderboard(filterYear: Year | "all", enabled: boolean)
     const onLocal = () => { setTimeout(fetchRows, 400); setTimeout(fetchRows, 1500); };
     window.addEventListener(QUESTION_PROGRESS_EVENT, onLocal);
 
+    // Refresh at next IST Monday 00:00 so the weekly board resets in realtime
+    const msToNextIstMonday = () => {
+      const now = new Date();
+      // Current time in IST
+      const istNow = new Date(now.getTime() + (now.getTimezoneOffset() + 330) * 60_000);
+      const day = istNow.getDay(); // 0=Sun..6=Sat
+      const daysUntilMon = ((8 - day) % 7) || 7;
+      const istNextMon = new Date(istNow);
+      istNextMon.setDate(istNow.getDate() + daysUntilMon);
+      istNextMon.setHours(0, 0, 5, 0); // 5s past midnight to be safe
+      return istNextMon.getTime() - istNow.getTime();
+    };
+    const boundaryTimer = window.setTimeout(() => {
+      fetchRows();
+    }, Math.max(1000, msToNextIstMonday()));
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchRows();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
       window.removeEventListener(QUESTION_PROGRESS_EVENT, onLocal);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearTimeout(boundaryTimer);
     };
   }, [filterYear, enabled]);
 
