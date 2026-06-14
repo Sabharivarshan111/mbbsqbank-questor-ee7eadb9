@@ -177,6 +177,8 @@ export type Database = {
       }
     }
     Functions: {
+      app_today: { Args: never; Returns: string }
+      app_week_start: { Args: never; Returns: string }
       claim_or_merge_profile: {
         Args: {
           _device_id: string
