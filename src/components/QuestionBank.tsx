@@ -178,7 +178,23 @@ const QuestionBank = () => {
 
           <ScrollArea className="h-[calc(100vh-12rem)] min-h-[500px]">
             {!hasSearchResults && activeSearchQuery.trim() !== "" && (
-              <NoResultsMessage searchQuery={activeSearchQuery} />
+              otherTabHasResults ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    No {activeTab === "essay" ? "essays" : "short notes"} found for
+                    <span className="font-medium"> "{activeSearchQuery}"</span>, but matches exist in {activeTab === "essay" ? "Short notes" : "Essay"}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab(activeTab === "essay" ? "short-notes" : "essay")}
+                    className="px-4 py-2 rounded-md bg-gradient-to-r from-fuchsia-500 via-pink-500 to-orange-400 text-white text-sm font-medium shadow hover:opacity-90 transition"
+                  >
+                    Switch to {activeTab === "essay" ? "Short notes" : "Essay"}
+                  </button>
+                </div>
+              ) : (
+                <NoResultsMessage searchQuery={activeSearchQuery} />
+              )
             )}
 
             <TabsContent
