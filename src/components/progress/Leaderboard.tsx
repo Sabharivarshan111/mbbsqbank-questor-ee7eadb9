@@ -47,32 +47,58 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
   const countdown = useResetCountdown();
 
   const rows = useMemo(() => {
-    if (period === "weekly") {
-      return weekly.rows.map((r) => ({
-        id: r.id,
-        display_name: r.display_name,
-        year: r.year,
-        primary: r.weekly_xp,
-        xp: r.xp,
-        weekly_xp: r.weekly_xp,
-        streak: r.streak,
-      }));
+    const raw = period === "weekly"
+      ? weekly.rows.map((r) => ({
+          id: r.id,
+          display_name: r.display_name,
+          year: r.year,
+          primary: r.weekly_xp,
+          xp: r.xp,
+          weekly_xp: r.weekly_xp,
+          year_xp: r.year_xp,
+          streak: r.streak,
+        }))
+      : lifetime.rows.map((r) => ({
+          id: r.id,
+          display_name: r.display_name,
+          year: r.year,
+          primary: r.year_xp,
+          xp: r.xp,
+          weekly_xp: 0,
+          year_xp: r.year_xp,
+          streak: r.streak,
+        }));
+
+    // Dedupe by (lowercased trimmed name + year). Keep the row with the highest
+    // primary score; preserve the current user's row regardless.
+    const seen = new Map<string, typeof raw[number]>();
+    for (const r of raw) {
+      const key = `${r.display_name.trim().toLowerCase()}::${r.year}`;
+      const prev = seen.get(key);
+      if (!prev) {
+        seen.set(key, r);
+        continue;
+      }
+      if (r.id === currentUserId) seen.set(key, r);
+      else if (prev.id !== currentUserId && r.primary > prev.primary) seen.set(key, r);
     }
-    return lifetime.rows.map((r) => ({
-      id: r.id,
-      display_name: r.display_name,
-      year: r.year,
-      primary: r.xp,
-      xp: r.xp,
-      weekly_xp: 0,
-      streak: r.streak,
-    }));
-  }, [period, weekly.rows, lifetime.rows]);
+    return Array.from(seen.values()).sort((a, b) => b.primary - a.primary);
+  }, [period, weekly.rows, lifetime.rows, currentUserId]);
 
   const me = useMemo<UserStat | null>(() => {
     if (!currentUserId) return null;
     const r = rows.find((x) => x.id === currentUserId);
-    return r ? { id: r.id, display_name: r.display_name, year: r.year, xp: r.xp, weekly_xp: r.weekly_xp, streak: r.streak } : null;
+    return r
+      ? {
+          id: r.id,
+          display_name: r.display_name,
+          year: r.year,
+          xp: r.xp,
+          year_xp: r.year_xp,
+          weekly_xp: r.weekly_xp,
+          streak: r.streak,
+        }
+      : null;
   }, [rows, currentUserId]);
 
   const loading = period === "weekly" ? weekly.loading : lifetime.loading;
