@@ -93,13 +93,24 @@ const SearchResults = ({ data, activeTab }: Props) => {
     }
   }
 
+  const typeLabel = activeTab === "essay" ? "Essay" : "Short note";
+  const typeBadgeClass =
+    activeTab === "essay"
+      ? "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"
+      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
+
   return (
     <div className="space-y-6">
       {rendered.map((block, i) => (
         <div key={`${block.group.path}-${i}`} className="space-y-2">
-          <h6 className="text-xs uppercase tracking-wide font-semibold text-gray-500 dark:text-gray-400">
-            {block.group.path}
-          </h6>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h6 className="text-xs uppercase tracking-wide font-semibold text-gray-500 dark:text-gray-400">
+              {block.group.path}
+            </h6>
+            <span className={`text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full ${typeBadgeClass}`}>
+              {typeLabel}
+            </span>
+          </div>
           <div className="space-y-2">
             {block.items.map((it) => (
               <QuestionCard
