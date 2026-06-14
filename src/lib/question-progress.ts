@@ -19,10 +19,18 @@ export function setQuestionDone(question: string, done: boolean) {
     const wasDone = isQuestionDone(question);
     localStorage.setItem(getQuestionId(question), done.toString());
     window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
-    // Fire-and-forget cloud sync when transitioning to done
+    const qid = getQuestionId(question);
     if (done && !wasDone) {
       import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase.rpc("record_question_done", { _question_id: getQuestionId(question) }).then(() => {});
+        supabase.rpc("record_question_done", { _question_id: qid }).then(() => {
+          window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+        });
+      }).catch(() => {});
+    } else if (!done && wasDone) {
+      import("@/integrations/supabase/client").then(({ supabase }) => {
+        (supabase as any).rpc("record_question_undone", { _question_id: qid }).then(() => {
+          window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+        });
       }).catch(() => {});
     }
   } catch {}
