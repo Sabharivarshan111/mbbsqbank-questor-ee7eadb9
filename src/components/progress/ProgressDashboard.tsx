@@ -107,7 +107,7 @@ const ProgressDashboard = () => {
       <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
 
       <YearRingCard completed={completed} total={total} />
-      <div data-tour="streak-xp-card"><StreakXPCard xp={xp} streak={streak} /></div>
+      <div data-tour="streak-xp-card"><StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} /></div>
       <StreakTipsCard xp={xp} streak={streak} />
       <div data-tour="rewards-shelf"><RewardsShelf xp={xp} streak={streak} /></div>
       <div data-tour="leaderboard"><Leaderboard year={year} currentUserId={userId} enabled={!!userId} /></div>
