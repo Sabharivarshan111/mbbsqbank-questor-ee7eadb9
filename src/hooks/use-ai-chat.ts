@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { isStringMatch, normalizeString } from "@/lib/utils";
 import { detectHighYieldIntent, getRankedQuestions, formatHighYieldResponse } from "@/lib/high-yield-query";
+import { extractMedicalTerms } from "@/lib/highlight-medical";
 
 interface QueueStats {
   isQueueActive: boolean;
@@ -707,6 +708,23 @@ Rules:
         }
         return [...prevMessages, aiMessage];
       });
+
+      // Fetch illustrative Wikipedia images for non-MCQ medical answers.
+      if (!isMCQRequest) {
+        const terms = extractMedicalTerms(data.response || "", 3);
+        if (terms.length > 0) {
+          supabase.functions
+            .invoke('wiki-image', { body: { terms } })
+            .then(({ data: imgData }) => {
+              const images = Array.isArray(imgData?.images) ? imgData.images : [];
+              if (images.length === 0) return;
+              setMessages(prev =>
+                prev.map(m => (m.id === aiMessage.id ? { ...m, images } : m))
+              );
+            })
+            .catch(err => console.warn('wiki-image fetch failed', err));
+        }
+      }
     } catch (error) {
       handleError(error);
       
