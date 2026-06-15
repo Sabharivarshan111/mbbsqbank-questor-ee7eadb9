@@ -74,6 +74,13 @@ export default {
 					border: '#1A1A1A',
 					card: '#000000',
 					'card-foreground': '#FF5C8D',
+				},
+				medical: {
+					disease: 'hsl(var(--medical-disease))',
+					drug: 'hsl(var(--medical-drug))',
+					anat: 'hsl(var(--medical-anat))',
+					inv: 'hsl(var(--medical-inv))',
+					value: 'hsl(var(--medical-value))',
 				}
 			},
 			borderRadius: {
