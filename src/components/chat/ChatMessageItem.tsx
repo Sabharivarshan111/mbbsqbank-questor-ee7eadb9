@@ -6,8 +6,11 @@ import { cn, isValidMedicalSourceUrl } from "@/lib/utils";
 import { ChatMessage } from "@/models/ChatMessage";
 import { ReferencesSection } from "./ReferencesSection";
 import { McqMessage } from "./McqMessage";
+import { MessageImages } from "./MessageImages";
+import { renderMedicalText, stripMedicalTags } from "@/lib/highlight-medical";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import React from "react";
 
 interface ChatMessageItemProps {
   message: ChatMessage;
