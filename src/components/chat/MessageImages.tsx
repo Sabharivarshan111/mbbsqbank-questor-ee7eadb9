@@ -5,15 +5,14 @@ export interface MessageImage {
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
-  generated?: boolean;
 }
 
 interface MessageImagesProps {
   images: MessageImage[];
 }
 
-const sourceLabel = (img: MessageImage) =>
-  img.generated ? "AI-generated illustration" : "Source: Wikipedia";
+const sourceLabel = (_img: MessageImage) => "Source: Wikipedia / Commons / Openverse";
+
 
 export const MessageImages = ({ images }: MessageImagesProps) => {
   if (!images || images.length === 0) return null;

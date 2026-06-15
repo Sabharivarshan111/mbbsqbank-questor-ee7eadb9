@@ -550,54 +550,8 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
     setIsLoading(true);
     setPrompt(""); // Clear the input immediately when processing starts
 
-    // Detect follow-up requests for diagrams/flowcharts/mind maps that reference
-    // the previous answer (e.g. "generate a flowchart for the above question").
-    const diagramKindMatch = question.match(/(flow\s*chart|mind\s*map|diagram|infograph(?:ic)?|illustrat(?:e|ion)|sketch|visuali[sz]e|draw)/i);
-    const backRef = /(above|previous|prev|last|earlier|that|this)\b/i.test(question);
-    if (!isMCQRequestEarly && diagramKindMatch && (backRef || /for\s+(?:the\s+)?question/i.test(question))) {
-      try {
-        const recent = messages.filter(m => !m.hidden).slice(-6);
-        const lastAssistant = [...recent].reverse().find(m => m.role === 'assistant');
-        const lastUser = [...recent].reverse().find(m => m.role === 'user');
-        const contextText = [
-          lastUser ? `Question: ${lastUser.content}` : null,
-          lastAssistant ? `Answer: ${lastAssistant.content.slice(0, 2000)}` : null,
-          `User request: ${question}`,
-        ].filter(Boolean).join('\n\n');
+    // (Diagram/flowchart auto-generation removed — Wikipedia/Commons/Openverse only.)
 
-        const kindRaw = diagramKindMatch[1].toLowerCase().replace(/\s+/g, '');
-        const kind: 'flowchart' | 'mindmap' | 'diagram' =
-          kindRaw.includes('flow') ? 'flowchart' :
-          kindRaw.includes('mind') ? 'mindmap' : 'diagram';
-
-        const { data: diag, error: diagErr } = await supabase.functions.invoke('generate-diagram', {
-          body: { context: contextText, kind },
-        });
-        if (diagErr || !diag?.imageUrl) {
-          throw new Error(diag?.error || diagErr?.message || 'Diagram generation failed');
-        }
-
-        const labelMap = { flowchart: 'flowchart', mindmap: 'mind map', diagram: 'diagram' } as const;
-        const aiMessage: ChatMessage = {
-          id: uuidv4(),
-          role: 'assistant',
-          content: `Here's a ${labelMap[kind]} based on your previous question:`,
-          timestamp: new Date(),
-          images: [{
-            term: `${labelMap[kind]}`,
-            imageUrl: diag.imageUrl,
-            caption: lastUser?.content?.slice(0, 120),
-            generated: true,
-          }],
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        setIsLoading(false);
-        return;
-      } catch (err) {
-        console.warn('diagram generation failed, falling back to text answer', err);
-        // Fall through to normal AI answer path.
-      }
-    }
 
 
 
