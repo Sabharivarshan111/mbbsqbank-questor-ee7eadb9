@@ -1,75 +1,57 @@
-# Smarter, illustrated AI medical chat
+## Goals
 
-Two upgrades to the AI medical chatbox, applied to every assistant answer (not just triple-tap):
+1. Triple-tap responses currently skip Wikipedia images — fix so they also auto-attach images.
+2. When Wikipedia has no thumbnail for a term (rare plants like *Ricinus communis*, weapons, niche objects), fall back to **Lovable AI imagegen** so the user always sees a visual + text.
+3. Detect follow-up prompts like *"generate a flowchart / mind map / diagram for the above"* — read the previous user+assistant turn from chat history and generate a single illustrative image via Lovable imagegen, rendered inline in the answer.
 
-1. **Key medical terms bolded + color-coded** so important words pop.
-2. **Auto-attached relevant images** sourced from Wikipedia / Wikimedia Commons (free, real medical illustrations).
+---
 
-Everything is laid out cleanly with spacing — never crammed.
+## Changes
 
-## 1. Color-coded medical highlighting
+### 1. `supabase/functions/wiki-image/index.ts` — add imagegen fallback
+- After Wikipedia lookup fails for a term, call Lovable AI Gateway `/v1/images/generations` with `openai/gpt-image-1-mini` (cheap, non-streaming, `quality: "low"`).
+- Prompt template: `"Clean educational illustration of {term}, labeled diagram style, white background, no text overlays"`.
+- Return the base64 PNG as a `data:image/png;base64,...` URL in the same `ImageResult` shape, with `caption: "AI-generated illustration"` and no `sourceUrl`.
+- Cap fallback to max 2 generations per request to control credit usage; remaining missing terms are skipped silently.
+- Use `LOVABLE_API_KEY` from env (already provisioned).
 
-The model already returns markdown `**bold**`. We'll extend the prompt so the AI wraps key terms in lightweight tags by category, then style them in the renderer:
+### 2. `src/hooks/use-ai-chat.ts` — triple-tap + follow-up flowchart support
+- **Remove the triple-tap skip**: today `wiki-image` is only invoked for non-triple-tap assistant turns. Drop that condition so highlighted terms in triple-tap answers also fetch images.
+- **Detect follow-up image intent** in user input: regex like `/(flow\s*chart|mind\s*map|diagram|infograph|illustrat(e|ion)|draw|sketch|visuali[sz]e)/i` AND a back-reference cue (`above|previous|last|that question|this`).
+- When detected:
+  - Pull the last assistant message + the user message before it from `messages` state to form context.
+  - Call a new edge function `generate-diagram` (see #3) with `{ context, kind: "flowchart" | "mindmap" | "diagram" }`.
+  - Append the returned image as a synthetic assistant message containing only `images: [{ term, imageUrl, caption }]` plus a one-line text intro ("Here's a flowchart based on your previous question:").
+  - Skip the normal `ask-gemini` call for this turn.
 
-| Category | Color | Example |
-|---|---|---|
-| Disease / condition | red | **myocardial infarction** |
-| Drug / treatment | blue | **aspirin** |
-| Anatomy / structure | green | **left ventricle** |
-| Investigation / sign | amber | **ECG**, **Murphy's sign** |
-| Key value / dose | purple | **300 mg** |
+### 3. New `supabase/functions/generate-diagram/index.ts`
+- Input (Zod): `{ context: string (max 4000), kind: "flowchart" | "mindmap" | "diagram" }`.
+- Build prompt: `"Create a clean, presentable {kind} illustrating the following medical concept. Use clear labeled boxes/branches, high contrast, white background, no decorative clutter. Concept: {context}"`.
+- Call AI Gateway `openai/gpt-image-1-mini`, `quality: "low"`, non-streaming, return `{ imageUrl: "data:image/png;base64,..." }`.
+- CORS + rate-limit (5/min/IP).
 
-Tag format the AI will emit: `[[dis:myocardial infarction]]`, `[[drug:aspirin]]`, `[[anat:left ventricle]]`, `[[inv:ECG]]`, `[[val:300 mg]]`.
-A small parser in `ChatMessageItem.tsx` converts these into styled `<span>`s with bold weight + the matching token color (defined as semantic CSS variables in `index.css` so light/dark both look right). Falls back gracefully to plain bold if tag is malformed.
+### 4. `src/components/chat/MessageImages.tsx` — layout polish
+- When only 1 image is present (typical for generated diagrams), render larger (full width, max-h-80) instead of the horizontal snap-scroll row.
+- Keep existing 3-up snap-scroll for multi-term Wikipedia rows.
+- Caption + source attribution unchanged; AI-generated images show "Generated illustration" instead of "Source: Wikipedia".
 
-## 2. Auto-relevant images (Wikimedia Commons)
+### 5. `src/models/ChatMessage.ts`
+- Extend `MessageImage` with optional `generated?: boolean` so the UI can label AI-generated images differently and skip the Wikipedia source link.
 
-For every assistant answer:
+---
 
-1. After the answer streams in, take the top 1–3 medical key terms (extracted from the `[[dis:]]` / `[[anat:]]` / `[[inv:]]` tags above, in that priority order).
-2. Call a new Supabase Edge Function `wiki-image` that queries Wikipedia's free REST API:
-   - `https://en.wikipedia.org/api/rest_v1/page/summary/{term}` → returns `thumbnail.source` (a Commons image) + short description + page URL.
-   - If no thumbnail, fall back to Commons search API.
-3. Return up to 3 `{ term, imageUrl, caption, sourceUrl }` items to the client.
-4. Render them in a new `MessageImages` component below the answer text — a horizontal scroll/grid of clean image cards (rounded, padded, captioned, "Source: Wikipedia" link). Lazy-loaded, fixed aspect ratio, generous spacing.
+## Files
 
-No API key needed — Wikipedia REST is public and free. Images are CC-licensed; we always show attribution + source link to stay compliant.
+**New:**
+- `supabase/functions/generate-diagram/index.ts`
 
-## Layout (clean, not congested)
+**Modified:**
+- `supabase/functions/wiki-image/index.ts` (imagegen fallback)
+- `src/hooks/use-ai-chat.ts` (triple-tap fetch + follow-up diagram intent)
+- `src/components/chat/MessageImages.tsx` (single-image layout)
+- `src/models/ChatMessage.ts` (`generated` flag)
 
-```text
-┌─ Assistant message ──────────────────────────┐
-│ ACEV                                    [⧉]  │
-│                                              │
-│ Answer paragraph with red disease term,      │
-│ blue drug term, green anatomy term…          │
-│                                              │
-│ ── images ──                                 │
-│  [img]   [img]   [img]                       │
-│  caption caption caption                     │
-│                                              │
-│ References ▾                                 │
-└──────────────────────────────────────────────┘
-```
-
-Spacing: `space-y-3` between text/images/references, image cards `gap-3`, captions `text-xs text-muted-foreground mt-1`. On mobile (current 384px viewport) the row becomes a horizontal snap-scroll so nothing wraps awkwardly.
-
-## Technical details
-
-**Files to add:**
-- `supabase/functions/wiki-image/index.ts` — accepts `{ terms: string[] }`, queries Wikipedia REST, returns image list. Zod-validated, CORS, 10 req/min rate limit, 5s timeout per term.
-- `src/components/chat/MessageImages.tsx` — image card grid with captions + source attribution.
-- `src/lib/highlight-medical.ts` — parses `[[cat:term]]` tags into React nodes.
-
-**Files to modify:**
-- `supabase/functions/ask-ai/index.ts` — extend system prompt to instruct the model to wrap key terms in `[[cat:term]]` tags (5 categories above), keep markdown otherwise unchanged.
-- `src/components/chat/ChatMessageItem.tsx` — run the highlight parser before/inside `ReactMarkdown` (custom `text` renderer), render `<MessageImages>` below the answer.
-- `src/models/ChatMessage.ts` — add optional `images?: { term, imageUrl, caption, sourceUrl }[]` field.
-- `src/hooks/use-ai-chat.ts` — after assistant message finalises, extract top terms, call `wiki-image`, attach `images` to the message.
-- `src/index.css` — add semantic tokens: `--medical-disease`, `--medical-drug`, `--medical-anat`, `--medical-inv`, `--medical-value` (HSL, with dark-mode variants).
-- `tailwind.config.ts` — expose those tokens as text colors.
-
-**Scope guardrails:**
-- Triple-tap still works as today; the new highlighting + images apply to all assistant messages, so triple-tap automatically benefits too (no separate triple-tap path needed).
-- MCQ messages (`kind === 'mcq'`) skip the image fetch to avoid clutter; highlighting still applies.
-- If `wiki-image` returns nothing or errors, the message renders normally with no image section — silent, no error toast.
+## Out of scope
+- No new persistence; images stay in-memory like today.
+- No changes to MCQ rendering, references, or highlighting tokens.
+- No streaming for generated images (single small PNG — non-streaming JSON is simpler and fast enough at `low` quality).

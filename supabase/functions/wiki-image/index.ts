@@ -15,6 +15,7 @@ interface ImageResult {
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
+  generated?: boolean;
 }
 
 // Simple in-memory rate-limit per IP (10/min)
@@ -59,6 +60,45 @@ async function fetchWiki(term: string): Promise<ImageResult | null> {
   }
 }
 
+// Fallback: generate a small illustrative image via Lovable AI Gateway.
+async function generateImage(term: string): Promise<ImageResult | null> {
+  const key = Deno.env.get("LOVABLE_API_KEY");
+  if (!key) return null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-image-1-mini",
+        prompt: `Clean educational illustration of "${term}". Labeled, textbook-style, neutral background, high clarity, no decorative clutter.`,
+        size: "1024x1024",
+        quality: "low",
+        n: 1,
+      }),
+    });
+    if (!res.ok) return null;
+    const json: any = await res.json();
+    const b64 = json?.data?.[0]?.b64_json;
+    if (!b64) return null;
+    return {
+      term,
+      imageUrl: `data:image/png;base64,${b64}`,
+      caption: "AI-generated illustration",
+      generated: true,
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders, status: 204 });
@@ -79,8 +119,28 @@ serve(async (req) => {
         status: 400,
       });
     }
-    const results = await Promise.all(parsed.data.terms.map(fetchWiki));
-    const images = results.filter((r): r is ImageResult => r !== null);
+
+    // First try Wikipedia for every term in parallel.
+    const wikiResults = await Promise.all(parsed.data.terms.map(fetchWiki));
+    const images: ImageResult[] = [];
+    const missing: string[] = [];
+    parsed.data.terms.forEach((t, i) => {
+      const r = wikiResults[i];
+      if (r) images.push(r);
+      else missing.push(t);
+    });
+
+    // For terms with no Wikipedia thumbnail, fall back to AI image generation.
+    // Cap fallback generations to control credit usage.
+    const FALLBACK_CAP = 2;
+    const toGenerate = missing.slice(0, FALLBACK_CAP);
+    if (toGenerate.length > 0) {
+      const generated = await Promise.all(toGenerate.map(generateImage));
+      for (const g of generated) {
+        if (g) images.push(g);
+      }
+    }
+
     return new Response(JSON.stringify({ images }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
