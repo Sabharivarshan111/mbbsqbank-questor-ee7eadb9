@@ -13,6 +13,7 @@ export interface MessageImage {
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
+  source?: "wikipedia" | "commons" | "openverse";
 }
 
 
