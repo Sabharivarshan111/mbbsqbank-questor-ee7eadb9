@@ -41,6 +41,18 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
     ? message.content.split('References:')[0].trim() 
     : message.content;
 
+  // Helper that walks ReactMarkdown children and replaces plain strings with
+  // medical-highlighted spans (parses [[cat:term]] tags).
+  const highlightChildren = (children: React.ReactNode): React.ReactNode => {
+    return React.Children.map(children, (child, idx) => {
+      if (typeof child === 'string') {
+        const nodes = renderMedicalText(child);
+        return <React.Fragment key={idx}>{nodes}</React.Fragment>;
+      }
+      return child;
+    });
+  };
+
   return (
     <motion.div
       key={message.id}
