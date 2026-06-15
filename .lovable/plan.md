@@ -1,59 +1,75 @@
-## Problem
+# Smarter, illustrated AI medical chat
 
-After the weekly leaderboard "resets" (Monday 00:00 in the user's local time, IST), the dialog and leaderboard still show **1 XP** for "This week" even though no question was ticked this week.
+Two upgrades to the AI medical chatbox, applied to every assistant answer (not just triple-tap):
 
-## Root cause
+1. **Key medical terms bolded + color-coded** so important words pop.
+2. **Auto-attached relevant images** sourced from Wikipedia / Wikimedia Commons (free, real medical illustrations).
 
-`get_weekly_leaderboard` (and `record_question_done` / `record_questions_done` / `record_question_undone`) compute the current week using:
+Everything is laid out cleanly with spacing — never crammed.
 
+## 1. Color-coded medical highlighting
+
+The model already returns markdown `**bold**`. We'll extend the prompt so the AI wraps key terms in lightweight tags by category, then style them in the renderer:
+
+| Category | Color | Example |
+|---|---|---|
+| Disease / condition | red | **myocardial infarction** |
+| Drug / treatment | blue | **aspirin** |
+| Anatomy / structure | green | **left ventricle** |
+| Investigation / sign | amber | **ECG**, **Murphy's sign** |
+| Key value / dose | purple | **300 mg** |
+
+Tag format the AI will emit: `[[dis:myocardial infarction]]`, `[[drug:aspirin]]`, `[[anat:left ventricle]]`, `[[inv:ECG]]`, `[[val:300 mg]]`.
+A small parser in `ChatMessageItem.tsx` converts these into styled `<span>`s with bold weight + the matching token color (defined as semantic CSS variables in `index.css` so light/dark both look right). Falls back gracefully to plain bold if tag is malformed.
+
+## 2. Auto-relevant images (Wikimedia Commons)
+
+For every assistant answer:
+
+1. After the answer streams in, take the top 1–3 medical key terms (extracted from the `[[dis:]]` / `[[anat:]]` / `[[inv:]]` tags above, in that priority order).
+2. Call a new Supabase Edge Function `wiki-image` that queries Wikipedia's free REST API:
+   - `https://en.wikipedia.org/api/rest_v1/page/summary/{term}` → returns `thumbnail.source` (a Commons image) + short description + page URL.
+   - If no thumbnail, fall back to Commons search API.
+3. Return up to 3 `{ term, imageUrl, caption, sourceUrl }` items to the client.
+4. Render them in a new `MessageImages` component below the answer text — a horizontal scroll/grid of clean image cards (rounded, padded, captioned, "Source: Wikipedia" link). Lazy-loaded, fixed aspect ratio, generous spacing.
+
+No API key needed — Wikipedia REST is public and free. Images are CC-licensed; we always show attribution + source link to stay compliant.
+
+## Layout (clean, not congested)
+
+```text
+┌─ Assistant message ──────────────────────────┐
+│ ACEV                                    [⧉]  │
+│                                              │
+│ Answer paragraph with red disease term,      │
+│ blue drug term, green anatomy term…          │
+│                                              │
+│ ── images ──                                 │
+│  [img]   [img]   [img]                       │
+│  caption caption caption                     │
+│                                              │
+│ References ▾                                 │
+└──────────────────────────────────────────────┘
 ```
-date_trunc('week', CURRENT_DATE)::date
-```
 
-Postgres runs in **UTC**, so `CURRENT_DATE` is the UTC date. For users in IST (UTC+5:30) the local week rolls over to Monday **5.5 hours before** the server week does. During that gap:
+Spacing: `space-y-3` between text/images/references, image cards `gap-3`, captions `text-xs text-muted-foreground mt-1`. On mobile (current 384px viewport) the row becomes a horizontal snap-scroll so nothing wraps awkwardly.
 
-- Local clock = Monday (new week) → user expects weekly XP = 0
-- Server week_start = still last Monday → returns last week's row → weekly XP = 1
+## Technical details
 
-Same drift causes the "1 XP" to linger in `StreakXPCard` / leaderboard until UTC catches up.
+**Files to add:**
+- `supabase/functions/wiki-image/index.ts` — accepts `{ terms: string[] }`, queries Wikipedia REST, returns image list. Zod-validated, CORS, 10 req/min rate limit, 5s timeout per term.
+- `src/components/chat/MessageImages.tsx` — image card grid with captions + source attribution.
+- `src/lib/highlight-medical.ts` — parses `[[cat:term]]` tags into React nodes.
 
-## Fix
+**Files to modify:**
+- `supabase/functions/ask-ai/index.ts` — extend system prompt to instruct the model to wrap key terms in `[[cat:term]]` tags (5 categories above), keep markdown otherwise unchanged.
+- `src/components/chat/ChatMessageItem.tsx` — run the highlight parser before/inside `ReactMarkdown` (custom `text` renderer), render `<MessageImages>` below the answer.
+- `src/models/ChatMessage.ts` — add optional `images?: { term, imageUrl, caption, sourceUrl }[]` field.
+- `src/hooks/use-ai-chat.ts` — after assistant message finalises, extract top terms, call `wiki-image`, attach `images` to the message.
+- `src/index.css` — add semantic tokens: `--medical-disease`, `--medical-drug`, `--medical-anat`, `--medical-inv`, `--medical-value` (HSL, with dark-mode variants).
+- `tailwind.config.ts` — expose those tokens as text colors.
 
-Anchor the "current week" to **Asia/Kolkata** in every place that reads or writes `week_start`, so the week boundary matches what the user sees.
-
-### 1. Migration: timezone-aware week_start
-
-Add a tiny SQL helper and update the 4 functions that use `date_trunc('week', CURRENT_DATE)`:
-
-```sql
-create or replace function public.app_week_start()
-returns date language sql stable as $$
-  select (date_trunc('week', (now() at time zone 'Asia/Kolkata')))::date
-$$;
-```
-
-Replace `(date_trunc('week', CURRENT_DATE))::date` with `public.app_week_start()` in:
-
-- `get_weekly_leaderboard` — both the `wk` CTE filter and the `weekly_seconds` CASE
-- `record_question_done`
-- `record_questions_done`
-- `record_question_undone` (use week of `_completed_at AT TIME ZONE 'Asia/Kolkata'` for the decrement target)
-- `record_screen_time` (so `weekly_seconds` also rolls over correctly)
-- `reconcile_question_progress` (weekly count threshold)
-
-Also use the IST date for `CURRENT_DATE` comparisons in `register_open` so streak rollover matches what the user sees locally (same timezone consistency).
-
-### 2. Client refresh on week boundary
-
-In `src/hooks/use-weekly-leaderboard.ts` add a small effect that schedules a `fetchRows()` call at the next IST Monday 00:00 so the open dialog/leaderboard repaint immediately at the boundary without requiring a manual refresh.
-
-No table schema changes, no new columns, no UI/component changes required. The dialog and `StreakXPCard` already render `weekly_xp` from the RPC — once the RPC returns the correct value, the "1" becomes "0" in realtime.
-
-## Files touched
-
-- `supabase/migrations/<new>.sql` — helper + 6 function rewrites
-- `src/hooks/use-weekly-leaderboard.ts` — schedule a refresh at next IST Monday 00:00
-
-## Why this fixes "realtime"
-
-The leaderboard hook already re-fetches on every `weekly_xp` / `question_progress` change and on local progress events. The stale "1" wasn't a realtime delivery problem — it was the SQL returning last week's row. After the migration the first fetch (on dialog open, on tick, on visibility, or at the scheduled boundary) immediately returns 0.
+**Scope guardrails:**
+- Triple-tap still works as today; the new highlighting + images apply to all assistant messages, so triple-tap automatically benefits too (no separate triple-tap path needed).
+- MCQ messages (`kind === 'mcq'`) skip the image fetch to avoid clutter; highlighting still applies.
+- If `wiki-image` returns nothing or errors, the message renders normally with no image section — silent, no error toast.
