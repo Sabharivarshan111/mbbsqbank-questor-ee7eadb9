@@ -13,6 +13,8 @@ export interface MessageImage {
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
+  /** True when the image was generated via AI (no Wikipedia source). */
+  generated?: boolean;
 }
 
 export interface ChatMessage {
