@@ -550,6 +550,57 @@ export const useAiChat = ({ initialQuestion }: UseAiChatProps = {}) => {
     setIsLoading(true);
     setPrompt(""); // Clear the input immediately when processing starts
 
+    // Detect follow-up requests for diagrams/flowcharts/mind maps that reference
+    // the previous answer (e.g. "generate a flowchart for the above question").
+    const diagramKindMatch = question.match(/(flow\s*chart|mind\s*map|diagram|infograph(?:ic)?|illustrat(?:e|ion)|sketch|visuali[sz]e|draw)/i);
+    const backRef = /(above|previous|prev|last|earlier|that|this)\b/i.test(question);
+    if (!isMCQRequestEarly && diagramKindMatch && (backRef || /for\s+(?:the\s+)?question/i.test(question))) {
+      try {
+        const recent = messages.filter(m => !m.hidden).slice(-6);
+        const lastAssistant = [...recent].reverse().find(m => m.role === 'assistant');
+        const lastUser = [...recent].reverse().find(m => m.role === 'user');
+        const contextText = [
+          lastUser ? `Question: ${lastUser.content}` : null,
+          lastAssistant ? `Answer: ${lastAssistant.content.slice(0, 2000)}` : null,
+          `User request: ${question}`,
+        ].filter(Boolean).join('\n\n');
+
+        const kindRaw = diagramKindMatch[1].toLowerCase().replace(/\s+/g, '');
+        const kind: 'flowchart' | 'mindmap' | 'diagram' =
+          kindRaw.includes('flow') ? 'flowchart' :
+          kindRaw.includes('mind') ? 'mindmap' : 'diagram';
+
+        const { data: diag, error: diagErr } = await supabase.functions.invoke('generate-diagram', {
+          body: { context: contextText, kind },
+        });
+        if (diagErr || !diag?.imageUrl) {
+          throw new Error(diag?.error || diagErr?.message || 'Diagram generation failed');
+        }
+
+        const labelMap = { flowchart: 'flowchart', mindmap: 'mind map', diagram: 'diagram' } as const;
+        const aiMessage: ChatMessage = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: `Here's a ${labelMap[kind]} based on your previous question:`,
+          timestamp: new Date(),
+          images: [{
+            term: `${labelMap[kind]}`,
+            imageUrl: diag.imageUrl,
+            caption: lastUser?.content?.slice(0, 120),
+            generated: true,
+          }],
+        };
+        setMessages(prev => [...prev, aiMessage]);
+        setIsLoading(false);
+        return;
+      } catch (err) {
+        console.warn('diagram generation failed, falling back to text answer', err);
+        // Fall through to normal AI answer path.
+      }
+    }
+
+
+
     
     try {
       // 0. NEW: High-yield intent (essays/short-notes ranked by asterisk count).
@@ -709,9 +760,25 @@ Rules:
         return [...prevMessages, aiMessage];
       });
 
-      // Fetch illustrative Wikipedia images for non-MCQ medical answers.
+      // Fetch illustrative images (Wikipedia, with AI-generated fallback) for
+      // non-MCQ medical answers. Terms come from the AI response's medical tags,
+      // and — as a fallback for short triple-tap answers without tags — from the
+      // user's selected/typed question itself.
       if (!isMCQRequest) {
-        const terms = extractMedicalTerms(data.response || "", 3);
+        const tagTerms = extractMedicalTerms(data.response || "", 3);
+        let terms = tagTerms;
+        if (terms.length === 0) {
+          // Derive a search term from the user's question (works for triple-tap
+          // selections, plant names, weapons, named entities, etc.).
+          const cleaned = question
+            .replace(/^triple-tapped:\s*/i, "")
+            .replace(/^double-tapped:\s*/i, "")
+            .replace(/[?!.,;:"']/g, "")
+            .trim();
+          if (cleaned && cleaned.length <= 120) {
+            terms = [cleaned];
+          }
+        }
         if (terms.length > 0) {
           supabase.functions
             .invoke('wiki-image', { body: { terms } })
@@ -725,6 +792,7 @@ Rules:
             .catch(err => console.warn('wiki-image fetch failed', err));
         }
       }
+
     } catch (error) {
       handleError(error);
       
