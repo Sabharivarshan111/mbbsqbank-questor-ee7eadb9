@@ -84,7 +84,7 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
       </div>
       <div className="text-sm">
         {message.role === 'assistant' && message.kind === 'mcq' ? (
-          <McqMessage content={cleanContent} messageId={message.id} />
+          <McqMessage content={stripMedicalTags(cleanContent)} messageId={message.id} />
 
         ) : message.role === 'assistant' ? (
           <ReactMarkdown
@@ -107,16 +107,19 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
                 </pre>
               ),
               h1: ({ children }) => (
-                <h1 className="text-xl font-bold mt-4 mb-2 text-blue-200">{children}</h1>
+                <h1 className="text-xl font-bold mt-4 mb-2 text-blue-200">{highlightChildren(children)}</h1>
               ),
               h2: ({ children }) => (
-                <h2 className="text-lg font-bold mt-3 mb-1 text-blue-300">{children}</h2>
+                <h2 className="text-lg font-bold mt-3 mb-1 text-blue-300">{highlightChildren(children)}</h2>
               ),
               h3: ({ children }) => (
-                <h3 className="text-base font-bold mt-2 mb-1 text-blue-400">{children}</h3>
+                <h3 className="text-base font-bold mt-2 mb-1 text-blue-400">{highlightChildren(children)}</h3>
               ),
               strong: ({ children }) => (
-                <strong className="text-white font-semibold">{children}</strong>
+                <strong className="text-white font-semibold">{highlightChildren(children)}</strong>
+              ),
+              em: ({ children }) => (
+                <em>{highlightChildren(children)}</em>
               ),
               ul: ({ children }) => (
                 <ul className="list-disc list-inside pl-2 my-2 space-y-1">{children}</ul>
@@ -125,7 +128,7 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
                 <ol className="list-decimal list-inside pl-2 my-2 space-y-1">{children}</ol>
               ),
               li: ({ children }) => (
-                <li className="ml-2">{children}</li>
+                <li className="ml-2">{highlightChildren(children)}</li>
               ),
               p: ({ children }) => {
                 // Convert children to string to check for answer patterns
@@ -135,7 +138,7 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
                 if (childText.includes('✓ Correct Answer') || childText.includes('Correct Answer:') || /^\*?\*?Answer:/i.test(childText)) {
                   return (
                     <p className="my-2 p-2 rounded-md bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 font-medium border-l-4 border-green-500">
-                      {children}
+                      {highlightChildren(children)}
                     </p>
                   );
                 }
@@ -143,11 +146,11 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
                 // Check if this is an MCQ option line (A), B), C), D))
                 if (/^\*?\*?[A-D]\)/.test(childText)) {
                   return (
-                    <p className="my-1 pl-2 py-0.5">{children}</p>
+                    <p className="my-1 pl-2 py-0.5">{highlightChildren(children)}</p>
                   );
                 }
                 
-                return <p className="my-1">{children}</p>;
+                return <p className="my-1 leading-relaxed">{highlightChildren(children)}</p>;
               },
             }}
           >
@@ -157,6 +160,12 @@ export const ChatMessageItem = ({ message, onCopy }: ChatMessageItemProps) => {
           <div className="whitespace-pre-wrap">{cleanContent}</div>
         )}
       </div>
+
+      {/* Auto-attached illustrative images (Wikipedia) */}
+      {message.role === 'assistant' && message.kind !== 'mcq' && message.images && message.images.length > 0 && (
+        <MessageImages images={message.images} />
+      )}
+
       {message.role === 'user' && message.content.includes("Triple-tapped:") && (
         <div className="mt-1 text-xs text-blue-400">
           Question from triple-tap interaction
