@@ -32,6 +32,13 @@
     --border: 0 0% 85%;
     --input: 0 0% 85%;
     --ring: 0 0% 9%;
+
+    /* Medical highlight tokens (light) */
+    --medical-disease: 0 75% 45%;
+    --medical-drug: 215 80% 50%;
+    --medical-anat: 145 60% 35%;
+    --medical-inv: 35 90% 45%;
+    --medical-value: 270 70% 50%;
   }
 
   .dark {
@@ -62,6 +69,13 @@
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 0 0% 100%;
+
+    /* Medical highlight tokens (dark) — brighter for contrast on dark bg */
+    --medical-disease: 0 85% 70%;
+    --medical-drug: 210 95% 72%;
+    --medical-anat: 145 65% 60%;
+    --medical-inv: 38 95% 65%;
+    --medical-value: 275 90% 75%;
   }
 
   .blackpink {

@@ -8,6 +8,13 @@ export interface Reference {
   source?: string;
 }
 
+export interface MessageImage {
+  term: string;
+  imageUrl: string;
+  caption?: string;
+  sourceUrl?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -18,4 +25,6 @@ export interface ChatMessage {
   hidden?: boolean;
   /** Optional renderer hint — e.g. "mcq" to render interactive MCQ cards. */
   kind?: 'mcq';
+  /** Auto-attached illustrative images (e.g. from Wikipedia). */
+  images?: MessageImage[];
 }
