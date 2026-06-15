@@ -5,13 +5,25 @@ export interface MessageImage {
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
+  source?: "wikipedia" | "commons" | "openverse";
 }
 
 interface MessageImagesProps {
   images: MessageImage[];
 }
 
-const sourceLabel = (_img: MessageImage) => "Source: Wikipedia / Commons / Openverse";
+const sourceLabel = (img: MessageImage) => {
+  switch (img.source) {
+    case "wikipedia":
+      return "Source: Wikipedia";
+    case "commons":
+      return "Source: Wikimedia Commons";
+    case "openverse":
+      return "Source: Openverse";
+    default:
+      return "Source: Wikipedia / Commons / Openverse";
+  }
+};
 
 
 export const MessageImages = ({ images }: MessageImagesProps) => {

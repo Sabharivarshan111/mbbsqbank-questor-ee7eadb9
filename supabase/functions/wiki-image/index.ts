@@ -12,11 +12,14 @@ const requestSchema = z.object({
   terms: z.array(z.string().trim().min(1).max(120)).min(1).max(5),
 });
 
+type Source = "wikipedia" | "commons" | "openverse";
+
 interface ImageResult {
   term: string;
   imageUrl: string;
   caption?: string;
   sourceUrl?: string;
+  source: Source;
 }
 
 // In-memory rate-limit per IP (10/min)
@@ -38,7 +41,7 @@ function withTimeout(ms: number) {
   return { signal: ctrl.signal, done: () => clearTimeout(t) };
 }
 
-// Step 1: Wikipedia search — also corrects spelling via "srinfo=suggestion".
+// Wikipedia search (with spelling correction). Returns best matching title.
 async function wikiSearchTitle(term: string): Promise<string | null> {
   const t = withTimeout(5000);
   try {
@@ -52,7 +55,6 @@ async function wikiSearchTitle(term: string): Promise<string | null> {
     if (hit) return hit;
     const suggestion = json?.query?.searchinfo?.suggestion;
     if (suggestion) {
-      // Retry once with suggested spelling
       const r2 = await fetch(
         `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
           suggestion
@@ -72,7 +74,6 @@ async function wikiSearchTitle(term: string): Promise<string | null> {
   }
 }
 
-// Step 2: page summary → thumbnail
 async function wikiSummary(title: string, originalTerm: string): Promise<ImageResult | null> {
   const t = withTimeout(5000);
   try {
@@ -90,6 +91,7 @@ async function wikiSummary(title: string, originalTerm: string): Promise<ImageRe
       imageUrl: thumb,
       caption: json?.description || json?.extract?.slice(0, 140),
       sourceUrl: json?.content_urls?.desktop?.page,
+      source: "wikipedia",
     };
   } catch {
     return null;
@@ -98,80 +100,105 @@ async function wikiSummary(title: string, originalTerm: string): Promise<ImageRe
   }
 }
 
-// Step 3: Wikimedia Commons file search
-async function commonsSearch(term: string): Promise<ImageResult | null> {
+// Wikimedia Commons — fetch multiple distinct files.
+async function commonsSearch(term: string, limit = 2): Promise<ImageResult[]> {
   const t = withTimeout(5000);
   try {
     const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(
       term
-    )}&gsrlimit=1&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&format=json&origin=*`;
+    )}&gsrlimit=${limit}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&format=json&origin=*`;
     const res = await fetch(url, { signal: t.signal, headers: { "User-Agent": UA } });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const json: any = await res.json();
     const pages = json?.query?.pages;
-    if (!pages) return null;
-    const first: any = Object.values(pages)[0];
-    const info = first?.imageinfo?.[0];
-    const src = info?.thumburl || info?.url;
-    if (!src) return null;
-    return {
-      term,
-      imageUrl: src,
-      caption: info?.extmetadata?.ImageDescription?.value
-        ?.replace(/<[^>]+>/g, "")
-        ?.slice(0, 140) || first?.title?.replace(/^File:/, ""),
-      sourceUrl: info?.descriptionurl,
-    };
+    if (!pages) return [];
+    const out: ImageResult[] = [];
+    for (const p of Object.values(pages) as any[]) {
+      const info = p?.imageinfo?.[0];
+      const src = info?.thumburl || info?.url;
+      if (!src) continue;
+      // Skip non-image media (svg ok, but skip pdf/ogv/webm/tif)
+      if (/\.(pdf|ogv|webm|ogg|mp3|tif|tiff)$/i.test(src)) continue;
+      out.push({
+        term,
+        imageUrl: src,
+        caption:
+          info?.extmetadata?.ImageDescription?.value
+            ?.replace(/<[^>]+>/g, "")
+            ?.slice(0, 140) || p?.title?.replace(/^File:/, ""),
+        sourceUrl: info?.descriptionurl,
+        source: "commons",
+      });
+    }
+    return out;
   } catch {
-    return null;
+    return [];
   } finally {
     t.done();
   }
 }
 
-// Step 4: Openverse (CC-licensed) image search
-async function openverseSearch(term: string): Promise<ImageResult | null> {
+async function openverseSearch(term: string, limit = 2): Promise<ImageResult[]> {
   const t = withTimeout(5000);
   try {
     const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(
       term
-    )}&page_size=1&license_type=all`;
+    )}&page_size=${limit}&license_type=all`;
     const res = await fetch(url, {
       signal: t.signal,
       headers: { "User-Agent": UA, Accept: "application/json" },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const json: any = await res.json();
-    const first = json?.results?.[0];
-    const src = first?.thumbnail || first?.url;
-    if (!src) return null;
-    return {
-      term,
-      imageUrl: src,
-      caption: first?.title?.slice(0, 140),
-      sourceUrl: first?.foreign_landing_url || first?.url,
-    };
+    const results = json?.results || [];
+    return results
+      .map((r: any): ImageResult | null => {
+        const src = r?.thumbnail || r?.url;
+        if (!src) return null;
+        return {
+          term,
+          imageUrl: src,
+          caption: r?.title?.slice(0, 140),
+          sourceUrl: r?.foreign_landing_url || r?.url,
+          source: "openverse",
+        };
+      })
+      .filter((x: any): x is ImageResult => !!x);
   } catch {
-    return null;
+    return [];
   } finally {
     t.done();
   }
 }
 
-async function lookupTerm(term: string): Promise<ImageResult | null> {
-  // 1+2. Search Wikipedia (auto-corrects spelling), then fetch summary thumb.
-  const title = await wikiSearchTitle(term);
-  if (title) {
-    const r = await wikiSummary(title, term);
-    if (r) return r;
+// Fetch images in parallel from all sources, deduped by URL, target >=3.
+async function lookupTerm(term: string): Promise<ImageResult[]> {
+  const titlePromise = wikiSearchTitle(term);
+  const [title, commons, openverse] = await Promise.all([
+    titlePromise,
+    commonsSearch(term, 2),
+    openverseSearch(term, 2),
+  ]);
+  const wiki = title ? await wikiSummary(title, term) : null;
+
+  const ordered: ImageResult[] = [];
+  if (wiki) ordered.push(wiki);
+  if (commons[0]) ordered.push(commons[0]);
+  if (openverse[0]) ordered.push(openverse[0]);
+  // Top-ups to reach at least 3 when one source missing
+  if (commons[1]) ordered.push(commons[1]);
+  if (openverse[1]) ordered.push(openverse[1]);
+
+  // Dedupe by imageUrl
+  const seen = new Set<string>();
+  const out: ImageResult[] = [];
+  for (const img of ordered) {
+    if (seen.has(img.imageUrl)) continue;
+    seen.add(img.imageUrl);
+    out.push(img);
+    if (out.length >= 4) break;
   }
-  // 3. Wikimedia Commons direct image search.
-  const c = await commonsSearch(term);
-  if (c) return c;
-  // 4. Openverse fallback.
-  const o = await openverseSearch(term);
-  if (o) return o;
-  return null;
+  return out;
 }
 
 serve(async (req) => {
@@ -196,7 +223,7 @@ serve(async (req) => {
     }
 
     const results = await Promise.all(parsed.data.terms.map(lookupTerm));
-    const images = results.filter((r): r is ImageResult => !!r);
+    const images = results.flat();
 
     return new Response(JSON.stringify({ images }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
