@@ -8,6 +8,7 @@ import SubjectsList from "./SubjectsList";
 import StreakXPCard from "./StreakXPCard";
 import Leaderboard from "./Leaderboard";
 import GoogleSyncButton from "./GoogleSyncButton";
+import EmailSyncButton from "./EmailSyncButton";
 import RewardsShelf from "./RewardsShelf";
 import StreakTipsCard from "./StreakTipsCard";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
@@ -112,6 +113,7 @@ const ProgressDashboard = () => {
       </div>
 
       <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
+      <EmailSyncButton isAnonymous={isAnonymous} email={email} userId={userId} onSignOut={signOut} />
 
       <YearRingCard completed={completed} total={total} />
       <div data-tour="streak-xp-card"><StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} /></div>
