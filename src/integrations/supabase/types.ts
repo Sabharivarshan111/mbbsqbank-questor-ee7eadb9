@@ -43,6 +43,7 @@ export type Database = {
           created_at: string
           device_id: string | null
           display_name: string
+          email: string | null
           id: string
           last_active_date: string | null
           streak: number
@@ -54,6 +55,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           display_name: string
+          email?: string | null
           id: string
           last_active_date?: string | null
           streak?: number
@@ -65,6 +67,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           display_name?: string
+          email?: string | null
           id?: string
           last_active_date?: string | null
           streak?: number
@@ -189,6 +192,7 @@ export type Database = {
           created_at: string
           device_id: string | null
           display_name: string
+          email: string | null
           id: string
           last_active_date: string | null
           streak: number
@@ -232,6 +236,10 @@ export type Database = {
       get_year_lifetime_xp: {
         Args: { _user_id: string; _year: string }
         Returns: number
+      }
+      merge_into_current_user: {
+        Args: { _old_user_id: string }
+        Returns: undefined
       }
       reconcile_question_progress: {
         Args: { _question_ids: string[] }
