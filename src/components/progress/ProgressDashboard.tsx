@@ -8,6 +8,7 @@ import SubjectsList from "./SubjectsList";
 import StreakXPCard from "./StreakXPCard";
 import Leaderboard from "./Leaderboard";
 import GoogleSyncButton from "./GoogleSyncButton";
+import EmailSyncButton from "./EmailSyncButton";
 import RewardsShelf from "./RewardsShelf";
 import StreakTipsCard from "./StreakTipsCard";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
