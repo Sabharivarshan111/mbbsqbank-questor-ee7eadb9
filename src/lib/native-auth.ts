@@ -14,10 +14,41 @@ export const isNative = (): boolean => {
 };
 
 /**
- * Open Google OAuth in the system browser (Chrome Custom Tabs on Android)
- * to avoid Google's "disallowed_useragent" 403 inside the in-app WebView.
+ * Native Google Sign-In for Capacitor (Android/iOS).
+ *
+ * Prefers the native Google account picker via @codetrix-studio/capacitor-google-auth
+ * (returns an idToken we hand to Supabase via signInWithIdToken — no web redirects).
+ * Falls back to the system-browser OAuth flow if the native plugin is unavailable
+ * or not configured (e.g. missing Google OAuth Web Client ID in capacitor.config).
  */
 export async function nativeGoogleSignIn(): Promise<void> {
+  // 1) Try native Google account picker → idToken → Supabase signInWithIdToken
+  try {
+    const mod: any = await import("@codetrix-studio/capacitor-google-auth");
+    const GoogleAuth = mod.GoogleAuth;
+    if (GoogleAuth) {
+      try {
+        // Safe to call repeatedly; uses clientId from capacitor.config.ts plugin entry.
+        await GoogleAuth.initialize?.();
+      } catch {}
+      const result = await GoogleAuth.signIn();
+      const idToken: string | undefined =
+        result?.authentication?.idToken ?? result?.idToken;
+      if (idToken) {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: idToken,
+        });
+        if (error) throw error;
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn("Native Google Sign-In unavailable, falling back to browser flow:", e);
+  }
+
+  // 2) Fallback: open Google OAuth in Chrome Custom Tabs (system browser)
+  //    and complete via deep-link listener below.
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
