@@ -10,9 +10,19 @@ const config: CapacitorConfig = {
   },
   plugins: {
     App: {
-      // Custom URL scheme for OAuth deep-link callback
+      // Custom URL scheme for OAuth deep-link callback (fallback flow).
       // Add this to Supabase Auth Redirect URLs:
       //   app.lovable.orbitmbbs://auth/callback
+    },
+    GoogleAuth: {
+      // Replace with your Google Cloud OAuth 2.0 *Web* Client ID
+      // (Create one in Google Cloud Console → Credentials → OAuth client → Web application).
+      // The same Web Client ID must be set in Supabase → Auth → Providers → Google.
+      // On Android you ALSO need a separate Android OAuth client whose SHA-1
+      // matches your APK signing key — but only the Web Client ID goes here.
+      clientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+      scopes: ['profile', 'email'],
+      forceCodeForRefreshToken: true,
     },
   },
 };
