@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/use-profile";
 import OnboardingDialog from "./OnboardingDialog";
 import YearRingCard from "./YearRingCard";
@@ -11,6 +12,8 @@ import GoogleSyncButton from "./GoogleSyncButton";
 import EmailSyncButton from "./EmailSyncButton";
 import RewardsShelf from "./RewardsShelf";
 import StreakTipsCard from "./StreakTipsCard";
+import ProgressCalendarTab from "./ProgressCalendarTab";
+import ProgressNotesTab from "./ProgressNotesTab";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { readLocalXp } from "@/lib/rewards";
@@ -115,12 +118,27 @@ const ProgressDashboard = () => {
       <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
       <EmailSyncButton isAnonymous={isAnonymous} email={email} userId={userId} onSignOut={signOut} />
 
-      <YearRingCard completed={completed} total={total} />
-      <div data-tour="streak-xp-card"><StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} /></div>
-      <StreakTipsCard xp={xp} streak={streak} />
-      <div data-tour="rewards-shelf"><RewardsShelf xp={xp} streak={streak} /></div>
-      <div data-tour="leaderboard"><Leaderboard year={year} currentUserId={userId} enabled={!!userId} /></div>
-      <SubjectsList year={year} />
+      <Tabs defaultValue="stats" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="stats">Stats</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          <TabsTrigger value="notes">Notes</TabsTrigger>
+        </TabsList>
+        <TabsContent value="stats" className="space-y-4 mt-4">
+          <YearRingCard completed={completed} total={total} />
+          <div data-tour="streak-xp-card"><StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} /></div>
+          <StreakTipsCard xp={xp} streak={streak} />
+          <div data-tour="rewards-shelf"><RewardsShelf xp={xp} streak={streak} /></div>
+          <div data-tour="leaderboard"><Leaderboard year={year} currentUserId={userId} enabled={!!userId} /></div>
+          <SubjectsList year={year} />
+        </TabsContent>
+        <TabsContent value="calendar" className="mt-4">
+          <ProgressCalendarTab userId={userId} />
+        </TabsContent>
+        <TabsContent value="notes" className="mt-4">
+          <ProgressNotesTab userId={userId} />
+        </TabsContent>
+      </Tabs>
 
       <OnboardingDialog
         open={editOpen}
