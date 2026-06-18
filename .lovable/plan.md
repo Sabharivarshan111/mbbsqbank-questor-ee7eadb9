@@ -1,97 +1,89 @@
+## Goal
 
-# Plan: Security hardening + cross-device email-OTP linking
+1. Ensure question ticks/unticks (done + undone counts) sync to Supabase in realtime across devices when signed in (Google or email OTP).
+2. Add two new sub-tabs inside the Progress tab: **Calendar** and **Notes**, both cloud-synced live across devices.
 
-## Part A — Security fixes
+---
 
-You chose to keep current Realtime behavior, so the Realtime-channel finding will be **accepted as a known risk** and recorded in security memory. Everything else gets a proper fix.
+## 1. Question progress realtime sync
 
-### 1. Lock down direct table reads (still leaves leaderboards working via existing RPCs)
+Already persisted in `question_progress` via `record_question_done` / `record_question_undone` RPCs. Add:
 
-- `profiles`: replace `Profiles readable by any authenticated user` (USING true) with `USING (auth.uid() = id)`. Cross-user data is served via SECURITY DEFINER RPCs only.
-- `weekly_xp`: replace `Weekly xp readable by authenticated` with `USING (auth.uid() = user_id)`.
-- `screen_time`: replace `screen_time readable by authenticated` with `USING (auth.uid() = user_id)`.
+- Enable Realtime publication on `question_progress` and `profiles`.
+- In the progress/question hooks, subscribe to `postgres_changes` on `question_progress` filtered by `user_id = auth.uid()` and invalidate React Query caches so ticked/unticked counts (and XP) update live on every signed-in device.
 
-### 2. Replace direct profile reads in the "all" leaderboard
+No schema changes to existing tables.
 
-- Add a new SECURITY DEFINER function `public.get_overall_leaderboard(_limit int default 50)` returning `id, display_name, year, xp, streak` only (no `device_id`).
-- Update `src/hooks/use-leaderboard.ts` "all" branch to call this RPC instead of `from("profiles").select(...)`.
+---
 
-### 3. Drop the unused SECURITY DEFINER view
+## 2. New tables
 
-- `DROP VIEW public.weekly_leaders;` (not referenced anywhere in `src/`).
+**`calendar_events`**
+- `user_id uuid` (auth.uid)
+- `event_date date`
+- `title text`
+- `important boolean default false`
+- standard id/created_at/updated_at
+- RLS: owner-only ALL
+- Added to `supabase_realtime` publication
 
-### 4. Tighten SECURITY DEFINER function grants
+**`user_notes`**
+- `user_id uuid`
+- `title text`
+- `content text` (rich text / plain)
+- `drawing_path text` (storage path, nullable — for drawing PNG)
+- `kind text check in ('text','drawing','mixed')`
+- standard id/created_at/updated_at
+- RLS: owner-only ALL
+- Added to `supabase_realtime` publication
 
-- Revoke `EXECUTE` from `anon` on every `public.*` SECURITY DEFINER function (they all require `auth.uid()` anyway). Grant `EXECUTE` to `authenticated` (and `service_role`) for the ones called from the app: `claim_or_merge_profile`, `record_question_done`, `record_questions_done`, `record_question_undone`, `register_open`, `record_screen_time`, `reconcile_question_progress`, `get_year_lifetime_xp`, `get_year_leaderboard`, `get_weekly_leaderboard`, and the new `get_overall_leaderboard`, `link_profile_by_email` (added in Part B).
-- The remaining "SECURITY DEFINER callable by authenticated" warnings are intentional and will be marked as ignored with explanation.
+GRANTs for both tables: authenticated (SELECT/INSERT/UPDATE/DELETE), service_role ALL.
 
-### 5. Leaked password protection
+**Storage bucket `note-drawings`** (private), with RLS on `storage.objects`:
+- Users can read/write/delete files only under a folder matching their `auth.uid()` (`(storage.foldername(name))[1] = auth.uid()::text`).
 
-- Enable in Supabase Auth settings (this is a dashboard toggle; I'll point you to it after the migration runs since it's not changeable via SQL).
+---
 
-### 6. Accept Realtime risk
+## 3. Progress tab UI
 
-- Keep `profiles`, `question_progress`, `weekly_xp`, `screen_time` in the `supabase_realtime` publication. Add a note to security memory that any authenticated user can subscribe to row-change events, and that this is accepted to preserve live leaderboard updates.
+Inside `ProgressDashboard`, add a small secondary tab strip (shadcn `Tabs`) with three tabs:
+- **Stats** (existing dashboard content)
+- **Calendar**
+- **Notes**
 
-## Part B — Cross-device linking via email OTP
+### Calendar tab (`ProgressCalendarTab.tsx`)
+- shadcn `Calendar` (single mode) with `pointer-events-auto`.
+- Dots/badges on days that have events; star on important days.
+- Below the calendar: list of events for the selected date with add/edit/delete + "important" star toggle.
+- Realtime channel on `calendar_events` filtered by user_id; React Query invalidation on insert/update/delete.
 
-Today: progress is keyed to `device_id` and an anonymous Supabase user. Two devices = two profiles.
-After: a user can attach an email to their anonymous account on Device A, then on Device B sign in with the same email (OTP) — Device B's local progress is **merged into** the email-linked account.
+### Notes tab (`ProgressNotesTab.tsx`)
+- Free-form notes list (newest first), search by title.
+- Each note: title + textarea for typed content + "Draw" button opening a canvas dialog.
+- Drawing dialog: simple `<canvas>` with pen color, stroke width, clear, save. On save → upload PNG to `note-drawings/{uid}/{noteId}-{ts}.png`, store path in `drawing_path`.
+- Realtime channel on `user_notes` filtered by user_id; cache invalidation on changes.
 
-### Database
+---
 
-- Add nullable `email` column on `public.profiles` for display (the source of truth stays `auth.users.email`).
-- New SECURITY DEFINER RPC `public.merge_into_current_user(_old_user_id uuid)`:
-  - Verifies the caller is authenticated.
-  - Moves `question_progress`, `weekly_xp`, `daily_activity`, `screen_time` from `_old_user_id` into `auth.uid()` using the same conflict-resolution logic already in `claim_or_merge_profile`.
-  - Carries over `streak`/`last_active_date` (keeps the larger / newer).
-  - Recomputes `profiles.xp` from `question_progress`.
-  - Deletes the old profile row.
-  - Authorization: only allows merging an `_old_user_id` that has the same `device_id` as the current user OR that was just authenticated via the same email (we restrict by passing the old uid we already control in code; RLS plus the SECURITY DEFINER function ensures only signed-in users can call it).
+## 4. Auth compatibility
 
-### Auth flow (frontend)
+All new features rely solely on `auth.uid()`, so they work identically for Google sign-in and email-OTP sign-in. No changes to existing auth flow. After `merge_into_current_user`, future migration can extend it to also move `calendar_events` and `user_notes` rows — included in this plan.
 
-New screen `src/pages/LinkAccount.tsx` and a "Link to email" button inside Settings/Profile:
-
-1. **Device A (attach email to anonymous account):**
-   - `supabase.auth.updateUser({ email })` → Supabase sends a 6-digit OTP via email.
-   - User enters the code → `supabase.auth.verifyOtp({ email, token, type: 'email_change' })`.
-   - Profile row updated with `email` for display.
-
-2. **Device B (sign in with the same email):**
-   - Capture current anonymous `userId` as `oldUserId` (we still have a session).
-   - `supabase.auth.signInWithOtp({ email })` → 6-digit code.
-   - User enters the code → `verifyOtp({ email, token, type: 'email' })` → session is now the email-linked account.
-   - Immediately call `merge_into_current_user(oldUserId)` → Device B's progress moves into the linked account.
-   - Update local `device_id` mapping; clear stale local profile.
-
-### Email delivery
-
-- Use Lovable's built-in auth emails. Supabase sends the OTP code automatically (uses default templates).
-- No external email provider, no Resend setup. (We can brand the OTP email later via `scaffold_auth_email_templates` if you want — not in this plan.)
-
-### Files
-
-- New migration (Part A + Part B SQL).
-- New: `src/pages/LinkAccount.tsx`, `src/hooks/use-link-account.ts`.
-- Edit: `src/hooks/use-leaderboard.ts` (use `get_overall_leaderboard`), `src/hooks/use-profile.ts` (expose email + link entry), `src/App.tsx` (route `/link-account`), and the existing profile/settings panel to surface the "Link devices" button.
-- Update `mem://index.md` + new memory note for account linking flow.
+---
 
 ## Technical details
 
-- New SQL revokes:
-  ```sql
-  REVOKE EXECUTE ON FUNCTION public.<each fn>(...) FROM anon, PUBLIC;
-  GRANT  EXECUTE ON FUNCTION public.<each fn>(...) TO authenticated, service_role;
-  ```
-- `get_overall_leaderboard` body mirrors `get_year_leaderboard` minus the year filter, returning only `id, display_name, year, xp, streak`.
-- Merge function reuses the body of `claim_or_merge_profile`'s second branch, parameterized by `_old_user_id` instead of `device_id` lookup.
-- `verifyOtp` types: use `'email_change'` when attaching an email to an existing session, and `'email'` for fresh sign-in OTP.
-- Leaked-password protection: I can't toggle this from SQL — after the migration I'll give you a one-click link to enable it in the Supabase Auth dashboard.
+- Files to create:
+  - `src/components/progress/ProgressCalendarTab.tsx`
+  - `src/components/progress/ProgressNotesTab.tsx`
+  - `src/components/progress/DrawingCanvas.tsx`
+  - `src/hooks/useCalendarEvents.ts`
+  - `src/hooks/useUserNotes.ts`
+  - `src/hooks/useQuestionProgressRealtime.ts`
+- Files to edit:
+  - `src/components/progress/ProgressDashboard.tsx` — add inner Tabs.
+  - `src/hooks/useProgress.ts` (or equivalent) — subscribe to realtime for question_progress.
+- One migration: create both tables + grants + RLS + add all three tables to `supabase_realtime`, extend `merge_into_current_user` to include them.
+- One storage bucket via `supabase--storage_create_bucket` + RLS migration on `storage.objects`.
 
-## Out of scope
-
-- Branded custom OTP email template (default Supabase template is fine; can be added later).
-- Google sign-in (you picked email-only).
-- Realtime channel scoping (you chose to keep current behavior).
-
+No existing feature (Google sign-in, email OTP, XP, leaderboard, streak) is touched.
