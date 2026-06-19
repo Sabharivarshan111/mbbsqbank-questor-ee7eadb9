@@ -5,8 +5,7 @@ type RecorderState = "idle" | "recording" | "transcribing";
 const pickMimeType = (): string | null => {
   const candidates = ["audio/webm", "audio/mp4", "audio/aac", "audio/mpeg"];
   for (const t of candidates) {
-    // @ts-expect-error - older TS lib
-    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported?.(t)) {
+    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) {
       return t;
     }
   }
