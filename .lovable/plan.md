@@ -1,89 +1,50 @@
-## Goal
+# Quick answer to your question
 
-1. Ensure question ticks/unticks (done + undone counts) sync to Supabase in realtime across devices when signed in (Google or email OTP).
-2. Add two new sub-tabs inside the Progress tab: **Calendar** and **Notes**, both cloud-synced live across devices.
+Yes — Lovable recently added **built-in Speech-to-Text** through the Lovable AI Gateway. Key facts:
 
----
+- **Built by Lovable?** It's a Lovable-hosted gateway that proxies OpenAI's `gpt-4o-mini-transcribe` model. So Lovable provides the integration; the underlying STT model is OpenAI.
+- **Free?** No — it uses your **workspace AI credits** (same credits as Gemini chat). It is not a separate paid plan, and there's a generous free monthly credit allowance. Cost per minute of audio is small (fractions of a credit).
+- **Easy to implement?** Yes. It needs one new Supabase Edge Function (~30 lines) and a mic button in the chat. No API keys to manage — `LOVABLE_API_KEY` is already provisioned.
 
-## 1. Question progress realtime sync
+# Plan: Add voice input to your AI chatbox
 
-Already persisted in `question_progress` via `record_question_done` / `record_question_undone` RPCs. Add:
+## What you'll get
+A microphone button next to the chat input. Tap it → it records → tap again to stop → the transcript fills the input box, and you can review/edit before sending. English by default, auto-detects other languages.
 
-- Enable Realtime publication on `question_progress` and `profiles`.
-- In the progress/question hooks, subscribe to `postgres_changes` on `question_progress` filtered by `user_id = auth.uid()` and invalidate React Query caches so ticked/unticked counts (and XP) update live on every signed-in device.
+## Steps
 
-No schema changes to existing tables.
+1. **New edge function** `supabase/functions/transcribe-audio/index.ts`
+   - Accepts `multipart/form-data` with an audio file from the client
+   - Forwards to `https://ai.gateway.lovable.dev/v1/audio/transcriptions` using `LOVABLE_API_KEY` and model `openai/gpt-4o-mini-transcribe`
+   - Returns the transcript JSON
+   - CORS headers, no JWT verification (or with verification — match existing chat function)
 
----
+2. **New hook** `src/hooks/use-voice-recorder.ts`
+   - Uses `MediaRecorder` with `audio/webm` (Chrome/Android) or `audio/mp4` fallback (iOS Safari) — important since you ship via Capacitor
+   - `start()`, `stop()` returning a `Blob`
+   - Guards: mic permission errors, empty/silent recordings (<1KB), unsupported codec
+   - Names the upload file extension to match the recorded MIME (`recording.webm` or `recording.mp4`) — required by the model
 
-## 2. New tables
+3. **Mic button in the chat input**
+   - Add to the existing AI chat component (wherever the chat input lives — likely `src/components/chat/...` or similar)
+   - States: idle (mic icon), recording (pulsing red + timer), transcribing (spinner)
+   - On stop: POST blob to the new edge function, set returned text into the existing input field
+   - Toast errors for permission denied / no speech / network failures
 
-**`calendar_events`**
-- `user_id uuid` (auth.uid)
-- `event_date date`
-- `title text`
-- `important boolean default false`
-- standard id/created_at/updated_at
-- RLS: owner-only ALL
-- Added to `supabase_realtime` publication
+4. **Capacitor microphone permission**
+   - Add `RECORD_AUDIO` permission to `android/app/src/main/AndroidManifest.xml` (only matters when you next build the APK; web preview works without it)
 
-**`user_notes`**
-- `user_id uuid`
-- `title text`
-- `content text` (rich text / plain)
-- `drawing_path text` (storage path, nullable — for drawing PNG)
-- `kind text check in ('text','drawing','mixed')`
-- standard id/created_at/updated_at
-- RLS: owner-only ALL
-- Added to `supabase_realtime` publication
+## Technical notes (skip if not interested)
+- Endpoint: `POST https://ai.gateway.lovable.dev/v1/audio/transcriptions` (OpenAI-compatible)
+- Model: `openai/gpt-4o-mini-transcribe` (default) — accurate, low cost
+- Language: omit the `language` param so it auto-detects; works great for English
+- The mic key (`LOVABLE_API_KEY`) stays server-side in the edge function — never exposed to the browser/APK
+- Errors handled: 402 (out of credits → toast), 429 (rate limited → retry hint), 400 (bad audio → re-record prompt)
 
-GRANTs for both tables: authenticated (SELECT/INSERT/UPDATE/DELETE), service_role ALL.
+## Files to be created/edited
+- **Create:** `supabase/functions/transcribe-audio/index.ts`
+- **Create:** `src/hooks/use-voice-recorder.ts`
+- **Edit:** the existing AI chatbox component (mic button + wiring)
+- **Edit:** `android/app/src/main/AndroidManifest.xml` (mic permission for APK)
 
-**Storage bucket `note-drawings`** (private), with RLS on `storage.objects`:
-- Users can read/write/delete files only under a folder matching their `auth.uid()` (`(storage.foldername(name))[1] = auth.uid()::text`).
-
----
-
-## 3. Progress tab UI
-
-Inside `ProgressDashboard`, add a small secondary tab strip (shadcn `Tabs`) with three tabs:
-- **Stats** (existing dashboard content)
-- **Calendar**
-- **Notes**
-
-### Calendar tab (`ProgressCalendarTab.tsx`)
-- shadcn `Calendar` (single mode) with `pointer-events-auto`.
-- Dots/badges on days that have events; star on important days.
-- Below the calendar: list of events for the selected date with add/edit/delete + "important" star toggle.
-- Realtime channel on `calendar_events` filtered by user_id; React Query invalidation on insert/update/delete.
-
-### Notes tab (`ProgressNotesTab.tsx`)
-- Free-form notes list (newest first), search by title.
-- Each note: title + textarea for typed content + "Draw" button opening a canvas dialog.
-- Drawing dialog: simple `<canvas>` with pen color, stroke width, clear, save. On save → upload PNG to `note-drawings/{uid}/{noteId}-{ts}.png`, store path in `drawing_path`.
-- Realtime channel on `user_notes` filtered by user_id; cache invalidation on changes.
-
----
-
-## 4. Auth compatibility
-
-All new features rely solely on `auth.uid()`, so they work identically for Google sign-in and email-OTP sign-in. No changes to existing auth flow. After `merge_into_current_user`, future migration can extend it to also move `calendar_events` and `user_notes` rows — included in this plan.
-
----
-
-## Technical details
-
-- Files to create:
-  - `src/components/progress/ProgressCalendarTab.tsx`
-  - `src/components/progress/ProgressNotesTab.tsx`
-  - `src/components/progress/DrawingCanvas.tsx`
-  - `src/hooks/useCalendarEvents.ts`
-  - `src/hooks/useUserNotes.ts`
-  - `src/hooks/useQuestionProgressRealtime.ts`
-- Files to edit:
-  - `src/components/progress/ProgressDashboard.tsx` — add inner Tabs.
-  - `src/hooks/useProgress.ts` (or equivalent) — subscribe to realtime for question_progress.
-- One migration: create both tables + grants + RLS + add all three tables to `supabase_realtime`, extend `merge_into_current_user` to include them.
-- One storage bucket via `supabase--storage_create_bucket` + RLS migration on `storage.objects`.
-
-No existing feature (Google sign-in, email OTP, XP, leaderboard, streak) is touched.
+No database changes, no migrations, no new dependencies.
