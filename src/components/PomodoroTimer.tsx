@@ -15,6 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { toast } from '@/components/ui/use-toast';
 import { useLongPressDrag } from '@/hooks/use-long-press-drag';
+import { useProfile } from '@/hooks/use-profile';
+import { useCalendarEvents } from '@/hooks/use-calendar-events';
+import { format } from 'date-fns';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
