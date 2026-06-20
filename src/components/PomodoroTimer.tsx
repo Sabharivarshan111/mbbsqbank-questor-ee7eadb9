@@ -15,6 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { useOnlinePresence } from '@/hooks/use-online-presence';
 import { toast } from '@/components/ui/use-toast';
 import { useLongPressDrag } from '@/hooks/use-long-press-drag';
+import { useProfile } from '@/hooks/use-profile';
+import { useCalendarEvents } from '@/hooks/use-calendar-events';
+import { format } from 'date-fns';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
@@ -37,6 +40,16 @@ const PomodoroTimer = () => {
   const { settings, update: updateSettings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
   const { onlineCount } = useOnlinePresence();
+  const { userId } = useProfile();
+  const { events: calendarEvents } = useCalendarEvents(userId);
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const todayEvents = calendarEvents.filter((e) => e.event_date === todayKey);
+  const reminderText = todayEvents.length === 0
+    ? null
+    : todayEvents.length === 1
+      ? todayEvents[0].title
+      : todayEvents.slice(0, 2).map((e) => e.title).join(' • ') +
+        (todayEvents.length > 2 ? ` +${todayEvents.length - 2} more` : '');
 
   const handleComplete = useCallback(
     (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
@@ -488,6 +501,11 @@ const PomodoroTimer = () => {
             <span className="ml-2">• 👥 {onlineCount} studying now</span>
           )}
         </div>
+        {reminderText && (
+          <div className={`text-center text-[11px] opacity-80 ${styles.text} truncate`}>
+            📌 {reminderText}
+          </div>
+        )}
       </div>
     </div>,
     floatingPortalRoot,
