@@ -501,6 +501,11 @@ const PomodoroTimer = () => {
             <span className="ml-2">• 👥 {onlineCount} studying now</span>
           )}
         </div>
+        {reminderText && (
+          <div className={`text-center text-[11px] opacity-80 ${styles.text} truncate`}>
+            📌 {reminderText}
+          </div>
+        )}
       </div>
     </div>,
     floatingPortalRoot,
