@@ -139,7 +139,7 @@ const QuestionBank = () => {
             data-tour="qbank-header"
             className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-3 p-1`}
           >
-            <TabsTrigger value="progress" data-tour="progress-tab" className={topTriggerClass}>
+            <TabsTrigger value="progress" data-tour="progress-tab" className={`progress-tab-button ${topTriggerClass}`}>
               Your Progress
             </TabsTrigger>
             <TabsTrigger value="materials" data-tour="study-materials-tab" className={`extras-tab-button ${topTriggerClass}`}>
