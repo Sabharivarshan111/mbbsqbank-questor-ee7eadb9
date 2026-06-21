@@ -132,12 +132,7 @@ const QuestionBank = () => {
           defaultValue="essay"
           value={activeTab}
           className="w-full"
-          onValueChange={(value) => {
-            setActiveTab(value as TabValue);
-            if (value === "materials" || value === "short-notes") {
-              window.dispatchEvent(new CustomEvent("orbit:pomodoro-minimize"));
-            }
-          }}
+          onValueChange={(value) => setActiveTab(value as TabValue)}
         >
           {/* Top row: Your Progress / Study Materials — single TabsList with gradient */}
           <TabsList
