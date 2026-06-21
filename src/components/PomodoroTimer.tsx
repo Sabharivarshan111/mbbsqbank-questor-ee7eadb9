@@ -141,6 +141,8 @@ const PomodoroTimer = () => {
     const onCloseSettings = () => setSettingsOpen(false);
     const onDialogOpen = () => setDialogMinimized(true);
     const onDialogClose = () => setDialogMinimized(false);
+    const onMinimize = () => setIsVisible(false);
+    window.addEventListener('orbit:pomodoro-minimize', onMinimize);
     window.addEventListener('orbit:pomodoro-walkthrough-show', onShow);
     window.addEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
     window.addEventListener('orbit:pomodoro-walkthrough-hide', onHide);
