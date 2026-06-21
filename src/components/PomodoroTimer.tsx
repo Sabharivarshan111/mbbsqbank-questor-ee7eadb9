@@ -125,8 +125,13 @@ const PomodoroTimer = () => {
 
   useEffect(() => {
     const onShow = () => setIsVisible(true);
+    const onMinimizeRequested = () => setIsVisible(false);
     window.addEventListener('orbit:show-pomodoro', onShow);
-    return () => window.removeEventListener('orbit:show-pomodoro', onShow);
+    window.addEventListener('orbit:minimize-pomodoro', onMinimizeRequested);
+    return () => {
+      window.removeEventListener('orbit:show-pomodoro', onShow);
+      window.removeEventListener('orbit:minimize-pomodoro', onMinimizeRequested);
+    };
   }, []);
 
   // Walkthrough override — does NOT persist to localStorage
