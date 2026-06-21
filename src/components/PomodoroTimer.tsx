@@ -159,6 +159,7 @@ const PomodoroTimer = () => {
       window.removeEventListener('orbit:open-pomodoro-settings', onOpenSettings);
       window.removeEventListener('orbit:close-pomodoro-settings', onCloseSettings);
       window.removeEventListener('orbit:custom-theme-opened', onDialogOpen);
+      window.removeEventListener('orbit:pomodoro-minimize', onMinimize);
       window.removeEventListener('orbit:custom-theme-closed', onDialogClose);
     };
   }, []);
