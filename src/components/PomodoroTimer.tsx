@@ -141,6 +141,8 @@ const PomodoroTimer = () => {
     const onCloseSettings = () => setSettingsOpen(false);
     const onDialogOpen = () => setDialogMinimized(true);
     const onDialogClose = () => setDialogMinimized(false);
+    const onMinimize = () => setIsVisible(false);
+    window.addEventListener('orbit:pomodoro-minimize', onMinimize);
     window.addEventListener('orbit:pomodoro-walkthrough-show', onShow);
     window.addEventListener('orbit:pomodoro-walkthrough-minimize', onMin);
     window.addEventListener('orbit:pomodoro-walkthrough-hide', onHide);
@@ -157,6 +159,7 @@ const PomodoroTimer = () => {
       window.removeEventListener('orbit:open-pomodoro-settings', onOpenSettings);
       window.removeEventListener('orbit:close-pomodoro-settings', onCloseSettings);
       window.removeEventListener('orbit:custom-theme-opened', onDialogOpen);
+      window.removeEventListener('orbit:pomodoro-minimize', onMinimize);
       window.removeEventListener('orbit:custom-theme-closed', onDialogClose);
     };
   }, []);
