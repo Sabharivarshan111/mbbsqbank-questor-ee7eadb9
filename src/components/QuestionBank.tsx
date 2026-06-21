@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSwipeable } from "react-swipeable";
@@ -86,6 +86,19 @@ const QuestionBank = () => {
     window.addEventListener("orbit:set-tab", handler);
     return () => window.removeEventListener("orbit:set-tab", handler);
   }, [setActiveTab]);
+
+  // Auto-minimize the Pomodoro timer when entering Study Materials or Your Progress.
+  const prevTabRef = useRef<TabValue | null>(null);
+  useEffect(() => {
+    if (!isRendered) return;
+    if (
+      (activeTab === "progress" || activeTab === "materials") &&
+      prevTabRef.current !== activeTab
+    ) {
+      window.dispatchEvent(new CustomEvent("orbit:minimize-pomodoro"));
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab, isRendered]);
 
   if (!isRendered) {
     return (
