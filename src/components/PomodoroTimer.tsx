@@ -502,7 +502,7 @@ const PomodoroTimer = () => {
           )}
         </div>
         {reminderText && (
-          <div className={`text-center text-[11px] opacity-80 ${styles.text} truncate`}>
+          <div className={`text-center text-[11px] opacity-90 ${styles.text} truncate mt-1 pt-1 border-t border-white/10`}>
             📌 {reminderText}
           </div>
         )}
