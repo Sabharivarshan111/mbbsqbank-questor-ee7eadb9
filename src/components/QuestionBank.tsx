@@ -87,6 +87,19 @@ const QuestionBank = () => {
     return () => window.removeEventListener("orbit:set-tab", handler);
   }, [setActiveTab]);
 
+  // Auto-minimize the Pomodoro timer when entering Study Materials or Your Progress.
+  const prevTabRef = useRef<TabValue | null>(null);
+  useEffect(() => {
+    if (!isRendered) return;
+    if (
+      (activeTab === "progress" || activeTab === "materials") &&
+      prevTabRef.current !== activeTab
+    ) {
+      window.dispatchEvent(new CustomEvent("orbit:minimize-pomodoro"));
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab, isRendered]);
+
   if (!isRendered) {
     return (
       <div className="bg-white dark:bg-black h-full min-h-[600px] flex items-center justify-center">
