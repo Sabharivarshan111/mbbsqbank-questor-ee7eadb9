@@ -98,6 +98,10 @@ const EmailSyncButton = ({ isAnonymous, email, userId, onSignOut }: Props) => {
         await supabase.from("profiles").update({ email: clean }).eq("id", newUserId);
       }
 
+      // Pull the merged cloud progress onto this device.
+      await reconcileProgressWithCloud(true);
+
+
       setOpen(false);
       setStep("email");
       setOtp("");
