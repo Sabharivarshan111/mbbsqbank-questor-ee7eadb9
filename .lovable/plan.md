@@ -1,34 +1,72 @@
-# Two fixes
+# Fix cross-device sync
 
-## 1. Reminder under Pomodoro pill not showing
+## What's actually broken
 
-The code I added is correct: it reads today's calendar events for the signed-in user and renders `📌 <title>` below the "Today: ... focused" line, only when at least one event exists for today.
+I traced both bugs to two underlying causes:
 
-So the line only appears when:
-- you are signed in (same account that added the reminder), AND
-- there is a calendar event whose date is today (`yyyy-MM-dd` of your device), AND
-- the Pomodoro pill is expanded (the small clock icon in the screenshot is the collapsed state — tap it once to expand).
+### 1. Reconcile is destructive and currently crashing
+`reconcile_question_progress` (the function `use-profile.ts` calls every time you sign in or come back to the tab) treats **the device as the source of truth** and does:
+- `DELETE FROM question_progress WHERE user_id = _uid AND question_id <> ALL (local_ids)` — deletes any cloud row not present on the current device
+- Then `UPDATE public.profiles ... WHERE user_id = _uid` — but `profiles` has no `user_id` column (it's `id`). Console confirms: `column "user_id" does not exist`. There is also no `weekly_xp` column.
 
-To make this easier to verify and more robust, I will:
-- Tap-expand the pill if not already expanded (no change needed — already supported).
-- Make the reminder line a touch more visible: keep size but add a subtle separator above it so it reads as its own line.
-- Add a small fallback: if `userId` is still loading, the line stays hidden (current behavior, kept).
+So on a fresh tablet (where localStorage has no ticked questions), the reconcile call is *trying* to wipe everything you ticked on your phone. Right now it crashes before the wipe lands, but the moment we touch other code it would, plus the crash means cloud progress also never reflects new ticks correctly.
 
-If after this you still don't see it: the most likely cause is that no `calendar_events` row exists for today on your account. Open Progress → Calendar tab, pick today, add a reminder, then expand the Pomodoro pill — the `📌` line will appear.
+### 2. Signing in on a second device doesn't carry the account/name
+Flow on the tab today:
+1. Onboarding asks for a name → creates a brand-new **anonymous** Supabase user.
+2. `claim_or_merge_profile` only merges by `device_id`, which is unique per device, so nothing carries over.
+3. Only after onboarding can the user notice the small "Sync with Email/Google" button inside Your Progress and link there. Most users never find it, so the tab keeps a fresh name/empty progress.
 
-No logic change to filtering/format — only the small visual separator.
+Even when they do find Email/Google sync, the `[userId]` effect in `use-profile.ts` then immediately calls `syncLocalProgressToCloud()` + `reconcileProgressWithCloud(true)`, which (per bug 1) tries to delete all the phone's cloud progress.
 
-## 2. Light + Liquid-glass: "Your Progress" has no active box
+## Plan
 
-Cause: only the "Study Materials" trigger has the `extras-tab-button` class, and `index.css` styles that class with the white box for `html.liquid-glass` and `html.custom`. "Your Progress" has no equivalent class so it shows no box on those two themes.
+### A. Make the cloud → local sync non-destructive (the core fix)
 
-Fix:
-- In `src/components/QuestionBank.tsx`, add a new class `progress-tab-button` to the "Your Progress" `TabsTrigger` (alongside `topTriggerClass`).
-- In `src/index.css`, add CSS rules for `progress-tab-button` that mirror `extras-tab-button` for `html.custom` and `html.liquid-glass` (background, border, blur, shadow). No changes to other themes.
+Rewrite `public.reconcile_question_progress(_question_ids text[])` to **merge** instead of overwrite:
+- Insert any local IDs that aren't already in the cloud (`ON CONFLICT DO NOTHING`).
+- Return the union of cloud IDs back to the client so the client can mark them done in localStorage.
+- Recompute `profiles.xp` from `question_progress` (using the correct `id` column, dropping the bogus `weekly_xp` write).
+- No `DELETE` of question rows. The only way a question gets un-ticked is the existing `record_question_undone` RPC, which the user triggers explicitly.
 
-This gives "Your Progress" the same visible box as "Study Materials" only on Custom and Liquid-glass themes; all other themes remain unchanged.
+Change return type to `setof text` (the merged ID list) so `src/lib/question-progress.ts` can:
+- Take the returned IDs.
+- For each, set `localStorage["question-<id>"] = "true"` if missing.
+- Dispatch `QUESTION_PROGRESS_EVENT` so the UI re-renders the ticked state.
 
-## Files touched
-- `src/components/PomodoroTimer.tsx` — tiny visual tweak to reminder line.
-- `src/components/QuestionBank.tsx` — add `progress-tab-button` class to Your Progress trigger.
-- `src/index.css` — add `progress-tab-button` rules for `html.custom` and `html.liquid-glass`.
+### B. Pull cloud profile on auth change, not just on first mount
+
+In `src/hooks/use-profile.ts`:
+- Move the "load cloud profile + register_open + sync progress" block so it also runs when `userId` transitions from an anonymous user to a real (email/Google) user, replacing the local name/year with the cloud profile's name/year. Today the local onboarding name overrides the real account's name on the tab.
+- Only call `syncLocalProgressToCloud()` *before* the merged reconcile, and rely on the new merged reconcile to fill in cloud → local.
+
+### C. Make sign-in discoverable from onboarding
+
+In `src/components/progress/OnboardingDialog.tsx` (and wherever the very first onboarding is triggered), add a secondary action under the "Save" button:
+
+> Already have an account? **Sign in to sync**
+
+Clicking it opens the existing Email OTP sign-in flow (and, where available, Google). After a successful sign-in:
+- `merge_into_current_user` merges the just-created anonymous user into the existing account (already implemented).
+- The new auth-change handler from step B refetches the cloud profile, so the tab immediately shows the phone's name, year, XP, streak, and ticked questions.
+- Onboarding closes without forcing the user to type a throwaway name.
+
+### D. Small consistency fix
+
+`merge_into_current_user` already handles question_progress merging correctly. After it runs, trigger one more `reconcileProgressWithCloud(true)` from the client so the merged set syncs into localStorage on the new device.
+
+## Files to change
+
+- `supabase/migrations/<new>.sql` — replace `reconcile_question_progress` with the non-destructive merged version returning `setof text`.
+- `src/lib/question-progress.ts` — consume returned IDs, write missing ones to localStorage, fire `QUESTION_PROGRESS_EVENT`.
+- `src/hooks/use-profile.ts` — refetch cloud profile on auth change to a non-anonymous user; overwrite local name/year from cloud when signed in.
+- `src/components/progress/OnboardingDialog.tsx` — add "Sign in to sync" entry point that opens the email/Google sign-in UI.
+- `src/components/progress/EmailSyncButton.tsx` — after successful merge, also kick a `reconcileProgressWithCloud(true)` so cloud-only ticks land on this device immediately.
+
+## What you'll see after the fix
+
+- Tick a question on your phone → open the tab → sign in with the same email or Google → your name, streak, XP, and every ticked question appear within a second.
+- Ticking on either device now adds to the cloud; nothing ever deletes the other device's ticks.
+- Onboarding on a new device shows a "Sign in to sync" link so you don't have to hunt for it inside Your Progress.
+
+No data loss risk: this only adds rows and reads rows, it never deletes question_progress.
