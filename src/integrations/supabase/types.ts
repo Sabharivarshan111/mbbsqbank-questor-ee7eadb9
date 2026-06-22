@@ -306,7 +306,7 @@ export type Database = {
       }
       reconcile_question_progress: {
         Args: { _question_ids: string[] }
-        Returns: undefined
+        Returns: string[]
       }
       record_question_done: {
         Args: { _question_id: string }

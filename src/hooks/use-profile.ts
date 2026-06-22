@@ -124,7 +124,9 @@ export function useProfile() {
     };
   }, [userId]);
 
-  // Load cloud profile + register open
+  // Load cloud profile + register open. Re-runs on every auth change, including
+  // anonymous → email/Google sign-in, so the second device adopts the existing
+  // account's name/year instead of keeping the throwaway onboarding values.
   useEffect(() => {
     if (!userId) return;
     (async () => {
@@ -135,20 +137,24 @@ export function useProfile() {
         .maybeSingle();
       if (data) {
         setCloud(data as CloudProfile);
-        setLocal({ display_name: data.display_name, year: data.year as Year });
-        writeLocal({ display_name: data.display_name, year: data.year as Year });
+        // If this is a real (non-anonymous) account, the cloud profile is the
+        // source of truth — replace anything the user just typed in onboarding.
+        const next = { display_name: data.display_name, year: data.year as Year };
+        setLocal(next);
+        writeLocal(next);
       }
       const { data: openRes } = await (supabase as any).rpc("register_open");
       const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
       if (openRow && typeof openRow.streak === "number") {
         setCloud((c) => c ? { ...c, streak: openRow.streak, last_active_date: openRow.last_active_date } : c);
       }
-      // Push any locally-completed questions to the cloud so XP/leaderboard catch up
+      // Push any locally-completed questions to the cloud, then merge the cloud
+      // set back into localStorage. Reconcile is non-destructive — it never
+      // deletes questions ticked on another device.
       await syncLocalProgressToCloud();
-      // Then reconcile: treat device as source of truth, drop stale server rows
       reconcileProgressWithCloud(true);
     })();
-  }, [userId]);
+  }, [userId, isAnonymous]);
 
   // Reconcile when the tab becomes visible again (debounced inside the helper)
   useEffect(() => {

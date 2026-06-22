@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { reconcileProgressWithCloud } from "@/lib/question-progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -96,6 +97,10 @@ const EmailSyncButton = ({ isAnonymous, email, userId, onSignOut }: Props) => {
       if (newUserId) {
         await supabase.from("profiles").update({ email: clean }).eq("id", newUserId);
       }
+
+      // Pull the merged cloud progress onto this device.
+      await reconcileProgressWithCloud(true);
+
 
       setOpen(false);
       setStep("email");
