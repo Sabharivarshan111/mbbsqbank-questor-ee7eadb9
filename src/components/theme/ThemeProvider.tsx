@@ -167,12 +167,101 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("customTheme", JSON.stringify(c));
   }, []);
 
+  // ---------- Custom slots (cloud-synced) ----------
+  const [customSlots, setCustomSlots] = useState<CustomSlots>(readLocalSlots);
+  const userIdRef = useRef<string | null>(null);
+  const lastPushed = useRef<string>("");
+
+  const persistSlotsLocal = useCallback((next: CustomSlots) => {
+    setCustomSlots(next);
+    try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+  }, []);
+
+  const pushSlotsToCloud = useCallback(async (next: CustomSlots) => {
+    const uid = userIdRef.current;
+    if (!uid) return;
+    const sig = JSON.stringify(next);
+    if (sig === lastPushed.current) return;
+    lastPushed.current = sig;
+    try {
+      await supabase
+        .from("profiles")
+        .update({
+          custom_theme_1: next.slot1 as any,
+          custom_theme_2: next.slot2 as any,
+        })
+        .eq("id", uid);
+    } catch {}
+  }, []);
+
+  const saveCustomSlot = useCallback((slot: CustomSlot, colors: CustomColors) => {
+    setCustomSlots((prev) => {
+      const next: CustomSlots = { ...prev, [`slot${slot}`]: colors } as CustomSlots;
+      try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+      void pushSlotsToCloud(next);
+      return next;
+    });
+  }, [pushSlotsToCloud]);
+
+  const clearCustomSlot = useCallback((slot: CustomSlot) => {
+    setCustomSlots((prev) => {
+      const next: CustomSlots = { ...prev, [`slot${slot}`]: null } as CustomSlots;
+      try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+      void pushSlotsToCloud(next);
+      return next;
+    });
+  }, [pushSlotsToCloud]);
+
+  // Watch auth; on login, merge cloud slots with local. Cloud wins if present.
+  useEffect(() => {
+    const handle = async (session: any) => {
+      const uid = session?.user?.id ?? null;
+      userIdRef.current = uid;
+      if (!uid) return;
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("custom_theme_1, custom_theme_2")
+          .eq("id", uid)
+          .maybeSingle();
+        const cloudSlot1 = isValidColors((data as any)?.custom_theme_1) ? ((data as any).custom_theme_1 as CustomColors) : null;
+        const cloudSlot2 = isValidColors((data as any)?.custom_theme_2) ? ((data as any).custom_theme_2 as CustomColors) : null;
+        const local = readLocalSlots();
+        const merged: CustomSlots = {
+          slot1: cloudSlot1 ?? local.slot1,
+          slot2: cloudSlot2 ?? local.slot2,
+        };
+        persistSlotsLocal(merged);
+        lastPushed.current = JSON.stringify(merged);
+        // If local had something the cloud didn't, push it back up.
+        if ((!cloudSlot1 && local.slot1) || (!cloudSlot2 && local.slot2)) {
+          await supabase
+            .from("profiles")
+            .update({
+              custom_theme_1: merged.slot1 as any,
+              custom_theme_2: merged.slot2 as any,
+            })
+            .eq("id", uid);
+        }
+      } catch {}
+    };
+    supabase.auth.getSession().then(({ data }) => handle(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => handle(session));
+    return () => sub.subscription.unsubscribe();
+  }, [persistSlotsLocal]);
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, customColors, setCustomColors }}>
+    <ThemeContext.Provider
+      value={{
+        theme, setTheme, customColors, setCustomColors,
+        customSlots, saveCustomSlot, clearCustomSlot,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 }
+
 
 export function useTheme() {
   const context = useContext(ThemeContext);
