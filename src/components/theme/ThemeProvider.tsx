@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Theme = "dark" | "light" | "blackpink" | "custom" | "liquid-glass";
 
@@ -7,6 +8,12 @@ export type CustomColors = {
   foreground: string;
   primary: string;
   card: string;
+};
+
+export type CustomSlot = 1 | 2;
+export type CustomSlots = {
+  slot1: CustomColors | null;
+  slot2: CustomColors | null;
 };
 
 export const DEFAULT_CUSTOM_COLORS: CustomColors = {
@@ -21,9 +28,32 @@ type ThemeContextType = {
   setTheme: (theme: Theme) => void;
   customColors: CustomColors;
   setCustomColors: (colors: CustomColors) => void;
+  customSlots: CustomSlots;
+  saveCustomSlot: (slot: CustomSlot, colors: CustomColors) => void;
+  clearCustomSlot: (slot: CustomSlot) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const SLOTS_LS_KEY = "customThemeSlots";
+
+function readLocalSlots(): CustomSlots {
+  try {
+    const raw = localStorage.getItem(SLOTS_LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { slot1: parsed?.slot1 ?? null, slot2: parsed?.slot2 ?? null };
+    }
+  } catch {}
+  return { slot1: null, slot2: null };
+}
+
+function isValidColors(v: any): v is CustomColors {
+  return v && typeof v === "object"
+    && typeof v.background === "string"
+    && typeof v.foreground === "string"
+    && typeof v.primary === "string"
+    && typeof v.card === "string";
+}
 
 // ---------- color helpers ----------
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
