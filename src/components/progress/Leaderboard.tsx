@@ -150,10 +150,37 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
 
 
   if (!enabled) {
+    const isAndroid =
+      typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
     return (
-      <div className="rounded-2xl bg-card border p-4 text-center text-sm text-muted-foreground">
-        <Trophy className="h-5 w-5 mx-auto mb-2 text-primary" />
-        Sign in to join the leaderboard (set your name above).
+      <div className="rounded-2xl bg-card border p-4 space-y-3 text-center">
+        <div>
+          <Trophy className="h-5 w-5 mx-auto mb-2 text-primary" />
+          <p className="text-sm font-semibold">Sign in required for Leaderboard</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Set your name and sign in above to join the weekly and lifetime rankings.
+          </p>
+        </div>
+        {isAndroid && (
+          <div className="rounded-xl bg-muted/50 border border-border/60 p-3 space-y-2 text-left">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Using the Orbit MBBS Android app? If Google Sign-In isn't working,
+              please update to the latest version on the Play Store.
+            </p>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.aistudio.mbbsqbank.aycxvd"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-full rounded-md bg-primary text-primary-foreground text-xs font-medium px-3 py-2 hover:opacity-90 transition"
+            >
+              Update on Play Store
+            </a>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              If the link doesn't open, search "Orbit MBBS" in the Play Store and
+              update the app.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
