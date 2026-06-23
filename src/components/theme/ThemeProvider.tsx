@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Theme = "dark" | "light" | "blackpink" | "custom" | "liquid-glass";
 
@@ -7,6 +8,12 @@ export type CustomColors = {
   foreground: string;
   primary: string;
   card: string;
+};
+
+export type CustomSlot = 1 | 2;
+export type CustomSlots = {
+  slot1: CustomColors | null;
+  slot2: CustomColors | null;
 };
 
 export const DEFAULT_CUSTOM_COLORS: CustomColors = {
@@ -21,9 +28,32 @@ type ThemeContextType = {
   setTheme: (theme: Theme) => void;
   customColors: CustomColors;
   setCustomColors: (colors: CustomColors) => void;
+  customSlots: CustomSlots;
+  saveCustomSlot: (slot: CustomSlot, colors: CustomColors) => void;
+  clearCustomSlot: (slot: CustomSlot) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const SLOTS_LS_KEY = "customThemeSlots";
+
+function readLocalSlots(): CustomSlots {
+  try {
+    const raw = localStorage.getItem(SLOTS_LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { slot1: parsed?.slot1 ?? null, slot2: parsed?.slot2 ?? null };
+    }
+  } catch {}
+  return { slot1: null, slot2: null };
+}
+
+function isValidColors(v: any): v is CustomColors {
+  return v && typeof v === "object"
+    && typeof v.background === "string"
+    && typeof v.foreground === "string"
+    && typeof v.primary === "string"
+    && typeof v.card === "string";
+}
 
 // ---------- color helpers ----------
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
@@ -137,12 +167,101 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("customTheme", JSON.stringify(c));
   }, []);
 
+  // ---------- Custom slots (cloud-synced) ----------
+  const [customSlots, setCustomSlots] = useState<CustomSlots>(readLocalSlots);
+  const userIdRef = useRef<string | null>(null);
+  const lastPushed = useRef<string>("");
+
+  const persistSlotsLocal = useCallback((next: CustomSlots) => {
+    setCustomSlots(next);
+    try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+  }, []);
+
+  const pushSlotsToCloud = useCallback(async (next: CustomSlots) => {
+    const uid = userIdRef.current;
+    if (!uid) return;
+    const sig = JSON.stringify(next);
+    if (sig === lastPushed.current) return;
+    lastPushed.current = sig;
+    try {
+      await supabase
+        .from("profiles")
+        .update({
+          custom_theme_1: next.slot1 as any,
+          custom_theme_2: next.slot2 as any,
+        })
+        .eq("id", uid);
+    } catch {}
+  }, []);
+
+  const saveCustomSlot = useCallback((slot: CustomSlot, colors: CustomColors) => {
+    setCustomSlots((prev) => {
+      const next: CustomSlots = { ...prev, [`slot${slot}`]: colors } as CustomSlots;
+      try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+      void pushSlotsToCloud(next);
+      return next;
+    });
+  }, [pushSlotsToCloud]);
+
+  const clearCustomSlot = useCallback((slot: CustomSlot) => {
+    setCustomSlots((prev) => {
+      const next: CustomSlots = { ...prev, [`slot${slot}`]: null } as CustomSlots;
+      try { localStorage.setItem(SLOTS_LS_KEY, JSON.stringify(next)); } catch {}
+      void pushSlotsToCloud(next);
+      return next;
+    });
+  }, [pushSlotsToCloud]);
+
+  // Watch auth; on login, merge cloud slots with local. Cloud wins if present.
+  useEffect(() => {
+    const handle = async (session: any) => {
+      const uid = session?.user?.id ?? null;
+      userIdRef.current = uid;
+      if (!uid) return;
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("custom_theme_1, custom_theme_2")
+          .eq("id", uid)
+          .maybeSingle();
+        const cloudSlot1 = isValidColors((data as any)?.custom_theme_1) ? ((data as any).custom_theme_1 as CustomColors) : null;
+        const cloudSlot2 = isValidColors((data as any)?.custom_theme_2) ? ((data as any).custom_theme_2 as CustomColors) : null;
+        const local = readLocalSlots();
+        const merged: CustomSlots = {
+          slot1: cloudSlot1 ?? local.slot1,
+          slot2: cloudSlot2 ?? local.slot2,
+        };
+        persistSlotsLocal(merged);
+        lastPushed.current = JSON.stringify(merged);
+        // If local had something the cloud didn't, push it back up.
+        if ((!cloudSlot1 && local.slot1) || (!cloudSlot2 && local.slot2)) {
+          await supabase
+            .from("profiles")
+            .update({
+              custom_theme_1: merged.slot1 as any,
+              custom_theme_2: merged.slot2 as any,
+            })
+            .eq("id", uid);
+        }
+      } catch {}
+    };
+    supabase.auth.getSession().then(({ data }) => handle(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => handle(session));
+    return () => sub.subscription.unsubscribe();
+  }, [persistSlotsLocal]);
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, customColors, setCustomColors }}>
+    <ThemeContext.Provider
+      value={{
+        theme, setTheme, customColors, setCustomColors,
+        customSlots, saveCustomSlot, clearCustomSlot,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 }
+
 
 export function useTheme() {
   const context = useContext(ThemeContext);
