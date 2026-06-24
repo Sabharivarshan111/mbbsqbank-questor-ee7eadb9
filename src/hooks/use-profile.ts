@@ -11,6 +11,7 @@ export interface LocalProfile {
 
 const LS_KEY = "orbit-profile-v1";
 const DEVICE_KEY = "orbit-device-id";
+const PENDING_MERGE_USER_KEY = "orbit-pending-merge-user-id";
 
 function getDeviceId(): string {
   try {
@@ -42,6 +43,20 @@ function writeLocal(p: LocalProfile) {
   } catch {}
   try {
     window.dispatchEvent(new CustomEvent(PROFILE_EVENT, { detail: p }));
+  } catch {}
+}
+
+function readPendingMergeUserId(): string | null {
+  try {
+    return localStorage.getItem(PENDING_MERGE_USER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingMergeUserId() {
+  try {
+    localStorage.removeItem(PENDING_MERGE_USER_KEY);
   } catch {}
 }
 
@@ -136,11 +151,54 @@ export function useProfile() {
   useEffect(() => {
     if (!userId) return;
     (async () => {
-      const { data } = await supabase
+      const signedIn = !isAnonymous;
+      const pendingMergeUserId = signedIn ? readPendingMergeUserId() : null;
+
+      if (pendingMergeUserId && pendingMergeUserId !== userId) {
+        const { error: mergeErr } = await (supabase as any).rpc("merge_into_current_user", {
+          _old_user_id: pendingMergeUserId,
+        });
+        if (mergeErr) console.warn("Pending Google progress merge failed:", mergeErr.message);
+        clearPendingMergeUserId();
+      }
+
+      let { data } = await supabase
         .from("profiles")
         .select("id, display_name, year, xp, streak, last_active_date")
         .eq("id", userId)
         .maybeSingle();
+
+      if (!data && signedIn) {
+        const localProfile = readLocal();
+        if (localProfile) {
+          const deviceId = getDeviceId();
+          const { data: claimed, error: claimErr } = await (supabase as any).rpc(
+            "claim_or_merge_profile",
+            {
+              _device_id: deviceId,
+              _display_name: localProfile.display_name,
+              _year: localProfile.year,
+            }
+          );
+          if (claimErr) {
+            console.warn("Signed-in profile claim failed:", claimErr.message);
+            await supabase.from("profiles").upsert({
+              id: userId,
+              display_name: localProfile.display_name,
+              year: localProfile.year,
+              device_id: deviceId,
+            });
+          }
+          data = claimed ?? (
+            await supabase
+              .from("profiles")
+              .select("id, display_name, year, xp, streak, last_active_date")
+              .eq("id", userId)
+              .maybeSingle()
+          ).data;
+        }
+      }
+
       if (data) {
         setCloud(data as CloudProfile);
         // If this is a real (non-anonymous) account, the cloud profile is the
@@ -154,6 +212,8 @@ export function useProfile() {
         // missing AND we're still anonymous. A signed-in user with no cloud
         // row yet (e.g. just verified email) should NOT see onboarding.
         setNeedsOnboarding(true);
+      } else if (signedIn) {
+        setNeedsOnboarding(false);
       }
 
       const { data: openRes } = await (supabase as any).rpc("register_open");
@@ -264,6 +324,7 @@ export function useProfile() {
     setUserId(null);
     setEmail(null);
     setIsAnonymous(true);
+    clearPendingMergeUserId();
   }, []);
 
 

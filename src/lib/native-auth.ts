@@ -18,8 +18,9 @@ export const isNative = (): boolean => {
  *
  * Prefers the native Google account picker via @codetrix-studio/capacitor-google-auth
  * (returns an idToken we hand to Supabase via signInWithIdToken — no web redirects).
- * Falls back to the system-browser OAuth flow if the native plugin is unavailable
- * or not configured (e.g. missing Google OAuth Web Client ID in capacitor.config).
+ * If the native picker is unavailable, we do not open a browser fallback because
+ * the current Play Store APK does not reliably return that OAuth session to the
+ * WebView. Email sign-in stays available.
  */
 export async function nativeGoogleSignIn(): Promise<void> {
   // 1) Try native Google account picker → idToken → Supabase signInWithIdToken
@@ -48,7 +49,7 @@ export async function nativeGoogleSignIn(): Promise<void> {
     }
   } catch (e: any) {
     const msg = String(e?.message ?? e ?? "");
-    console.warn("Native Google Sign-In unavailable, falling back to browser flow:", e);
+    console.warn("Native Google Sign-In unavailable:", e);
     // Surface the "needs Play Store update" hint if the native plugin clearly
     // isn't wired up in this APK build.
     if (
@@ -62,26 +63,15 @@ export async function nativeGoogleSignIn(): Promise<void> {
         "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
       );
     }
-  }
 
-  // 2) Fallback: open Google OAuth in Chrome Custom Tabs (system browser)
-  //    and complete via deep-link listener below.
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: NATIVE_REDIRECT,
-        skipBrowserRedirect: true,
-      },
-    });
-    if (error) throw error;
-    if (!data?.url) throw new Error("No OAuth URL returned");
-    await Browser.open({ url: data.url, presentationStyle: "popover" });
-  } catch (e) {
     throw new Error(
-      "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
+      msg || "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
     );
   }
+
+  throw new Error(
+    "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
+  );
 }
 
 
@@ -112,6 +102,10 @@ export function registerNativeAuthListener() {
           await supabase.auth.setSession({ access_token, refresh_token });
         }
       }
+      try {
+        localStorage.setItem("orbit-auth-return-tab", "progress");
+        window.dispatchEvent(new CustomEvent("orbit:set-tab", { detail: "progress" }));
+      } catch {}
     } catch (e) {
       console.error("Deep-link auth exchange failed:", e);
     } finally {
