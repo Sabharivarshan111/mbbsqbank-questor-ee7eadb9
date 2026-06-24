@@ -115,7 +115,7 @@ const ProgressDashboard = () => {
         </Button>
       </div>
 
-      <GoogleSyncButton isAnonymous={isAnonymous} email={email} onSignOut={signOut} />
+      <GoogleSyncButton isAnonymous={isAnonymous} email={email} userId={userId} onSignOut={signOut} />
       <EmailSyncButton isAnonymous={isAnonymous} email={email} userId={userId} onSignOut={signOut} />
 
       <Tabs defaultValue="stats" className="w-full">
