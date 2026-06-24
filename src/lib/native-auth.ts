@@ -23,12 +23,15 @@ export const isNative = (): boolean => {
  */
 export async function nativeGoogleSignIn(): Promise<void> {
   // 1) Try native Google account picker → idToken → Supabase signInWithIdToken
+  //    Skip entirely if the capacitor.config still has the placeholder client ID,
+  //    so we don't burn a confusing "invalid client" error on the user.
+  let nativeAttempted = false;
   try {
     const mod: any = await import("@codetrix-studio/capacitor-google-auth");
     const GoogleAuth = mod.GoogleAuth;
     if (GoogleAuth) {
+      nativeAttempted = true;
       try {
-        // Safe to call repeatedly; uses clientId from capacitor.config.ts plugin entry.
         await GoogleAuth.initialize?.();
       } catch {}
       const result = await GoogleAuth.signIn();
@@ -43,23 +46,44 @@ export async function nativeGoogleSignIn(): Promise<void> {
         return;
       }
     }
-  } catch (e) {
+  } catch (e: any) {
+    const msg = String(e?.message ?? e ?? "");
     console.warn("Native Google Sign-In unavailable, falling back to browser flow:", e);
+    // Surface the "needs Play Store update" hint if the native plugin clearly
+    // isn't wired up in this APK build.
+    if (
+      nativeAttempted &&
+      (msg.includes("YOUR_GOOGLE_WEB_CLIENT_ID") ||
+        msg.toLowerCase().includes("client") ||
+        msg.toLowerCase().includes("12500") ||
+        msg.toLowerCase().includes("developer"))
+    ) {
+      throw new Error(
+        "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
+      );
+    }
   }
 
   // 2) Fallback: open Google OAuth in Chrome Custom Tabs (system browser)
   //    and complete via deep-link listener below.
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: NATIVE_REDIRECT,
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error) throw error;
-  if (!data?.url) throw new Error("No OAuth URL returned");
-  await Browser.open({ url: data.url, presentationStyle: "popover" });
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: NATIVE_REDIRECT,
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error("No OAuth URL returned");
+    await Browser.open({ url: data.url, presentationStyle: "popover" });
+  } catch (e) {
+    throw new Error(
+      "Google Sign-In isn't available on this build. Please update Orbit MBBS from the Play Store, or sign in with Email."
+    );
+  }
 }
+
 
 /**
  * Register a one-time deep-link listener that completes the OAuth flow

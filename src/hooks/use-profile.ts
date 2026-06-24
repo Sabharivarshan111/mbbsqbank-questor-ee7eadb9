@@ -75,11 +75,17 @@ export function useProfile() {
       setUserId(user?.id ?? null);
       setEmail(user?.email ?? null);
       setIsAnonymous(!!user?.is_anonymous);
+      // As soon as we know there's a real (non-anonymous) user, don't pop
+      // onboarding — the cloud-load effect will hydrate name/year shortly.
+      if (user?.id && !user?.is_anonymous) {
+        setNeedsOnboarding(false);
+      }
     };
     supabase.auth.getSession().then(({ data }) => apply(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session));
     return () => sub.subscription.unsubscribe();
   }, []);
+
 
   // Sync local profile across all useProfile() instances
   useEffect(() => {
@@ -142,7 +148,14 @@ export function useProfile() {
         const next = { display_name: data.display_name, year: data.year as Year };
         setLocal(next);
         writeLocal(next);
+        setNeedsOnboarding(false);
+      } else if (!readLocal() && isAnonymous) {
+        // Only pop onboarding when both the cloud row AND local profile are
+        // missing AND we're still anonymous. A signed-in user with no cloud
+        // row yet (e.g. just verified email) should NOT see onboarding.
+        setNeedsOnboarding(true);
       }
+
       const { data: openRes } = await (supabase as any).rpc("register_open");
       const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
       if (openRow && typeof openRow.streak === "number") {

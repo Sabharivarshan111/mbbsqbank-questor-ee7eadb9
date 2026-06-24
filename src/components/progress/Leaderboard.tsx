@@ -153,12 +153,21 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
     const isAndroid =
       typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
     return (
-      <div className="rounded-2xl bg-card border p-4 space-y-3 text-center">
-        <div>
-          <Trophy className="h-5 w-5 mx-auto mb-2 text-primary" />
-          <p className="text-sm font-semibold">Sign in required for Leaderboard</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Set your name and sign in above to join the weekly and lifetime rankings.
+      <div className="rounded-2xl bg-card border p-4 space-y-3">
+        <div className="text-center">
+          <Trophy className="h-6 w-6 mx-auto mb-2 text-amber-500" />
+          <p className="text-sm font-semibold">Sign in to join the Leaderboard</p>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            Your progress is currently saved only on this device. Sign in with
+            Email or Google above so your XP, streaks and rank carry across all
+            your devices.
+          </p>
+        </div>
+        <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3">
+          <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+            <span className="font-semibold">Heads up:</span> without signing in,
+            your name and XP won't appear on the leaderboard, and you'll lose
+            your progress if you uninstall the app or clear browser data.
           </p>
         </div>
         {isAndroid && (
@@ -184,6 +193,7 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
       </div>
     );
   }
+
 
   const loading = period === "weekly" ? weekly.loading : lifetime.loading;
 
