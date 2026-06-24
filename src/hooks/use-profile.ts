@@ -251,12 +251,21 @@ export function useProfile() {
   );
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    // Local scope clears the session from this device immediately without
+    // requiring a network round-trip — important on flaky mobile networks /
+    // Capacitor WebViews where a global sign-out can hang and make the UI
+    // look like nothing happened.
+    try {
+      await supabase.auth.signOut({ scope: "local" } as any);
+    } catch (e) {
+      console.warn("signOut error (continuing anyway):", e);
+    }
     setCloud(null);
     setUserId(null);
     setEmail(null);
     setIsAnonymous(true);
   }, []);
+
 
   return {
     local,
