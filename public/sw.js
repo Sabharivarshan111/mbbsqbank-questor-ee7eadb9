@@ -1,4 +1,6 @@
-const CACHE_NAME = 'mbbs-qb-v1';
+// App-shell SW. Scoped to same-origin GETs only — never touches Supabase auth,
+// RPC, or any cross-origin / POST requests.
+const CACHE_NAME = 'mbbs-qb-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,62 +9,36 @@ const urlsToCache = [
   '/icon-512.png'
 ];
 
-// Install event handler
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching Files');
-        return cache.addAll(urlsToCache);
-      })
-      .catch(error => {
-        console.error('Service Worker: Cache Failed:', error);
-        throw error; // Re-throw to ensure installation fails on error
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)).catch(() => {})
   );
-  // Force waiting Service Worker to become active
   self.skipWaiting();
 });
 
-// Fetch event handler
 self.addEventListener('fetch', (event) => {
-  console.log('Service Worker: Fetching', event.request.url);
+  const req = event.request;
+
+  // Only handle same-origin GETs. Everything else (POSTs, Supabase, OAuth,
+  // analytics, etc.) goes straight to the network with no interception.
+  if (req.method !== 'GET') return;
+  let url;
+  try { url = new URL(req.url); } catch { return; }
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/auth') || url.pathname.startsWith('/~oauth')) return;
+  if (url.pathname.includes('supabase')) return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          console.log('Service Worker: Found in Cache', event.request.url);
-          return response;
-        }
-        console.log('Service Worker: Not Found in Cache', event.request.url);
-        return fetch(event.request).catch(error => {
-          console.error('Service Worker: Fetch Failed:', error);
-          return new Response('Network error happened', {
-            status: 404,
-            headers: { 'Content-Type': 'text/plain' },
-          });
-        });
-      })
+    caches.match(req).then((cached) => cached || fetch(req).catch(() => cached))
   );
 });
 
-// Activate event handler
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activated');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing Old Cache');
-            return caches.delete(cache);
-          }
-        })
-      );
-    }).then(() => {
-      // Take control of all clients as soon as it activates
-      return clients.claim();
-    })
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cache) => (cache !== CACHE_NAME ? caches.delete(cache) : null))
+      )
+    ).then(() => clients.claim())
   );
 });

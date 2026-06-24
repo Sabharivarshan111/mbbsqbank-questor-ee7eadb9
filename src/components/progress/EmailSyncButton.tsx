@@ -93,13 +93,34 @@ const EmailSyncButton = ({ isAnonymous, email, userId, onSignOut }: Props) => {
         toast.success("Signed in. Your progress is now synced across devices.");
       }
 
-      // Update displayed email column in profile
+      // Update displayed email column in profile + hydrate local profile so
+      // re-mounting ProgressDashboard (after navigating to another tab) does
+      // not re-trigger the onboarding dialog.
       if (newUserId) {
         await supabase.from("profiles").update({ email: clean }).eq("id", newUserId);
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("display_name, year")
+          .eq("id", newUserId)
+          .maybeSingle();
+        if (prof?.display_name && prof?.year) {
+          try {
+            localStorage.setItem(
+              "orbit-profile-v1",
+              JSON.stringify({ display_name: prof.display_name, year: prof.year })
+            );
+            window.dispatchEvent(
+              new CustomEvent("orbit-profile-changed", {
+                detail: { display_name: prof.display_name, year: prof.year },
+              })
+            );
+          } catch {}
+        }
       }
 
       // Pull the merged cloud progress onto this device.
       await reconcileProgressWithCloud(true);
+
 
 
       setOpen(false);
