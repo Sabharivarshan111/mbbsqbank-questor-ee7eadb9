@@ -150,50 +150,13 @@ const Leaderboard = ({ year, currentUserId, enabled }: Props) => {
 
 
   if (!enabled) {
-    const isAndroid =
-      typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
     return (
-      <div className="rounded-2xl bg-card border p-4 space-y-3">
-        <div className="text-center">
-          <Trophy className="h-6 w-6 mx-auto mb-2 text-amber-500" />
-          <p className="text-sm font-semibold">Sign in to join the Leaderboard</p>
-          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-            Your progress is currently saved only on this device. Sign in with
-            Email or Google above so your XP, streaks and rank carry across all
-            your devices.
-          </p>
-        </div>
-        <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3">
-          <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-            <span className="font-semibold">Heads up:</span> without signing in,
-            your name and XP won't appear on the leaderboard, and you'll lose
-            your progress if you uninstall the app or clear browser data.
-          </p>
-        </div>
-        {isAndroid && (
-          <div className="rounded-xl bg-muted/50 border border-border/60 p-3 space-y-2 text-left">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Using the Orbit MBBS Android app? If Google Sign-In isn't working,
-              please update to the latest version on the Play Store.
-            </p>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.aistudio.mbbsqbank.aycxvd"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center w-full rounded-md bg-primary text-primary-foreground text-xs font-medium px-3 py-2 hover:opacity-90 transition"
-            >
-              Update on Play Store
-            </a>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              If the link doesn't open, search "Orbit MBBS" in the Play Store and
-              update the app.
-            </p>
-          </div>
-        )}
+      <div className="rounded-2xl bg-card border p-4 text-center text-sm text-muted-foreground">
+        <Trophy className="h-5 w-5 mx-auto mb-2 text-primary" />
+        Sign in to join the leaderboard (set your name above).
       </div>
     );
   }
-
 
   const loading = period === "weekly" ? weekly.loading : lifetime.loading;
 

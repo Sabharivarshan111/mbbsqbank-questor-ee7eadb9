@@ -4,48 +4,18 @@ import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { QuestionBankData } from "@/components/QuestionBank";
 
 const SEARCH_DEBOUNCE_MS = 220;
-const AUTH_RETURN_TAB_KEY = "orbit-auth-return-tab";
-const ACTIVE_TAB_KEY = "orbit-qbank-active-tab";
-type TabValue = "progress" | "materials" | "essay" | "short-notes";
-
-const isTabValue = (value: string | null): value is TabValue =>
-  value === "progress" || value === "materials" || value === "essay" || value === "short-notes";
-
-const getInitialTab = (): TabValue => {
-  if (typeof window === "undefined") return "essay";
-  try {
-    const urlTab = new URLSearchParams(window.location.search).get("tab");
-    if (isTabValue(urlTab)) return urlTab;
-
-    const authReturnTab = localStorage.getItem(AUTH_RETURN_TAB_KEY);
-    if (isTabValue(authReturnTab)) {
-      localStorage.removeItem(AUTH_RETURN_TAB_KEY);
-      return authReturnTab;
-    }
-
-    const savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
-    if (isTabValue(savedTab)) return savedTab;
-  } catch {}
-  return "essay";
-};
 
 export const useQuestionBank = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabValue>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<"progress" | "materials" | "essay" | "short-notes">("essay");
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isRendered, setIsRendered] = useState(false);
 
   useEffect(() => {
     setIsRendered(true);
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(ACTIVE_TAB_KEY, activeTab);
-    } catch {}
-  }, [activeTab]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);

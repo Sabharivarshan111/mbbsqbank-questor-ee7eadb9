@@ -144,34 +144,15 @@ export async function reconcileProgressWithCloud(force = false): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     const ids = collectLocalDoneIds();
-    const { data, error } = await (supabase as any).rpc("reconcile_question_progress", {
+    const { error } = await (supabase as any).rpc("reconcile_question_progress", {
       _question_ids: ids,
     });
     if (error) {
       console.warn("reconcile_question_progress failed:", error);
       return;
     }
-    // Server returns the merged set of cloud question IDs. Mirror any cloud-only
-    // ones into localStorage so the UI shows them as ticked on this device.
-    const cloudIds: string[] = Array.isArray(data)
-      ? data.map((r: any) => (typeof r === "string" ? r : r?.question_id ?? r?.reconcile_question_progress)).filter(Boolean)
-      : [];
-    let added = 0;
-    try {
-      for (const qid of cloudIds) {
-        const key = qid.startsWith("question-") ? qid : `question-${qid}`;
-        if (localStorage.getItem(key) !== "true") {
-          localStorage.setItem(key, "true");
-          added++;
-        }
-      }
-    } catch {}
     _lastReconcileTs = Date.now();
-    if (added > 0 || cloudIds.length !== ids.length) {
-      window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
-    } else {
-      window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
-    }
+    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
   } catch (e) {
     console.warn("reconcileProgressWithCloud error:", e);
   } finally {

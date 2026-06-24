@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { HexColorPicker } from "react-colorful";
-import { Bookmark, BookmarkPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,13 +13,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { toast } from "sonner";
-import {
-  useTheme,
-  DEFAULT_CUSTOM_COLORS,
-  CustomColors,
-  CustomSlot,
-} from "./ThemeProvider";
+import { useTheme, DEFAULT_CUSTOM_COLORS, CustomColors } from "./ThemeProvider";
 
 interface Props {
   open: boolean;
@@ -42,14 +35,7 @@ const PRESETS: { name: string; colors: CustomColors }[] = [
 ];
 
 export function CustomThemeDialog({ open, onOpenChange }: Props) {
-  const {
-    customColors,
-    setCustomColors,
-    setTheme,
-    customSlots,
-    saveCustomSlot,
-    clearCustomSlot,
-  } = useTheme();
+  const { customColors, setCustomColors, setTheme } = useTheme();
   const [draft, setDraft] = useState<CustomColors>(customColors);
 
   const apply = () => {
@@ -59,29 +45,6 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
   };
 
   const reset = () => setDraft(DEFAULT_CUSTOM_COLORS);
-
-  const handleSlotClick = (slot: CustomSlot) => {
-    const saved = slot === 1 ? customSlots.slot1 : customSlots.slot2;
-    if (saved) {
-      setDraft(saved);
-      toast.success(`Loaded Custom ${slot}`);
-    } else {
-      saveCustomSlot(slot, draft);
-      toast.success(`Saved current colors to Custom ${slot}`);
-    }
-  };
-
-  const handleSlotSave = (slot: CustomSlot, e: React.MouseEvent) => {
-    e.stopPropagation();
-    saveCustomSlot(slot, draft);
-    toast.success(`Updated Custom ${slot}`);
-  };
-
-  const handleSlotClear = (slot: CustomSlot, e: React.MouseEvent) => {
-    e.stopPropagation();
-    clearCustomSlot(slot);
-    toast.success(`Cleared Custom ${slot}`);
-  };
 
   useEffect(() => {
     window.dispatchEvent(
@@ -93,146 +56,94 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-tour="custom-theme-dialog"
-        className="max-w-md max-h-[85dvh] w-[calc(100vw-2rem)] p-0 flex flex-col gap-0"
+        className="max-w-md max-h-[85dvh] overflow-y-auto w-[calc(100vw-2rem)]"
       >
-        <DialogHeader className="px-6 pt-6 pb-2">
+        <DialogHeader>
           <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
           <DialogDescription>
             Pick colors for your perfect look. Changes preview live below.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {SWATCHES.map(({ key, label, hint }) => (
-              <Popover key={key}>
-                <PopoverTrigger asChild>
-                  <button className="flex flex-col items-start gap-2 p-3 rounded-lg border border-border hover:border-primary transition-colors text-left">
-                    <div
-                      className="w-full h-10 rounded-md border border-border shadow-inner"
-                      style={{ backgroundColor: draft[key] }}
-                    />
-                    <div>
-                      <div className="text-sm font-medium">{label}</div>
-                      <div className="text-xs text-muted-foreground">{hint}</div>
-                    </div>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-3" align="start">
-                  <HexColorPicker
-                    color={draft[key]}
-                    onChange={(c) => setDraft({ ...draft, [key]: c })}
+        <div className="grid grid-cols-2 gap-3">
+          {SWATCHES.map(({ key, label, hint }) => (
+            <Popover key={key}>
+              <PopoverTrigger asChild>
+                <button className="flex flex-col items-start gap-2 p-3 rounded-lg border border-border hover:border-primary transition-colors text-left">
+                  <div
+                    className="w-full h-10 rounded-md border border-border shadow-inner"
+                    style={{ backgroundColor: draft[key] }}
                   />
-                  <div className="mt-2 text-center text-xs font-mono">
-                    {draft[key].toUpperCase()}
+                  <div>
+                    <div className="text-sm font-medium">{label}</div>
+                    <div className="text-xs text-muted-foreground">{hint}</div>
                   </div>
-                </PopoverContent>
-              </Popover>
-            ))}
-          </div>
-
-          <div>
-            <div className="text-xs font-medium text-muted-foreground mb-2">
-              Quick presets
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => setDraft(p.colors)}
-                  className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border border-border hover:border-primary text-xs transition-colors"
-                >
-                  <span className="flex shrink-0">
-                    {Object.values(p.colors).map((c, i) => (
-                      <span
-                        key={i}
-                        className="w-2.5 h-2.5 rounded-sm -ml-0.5 first:ml-0 border border-border"
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </span>
-                  <span className="truncate">{p.name}</span>
                 </button>
-              ))}
-              {([1, 2] as CustomSlot[]).map((slot) => {
-                const saved = slot === 1 ? customSlots.slot1 : customSlots.slot2;
-                return (
-                  <div key={slot} className="relative group">
-                    <button
-                      onClick={() => handleSlotClick(slot)}
-                      className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md border border-dashed border-border hover:border-primary text-xs transition-colors"
-                      title={saved ? `Tap to load Custom ${slot}` : `Tap to save current colors to Custom ${slot}`}
-                    >
-                      {saved ? (
-                        <span className="flex shrink-0">
-                          {Object.values(saved).map((c, i) => (
-                            <span
-                              key={i}
-                              className="w-2.5 h-2.5 rounded-sm -ml-0.5 first:ml-0 border border-border"
-                              style={{ backgroundColor: c }}
-                            />
-                          ))}
-                        </span>
-                      ) : (
-                        <BookmarkPlus className="h-3 w-3 text-muted-foreground" />
-                      )}
-                      <span className="truncate">Custom {slot}</span>
-                    </button>
-                    {saved ? (
-                      <div className="absolute -top-1.5 -right-1.5 flex gap-0.5">
-                        <button
-                          onClick={(e) => handleSlotSave(slot, e)}
-                          className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow"
-                          title={`Overwrite Custom ${slot} with current colors`}
-                        >
-                          <Bookmark className="h-2.5 w-2.5" />
-                        </button>
-                        <button
-                          onClick={(e) => handleSlotClear(slot, e)}
-                          className="h-4 w-4 rounded-full bg-muted text-muted-foreground flex items-center justify-center shadow border border-border"
-                          title={`Clear Custom ${slot}`}
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1.5">
-              Tap an empty slot to save your colors. Saved slots sync across devices.
-            </div>
-          </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3" align="start">
+                <HexColorPicker
+                  color={draft[key]}
+                  onChange={(c) => setDraft({ ...draft, [key]: c })}
+                />
+                <div className="mt-2 text-center text-xs font-mono">
+                  {draft[key].toUpperCase()}
+                </div>
+              </PopoverContent>
+            </Popover>
+          ))}
+        </div>
 
-          <div
-            className="rounded-lg p-4 border space-y-3"
-            style={{
-              backgroundColor: draft.background,
-              color: draft.foreground,
-              borderColor: draft.primary + "40",
-            }}
-          >
-            <div className="text-xs opacity-60">Live preview</div>
-            <h3 className="text-lg font-bold">Sample Heading</h3>
-            <p className="text-sm opacity-80">This is how your text will look across the app.</p>
-            <div className="rounded-md p-3" style={{ backgroundColor: draft.card }}>
-              <div className="text-sm font-medium">Card component</div>
-              <div className="text-xs opacity-70 mt-1">Subject content lives here.</div>
-            </div>
-            <button
-              className="px-4 py-2 rounded-md text-sm font-medium"
-              style={{
-                backgroundColor: draft.primary,
-                color: hexToTextColor(draft.primary),
-              }}
-            >
-              Primary Button
-            </button>
+        <div>
+          <div className="text-xs font-medium text-muted-foreground mb-2">Quick presets</div>
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p.name}
+                onClick={() => setDraft(p.colors)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border hover:border-primary text-xs transition-colors"
+              >
+                <span className="flex">
+                  {Object.values(p.colors).map((c, i) => (
+                    <span
+                      key={i}
+                      className="w-3 h-3 rounded-sm -ml-0.5 first:ml-0 border border-border"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </span>
+                {p.name}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex gap-2 px-6 py-3 border-t border-border bg-background rounded-b-lg">
+        <div
+          className="rounded-lg p-4 border space-y-3"
+          style={{
+            backgroundColor: draft.background,
+            color: draft.foreground,
+            borderColor: draft.primary + "40",
+          }}
+        >
+          <div className="text-xs opacity-60">Live preview</div>
+          <h3 className="text-lg font-bold">Sample Heading</h3>
+          <p className="text-sm opacity-80">This is how your text will look across the app.</p>
+          <div className="rounded-md p-3" style={{ backgroundColor: draft.card }}>
+            <div className="text-sm font-medium">Card component</div>
+            <div className="text-xs opacity-70 mt-1">Subject content lives here.</div>
+          </div>
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{
+              backgroundColor: draft.primary,
+              color: hexToTextColor(draft.primary),
+            }}
+          >
+            Primary Button
+          </button>
+        </div>
+
+        <div className="flex gap-2">
           <Button variant="outline" onClick={reset} className="flex-1">
             Reset
           </Button>

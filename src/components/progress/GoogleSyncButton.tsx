@@ -8,7 +8,6 @@ import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
 interface Props {
   isAnonymous: boolean;
   email: string | null;
-  userId: string | null;
   onSignOut: () => Promise<void> | void;
 }
 
@@ -21,10 +20,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const AUTH_RETURN_TAB_KEY = "orbit-auth-return-tab";
-const PENDING_MERGE_USER_KEY = "orbit-pending-merge-user-id";
-
-const GoogleSyncButton = ({ isAnonymous, email, userId, onSignOut }: Props) => {
+const GoogleSyncButton = ({ isAnonymous, email, onSignOut }: Props) => {
   const [busy, setBusy] = useState(false);
 
   if (!isAnonymous && email) {
@@ -47,24 +43,25 @@ const GoogleSyncButton = ({ isAnonymous, email, userId, onSignOut }: Props) => {
   const handleLink = async () => {
     setBusy(true);
     try {
-      try {
-        localStorage.setItem(AUTH_RETURN_TAB_KEY, "progress");
-        if (isAnonymous && userId) localStorage.setItem(PENDING_MERGE_USER_KEY, userId);
-      } catch {}
-
       if (isNative()) {
+        // Android APK: open Google OAuth in Chrome Custom Tabs (system browser)
+        // to avoid Google's "disallowed_useragent" block on in-app WebViews.
         await nativeGoogleSignIn();
-        window.dispatchEvent(new CustomEvent("orbit:set-tab", { detail: "progress" }));
-        toast.success("Signed in with Google. Your progress is syncing.");
-        setBusy(false);
         return;
       }
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Web: linkIdentity preserves anonymous progress; fall back to signInWithOAuth
+      const { error } = await supabase.auth.linkIdentity({
         provider: "google",
         options: { redirectTo: window.location.origin },
-      });
-      if (error) throw error;
+      } as any);
+      if (error) {
+        const { error: e2 } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin },
+        });
+        if (e2) throw e2;
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Google sign-in unavailable. Enable Google provider in Supabase.");
       setBusy(false);

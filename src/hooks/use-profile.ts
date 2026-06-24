@@ -11,7 +11,6 @@ export interface LocalProfile {
 
 const LS_KEY = "orbit-profile-v1";
 const DEVICE_KEY = "orbit-device-id";
-const PENDING_MERGE_USER_KEY = "orbit-pending-merge-user-id";
 
 function getDeviceId(): string {
   try {
@@ -46,20 +45,6 @@ function writeLocal(p: LocalProfile) {
   } catch {}
 }
 
-function readPendingMergeUserId(): string | null {
-  try {
-    return localStorage.getItem(PENDING_MERGE_USER_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function clearPendingMergeUserId() {
-  try {
-    localStorage.removeItem(PENDING_MERGE_USER_KEY);
-  } catch {}
-}
-
 export class DisplayNameError extends Error {
   constructor(message: string) {
     super(message);
@@ -90,17 +75,11 @@ export function useProfile() {
       setUserId(user?.id ?? null);
       setEmail(user?.email ?? null);
       setIsAnonymous(!!user?.is_anonymous);
-      // As soon as we know there's a real (non-anonymous) user, don't pop
-      // onboarding — the cloud-load effect will hydrate name/year shortly.
-      if (user?.id && !user?.is_anonymous) {
-        setNeedsOnboarding(false);
-      }
     };
     supabase.auth.getSession().then(({ data }) => apply(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session));
     return () => sub.subscription.unsubscribe();
   }, []);
-
 
   // Sync local profile across all useProfile() instances
   useEffect(() => {
@@ -145,89 +124,31 @@ export function useProfile() {
     };
   }, [userId]);
 
-  // Load cloud profile + register open. Re-runs on every auth change, including
-  // anonymous → email/Google sign-in, so the second device adopts the existing
-  // account's name/year instead of keeping the throwaway onboarding values.
+  // Load cloud profile + register open
   useEffect(() => {
     if (!userId) return;
     (async () => {
-      const signedIn = !isAnonymous;
-      const pendingMergeUserId = signedIn ? readPendingMergeUserId() : null;
-
-      if (pendingMergeUserId && pendingMergeUserId !== userId) {
-        const { error: mergeErr } = await (supabase as any).rpc("merge_into_current_user", {
-          _old_user_id: pendingMergeUserId,
-        });
-        if (mergeErr) console.warn("Pending Google progress merge failed:", mergeErr.message);
-        clearPendingMergeUserId();
-      }
-
-      let { data } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select("id, display_name, year, xp, streak, last_active_date")
         .eq("id", userId)
         .maybeSingle();
-
-      if (!data && signedIn) {
-        const localProfile = readLocal();
-        if (localProfile) {
-          const deviceId = getDeviceId();
-          const { data: claimed, error: claimErr } = await (supabase as any).rpc(
-            "claim_or_merge_profile",
-            {
-              _device_id: deviceId,
-              _display_name: localProfile.display_name,
-              _year: localProfile.year,
-            }
-          );
-          if (claimErr) {
-            console.warn("Signed-in profile claim failed:", claimErr.message);
-            await supabase.from("profiles").upsert({
-              id: userId,
-              display_name: localProfile.display_name,
-              year: localProfile.year,
-              device_id: deviceId,
-            });
-          }
-          data = claimed ?? (
-            await supabase
-              .from("profiles")
-              .select("id, display_name, year, xp, streak, last_active_date")
-              .eq("id", userId)
-              .maybeSingle()
-          ).data;
-        }
-      }
-
       if (data) {
         setCloud(data as CloudProfile);
-        // If this is a real (non-anonymous) account, the cloud profile is the
-        // source of truth — replace anything the user just typed in onboarding.
-        const next = { display_name: data.display_name, year: data.year as Year };
-        setLocal(next);
-        writeLocal(next);
-        setNeedsOnboarding(false);
-      } else if (!readLocal() && isAnonymous) {
-        // Only pop onboarding when both the cloud row AND local profile are
-        // missing AND we're still anonymous. A signed-in user with no cloud
-        // row yet (e.g. just verified email) should NOT see onboarding.
-        setNeedsOnboarding(true);
-      } else if (signedIn) {
-        setNeedsOnboarding(false);
+        setLocal({ display_name: data.display_name, year: data.year as Year });
+        writeLocal({ display_name: data.display_name, year: data.year as Year });
       }
-
       const { data: openRes } = await (supabase as any).rpc("register_open");
       const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
       if (openRow && typeof openRow.streak === "number") {
         setCloud((c) => c ? { ...c, streak: openRow.streak, last_active_date: openRow.last_active_date } : c);
       }
-      // Push any locally-completed questions to the cloud, then merge the cloud
-      // set back into localStorage. Reconcile is non-destructive — it never
-      // deletes questions ticked on another device.
+      // Push any locally-completed questions to the cloud so XP/leaderboard catch up
       await syncLocalProgressToCloud();
+      // Then reconcile: treat device as source of truth, drop stale server rows
       reconcileProgressWithCloud(true);
     })();
-  }, [userId, isAnonymous]);
+  }, [userId]);
 
   // Reconcile when the tab becomes visible again (debounced inside the helper)
   useEffect(() => {
@@ -311,22 +232,12 @@ export function useProfile() {
   );
 
   const signOut = useCallback(async () => {
-    // Local scope clears the session from this device immediately without
-    // requiring a network round-trip — important on flaky mobile networks /
-    // Capacitor WebViews where a global sign-out can hang and make the UI
-    // look like nothing happened.
-    try {
-      await supabase.auth.signOut({ scope: "local" } as any);
-    } catch (e) {
-      console.warn("signOut error (continuing anyway):", e);
-    }
+    await supabase.auth.signOut();
     setCloud(null);
     setUserId(null);
     setEmail(null);
     setIsAnonymous(true);
-    clearPendingMergeUserId();
   }, []);
-
 
   return {
     local,
