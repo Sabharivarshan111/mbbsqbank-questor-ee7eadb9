@@ -291,5 +291,7 @@ export function useProfile() {
     saveProfile,
     setNeedsOnboarding,
     signOut,
+    pendingConflict,
+    resolveIdentityConflict,
   };
 }
