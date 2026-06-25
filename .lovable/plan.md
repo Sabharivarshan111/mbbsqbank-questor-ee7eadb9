@@ -1,30 +1,44 @@
-## 1. Cross-device progress sync (phone tick not showing on tablet)
+# Cross-device sign-in: identity conflict prompt
 
-**Root cause:** Today the app only pushes local → cloud. `reconcileProgressWithCloud` even treats the local device as source of truth and *deletes* server rows missing locally. So when you open the tablet (fresh localStorage), the cloud rows aren't pulled down, and worse, a reconcile can wipe the phone's ticks from the cloud.
+## Goal
+When you sign in (Google or email OTP) on a second device, and that device has a different locally-typed name or year than your cloud profile, show a clear dialog asking which identity to keep. Question ticks/XP always merge automatically (current behavior — no change).
 
-**Fix — add cloud → local pull and make reconcile non-destructive:**
+## Behavior
 
-- `src/lib/question-progress.ts`
-  - Add `pullCloudProgressToLocal()`:
-    - `SELECT question_id FROM question_progress WHERE user_id = auth.uid()`
-    - For each returned id, `localStorage.setItem(id, "true")` if not already true.
-    - Dispatch `QUESTION_PROGRESS_EVENT` so all counters/ticks refresh.
-  - Replace the destructive `reconcileProgressWithCloud` flow with a merge:
-    1. `pullCloudProgressToLocal()` (cloud → local).
-    2. `syncLocalProgressToCloud()` (local → cloud, additive only via `record_questions_done`).
-    3. Skip the `reconcile_question_progress` RPC (no auto-deletion). Un-ticks already call `record_question_undone` explicitly when the user un-ticks on a device.
+1. User signs in on Device B.
+2. Right after auth, fetch the existing cloud `profiles` row for the signed-in user.
+3. Compare cloud `display_name` / `year` with the local profile on Device B.
+4. **If they match** → silent, no dialog. Proceed with merge + pull (today's flow).
+5. **If they differ** → open an `IdentityConflictDialog`:
 
-- `src/hooks/use-profile.ts`
-  - On sign-in and on `visibilitychange → visible`, call the new merge instead of the old reconcile, so the tablet pulls down ticks made on the phone and vice-versa.
+   ```text
+   You're signed in as:
+     Cloud:   Alex  ·  Final Year
+     This device:  Bob  ·  Second Year
 
-Result: ticking on the phone shows up on the tablet within a couple of seconds of opening the app (or when it becomes visible), and no device can silently delete another device's ticks.
+   Which one should we keep?
+     [ Keep cloud (Alex / Final) ]   [ Use this device (Bob / Second) ]
+   ```
 
-## 2. Auto-minimize Pomodoro when opening Your Progress / Study Materials
+6. Choice handling:
+   - **Keep cloud** → overwrite local profile with cloud values. No DB write.
+   - **Use this device** → `UPDATE profiles SET display_name = <local>, year = <local> WHERE id = auth.uid()`, then refresh local from cloud so both match.
+7. Either way, immediately run the existing `merge_into_current_user` + `pullCloudProgressToLocal()` so ticks/XP/notes/calendar consolidate.
 
-- `src/components/QuestionBank.tsx`
-  - In the `Tabs` `onValueChange` handler, when the new tab is `"progress"` or `"materials"`, dispatch `window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"))`. For `"essay"`/`"short-notes"` do nothing (so the pill stays where the user left it).
+## Files touched
 
-- `src/components/PomodoroTimer.tsx`
-  - Add a listener for `orbit:hide-pomodoro` that calls `setIsVisible(false)` (collapses the pill to the small floating circle the user can tap to re-open). Pair it with the existing `orbit:show-pomodoro` listener — no new visual code needed; the minimized circle UI already exists.
+- `src/components/progress/IdentityConflictDialog.tsx` *(new)* — small shadcn `AlertDialog` with two buttons; props: `cloud`, `local`, `onChoose(which)`.
+- `src/hooks/use-profile.ts` — after sign-in, fetch cloud profile, diff against local, open dialog when mismatched. Gate the existing merge/pull on the user's choice. Expose `pendingConflict` state to render the dialog from `ProgressDashboard`.
+- `src/components/progress/ProgressDashboard.tsx` — render `IdentityConflictDialog` when `pendingConflict` is set.
+- `src/components/progress/EmailSyncButton.tsx` / `GoogleSyncButton.tsx` — no logic change; they already go through `use-profile` so the dialog flows automatically.
 
-No other behavior changes; reminder line, themes, and existing Pomodoro logic stay as-is.
+## Technical notes
+
+- Comparison is case-insensitive on `display_name.trim()`; year uses exact enum match.
+- If the cloud profile doesn't exist yet (first ever sign-in for that auth user), skip the dialog and just push the local name/year up — that's not a conflict.
+- The merge RPC stays exactly as it is. We only change which `display_name` / `year` ends up on the row; ticks always merge.
+- Dialog is non-dismissable (no outside-click close) so the user must choose, preventing an indeterminate state.
+
+## Out of scope
+- No changes to question_progress, weekly_xp, daily_activity, screen_time, calendar_events, or user_notes logic.
+- No new RPC; we use a plain `UPDATE` from the client (RLS already restricts to `auth.uid() = id`).
