@@ -1,34 +1,30 @@
-# Two fixes
+## 1. Cross-device progress sync (phone tick not showing on tablet)
 
-## 1. Reminder under Pomodoro pill not showing
+**Root cause:** Today the app only pushes local → cloud. `reconcileProgressWithCloud` even treats the local device as source of truth and *deletes* server rows missing locally. So when you open the tablet (fresh localStorage), the cloud rows aren't pulled down, and worse, a reconcile can wipe the phone's ticks from the cloud.
 
-The code I added is correct: it reads today's calendar events for the signed-in user and renders `📌 <title>` below the "Today: ... focused" line, only when at least one event exists for today.
+**Fix — add cloud → local pull and make reconcile non-destructive:**
 
-So the line only appears when:
-- you are signed in (same account that added the reminder), AND
-- there is a calendar event whose date is today (`yyyy-MM-dd` of your device), AND
-- the Pomodoro pill is expanded (the small clock icon in the screenshot is the collapsed state — tap it once to expand).
+- `src/lib/question-progress.ts`
+  - Add `pullCloudProgressToLocal()`:
+    - `SELECT question_id FROM question_progress WHERE user_id = auth.uid()`
+    - For each returned id, `localStorage.setItem(id, "true")` if not already true.
+    - Dispatch `QUESTION_PROGRESS_EVENT` so all counters/ticks refresh.
+  - Replace the destructive `reconcileProgressWithCloud` flow with a merge:
+    1. `pullCloudProgressToLocal()` (cloud → local).
+    2. `syncLocalProgressToCloud()` (local → cloud, additive only via `record_questions_done`).
+    3. Skip the `reconcile_question_progress` RPC (no auto-deletion). Un-ticks already call `record_question_undone` explicitly when the user un-ticks on a device.
 
-To make this easier to verify and more robust, I will:
-- Tap-expand the pill if not already expanded (no change needed — already supported).
-- Make the reminder line a touch more visible: keep size but add a subtle separator above it so it reads as its own line.
-- Add a small fallback: if `userId` is still loading, the line stays hidden (current behavior, kept).
+- `src/hooks/use-profile.ts`
+  - On sign-in and on `visibilitychange → visible`, call the new merge instead of the old reconcile, so the tablet pulls down ticks made on the phone and vice-versa.
 
-If after this you still don't see it: the most likely cause is that no `calendar_events` row exists for today on your account. Open Progress → Calendar tab, pick today, add a reminder, then expand the Pomodoro pill — the `📌` line will appear.
+Result: ticking on the phone shows up on the tablet within a couple of seconds of opening the app (or when it becomes visible), and no device can silently delete another device's ticks.
 
-No logic change to filtering/format — only the small visual separator.
+## 2. Auto-minimize Pomodoro when opening Your Progress / Study Materials
 
-## 2. Light + Liquid-glass: "Your Progress" has no active box
+- `src/components/QuestionBank.tsx`
+  - In the `Tabs` `onValueChange` handler, when the new tab is `"progress"` or `"materials"`, dispatch `window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"))`. For `"essay"`/`"short-notes"` do nothing (so the pill stays where the user left it).
 
-Cause: only the "Study Materials" trigger has the `extras-tab-button` class, and `index.css` styles that class with the white box for `html.liquid-glass` and `html.custom`. "Your Progress" has no equivalent class so it shows no box on those two themes.
+- `src/components/PomodoroTimer.tsx`
+  - Add a listener for `orbit:hide-pomodoro` that calls `setIsVisible(false)` (collapses the pill to the small floating circle the user can tap to re-open). Pair it with the existing `orbit:show-pomodoro` listener — no new visual code needed; the minimized circle UI already exists.
 
-Fix:
-- In `src/components/QuestionBank.tsx`, add a new class `progress-tab-button` to the "Your Progress" `TabsTrigger` (alongside `topTriggerClass`).
-- In `src/index.css`, add CSS rules for `progress-tab-button` that mirror `extras-tab-button` for `html.custom` and `html.liquid-glass` (background, border, blur, shadow). No changes to other themes.
-
-This gives "Your Progress" the same visible box as "Study Materials" only on Custom and Liquid-glass themes; all other themes remain unchanged.
-
-## Files touched
-- `src/components/PomodoroTimer.tsx` — tiny visual tweak to reminder line.
-- `src/components/QuestionBank.tsx` — add `progress-tab-button` class to Your Progress trigger.
-- `src/index.css` — add `progress-tab-button` rules for `html.custom` and `html.liquid-glass`.
+No other behavior changes; reminder line, themes, and existing Pomodoro logic stay as-is.
