@@ -59,6 +59,11 @@ export interface CloudProfile extends LocalProfile {
   last_active_date: string | null;
 }
 
+export interface PendingIdentityConflict {
+  cloud: LocalProfile;
+  local: LocalProfile;
+}
+
 export function useProfile() {
   const [local, setLocal] = useState<LocalProfile | null>(readLocal);
   const [cloud, setCloud] = useState<CloudProfile | null>(null);
@@ -67,6 +72,7 @@ export function useProfile() {
   const [email, setEmail] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(!readLocal());
   const [loading, setLoading] = useState(false);
+  const [pendingConflict, setPendingConflict] = useState<PendingIdentityConflict | null>(null);
 
   // Watch auth
   useEffect(() => {

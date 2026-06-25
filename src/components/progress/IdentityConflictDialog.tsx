@@ -25,10 +25,7 @@ export default function IdentityConflictDialog({ open, cloud, local, onChoose }:
   if (!cloud || !local) return null;
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
+      <AlertDialogContent onEscapeKeyDown={(e) => e.preventDefault()}>
         <AlertDialogHeader>
           <AlertDialogTitle>Which profile should we keep?</AlertDialogTitle>
           <AlertDialogDescription>
