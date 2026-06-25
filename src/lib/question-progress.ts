@@ -125,37 +125,56 @@ export async function syncLocalProgressToCloud(): Promise<void> {
   }
 }
 
-let _reconciling = false;
-let _lastReconcileTs = 0;
+let _pulling = false;
+let _lastPullTs = 0;
 
-/**
- * Reconcile cloud question_progress with what's actually on this device.
- * The device list is treated as the source of truth: server rows missing from
- * the device are removed, and missing IDs are inserted. profiles.xp is
- * recomputed server-side so the leaderboard always matches reality.
- */
-export async function reconcileProgressWithCloud(force = false): Promise<void> {
+/** Pull cloud progress and merge into localStorage (cloud + local union, no deletes). */
+export async function pullCloudProgressToLocal(force = false): Promise<void> {
   const now = Date.now();
-  if (_reconciling) return;
-  if (!force && now - _lastReconcileTs < 15_000) return;
-  _reconciling = true;
+  if (_pulling) return;
+  if (!force && now - _lastPullTs < 10_000) return;
+  _pulling = true;
   try {
     const { supabase } = await import("@/integrations/supabase/client");
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
-    const ids = collectLocalDoneIds();
-    const { error } = await (supabase as any).rpc("reconcile_question_progress", {
-      _question_ids: ids,
-    });
+    const { data, error } = await supabase
+      .from("question_progress")
+      .select("question_id")
+      .eq("user_id", session.user.id);
     if (error) {
-      console.warn("reconcile_question_progress failed:", error);
+      console.warn("pullCloudProgressToLocal failed:", error);
       return;
     }
-    _lastReconcileTs = Date.now();
-    window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
+    let changed = false;
+    for (const row of (data ?? []) as Array<{ question_id: string }>) {
+      const qid = row.question_id;
+      if (!qid) continue;
+      try {
+        if (localStorage.getItem(qid) !== "true") {
+          localStorage.setItem(qid, "true");
+          changed = true;
+        }
+      } catch {}
+    }
+    _lastPullTs = Date.now();
+    if (changed) window.dispatchEvent(new CustomEvent(QUESTION_PROGRESS_EVENT));
   } catch (e) {
-    console.warn("reconcileProgressWithCloud error:", e);
+    console.warn("pullCloudProgressToLocal error:", e);
   } finally {
-    _reconciling = false;
+    _pulling = false;
   }
+}
+
+/**
+ * Non-destructive merge between this device and the cloud.
+ * Pull cloud rows into localStorage, then push any local-only IDs to the cloud.
+ * Never deletes server rows — un-ticks happen explicitly via record_question_undone.
+ */
+export async function reconcileProgressWithCloud(force = false): Promise<void> {
+  await pullCloudProgressToLocal(force);
+  // Reset the per-session "already synced N IDs" guard so newly pulled IDs
+  // (and any local additions made offline) get pushed.
+  _lastSyncedCount = 0;
+  await syncLocalProgressToCloud();
 }
