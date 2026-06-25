@@ -71,6 +71,8 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          custom_theme_1: Json | null
+          custom_theme_2: Json | null
           device_id: string | null
           display_name: string
           email: string | null
@@ -83,6 +85,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_theme_1?: Json | null
+          custom_theme_2?: Json | null
           device_id?: string | null
           display_name: string
           email?: string | null
@@ -95,6 +99,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_theme_1?: Json | null
+          custom_theme_2?: Json | null
           device_id?: string | null
           display_name?: string
           email?: string | null
@@ -253,6 +259,8 @@ export type Database = {
         }
         Returns: {
           created_at: string
+          custom_theme_1: Json | null
+          custom_theme_2: Json | null
           device_id: string | null
           display_name: string
           email: string | null
@@ -306,7 +314,7 @@ export type Database = {
       }
       reconcile_question_progress: {
         Args: { _question_ids: string[] }
-        Returns: undefined
+        Returns: string[]
       }
       record_question_done: {
         Args: { _question_id: string }
