@@ -14,13 +14,14 @@ import RewardsShelf from "./RewardsShelf";
 import StreakTipsCard from "./StreakTipsCard";
 import ProgressCalendarTab from "./ProgressCalendarTab";
 import ProgressNotesTab from "./ProgressNotesTab";
+import IdentityConflictDialog from "./IdentityConflictDialog";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { readLocalXp } from "@/lib/rewards";
 import { supabase } from "@/integrations/supabase/client";
 
 const ProgressDashboard = () => {
-  const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut } = useProfile();
+  const { local, cloud, userId, email, isAnonymous, needsOnboarding, saveProfile, setNeedsOnboarding, signOut, pendingConflict, resolveIdentityConflict } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
   const [tick, setTick] = useState(0);
 
@@ -147,6 +148,13 @@ const ProgressDashboard = () => {
         onClose={() => setEditOpen(false)}
         onSave={(name, year) => saveProfile({ display_name: name, year })}
         title="Edit profile"
+      />
+
+      <IdentityConflictDialog
+        open={!!pendingConflict}
+        cloud={pendingConflict?.cloud ?? null}
+        local={pendingConflict?.local ?? null}
+        onChoose={resolveIdentityConflict}
       />
     </div>
   );

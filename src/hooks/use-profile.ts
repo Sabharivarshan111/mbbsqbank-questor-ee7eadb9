@@ -59,6 +59,11 @@ export interface CloudProfile extends LocalProfile {
   last_active_date: string | null;
 }
 
+export interface PendingIdentityConflict {
+  cloud: LocalProfile;
+  local: LocalProfile;
+}
+
 export function useProfile() {
   const [local, setLocal] = useState<LocalProfile | null>(readLocal);
   const [cloud, setCloud] = useState<CloudProfile | null>(null);
@@ -67,6 +72,7 @@ export function useProfile() {
   const [email, setEmail] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(!readLocal());
   const [loading, setLoading] = useState(false);
+  const [pendingConflict, setPendingConflict] = useState<PendingIdentityConflict | null>(null);
 
   // Watch auth
   useEffect(() => {
@@ -128,6 +134,8 @@ export function useProfile() {
   useEffect(() => {
     if (!userId) return;
     (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      const anon = !!sess.session?.user?.is_anonymous;
       const { data } = await supabase
         .from("profiles")
         .select("id, display_name, year, xp, streak, last_active_date")
@@ -135,8 +143,18 @@ export function useProfile() {
         .maybeSingle();
       if (data) {
         setCloud(data as CloudProfile);
-        setLocal({ display_name: data.display_name, year: data.year as Year });
-        writeLocal({ display_name: data.display_name, year: data.year as Year });
+        const cloudP: LocalProfile = { display_name: data.display_name, year: data.year as Year };
+        const localP = readLocal();
+        const differs = !!localP && (
+          localP.display_name.trim().toLowerCase() !== cloudP.display_name.trim().toLowerCase()
+          || localP.year !== cloudP.year
+        );
+        if (!anon && differs && localP) {
+          setPendingConflict({ cloud: cloudP, local: localP });
+        } else {
+          setLocal(cloudP);
+          writeLocal(cloudP);
+        }
       }
       const { data: openRes } = await (supabase as any).rpc("register_open");
       const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
@@ -149,6 +167,29 @@ export function useProfile() {
       reconcileProgressWithCloud(true);
     })();
   }, [userId]);
+
+  const resolveIdentityConflict = useCallback(
+    async (choice: "cloud" | "local") => {
+      const c = pendingConflict;
+      if (!c) return;
+      if (choice === "cloud") {
+        writeLocal(c.cloud);
+        setLocal(c.cloud);
+      } else if (userId) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ display_name: c.local.display_name, year: c.local.year })
+          .eq("id", userId);
+        if (!error) {
+          setCloud((cur) => cur ? { ...cur, display_name: c.local.display_name, year: c.local.year } : cur);
+          writeLocal(c.local);
+          setLocal(c.local);
+        }
+      }
+      setPendingConflict(null);
+    },
+    [pendingConflict, userId]
+  );
 
   // Reconcile when the tab becomes visible again (debounced inside the helper)
   useEffect(() => {
@@ -250,5 +291,7 @@ export function useProfile() {
     saveProfile,
     setNeedsOnboarding,
     signOut,
+    pendingConflict,
+    resolveIdentityConflict,
   };
 }
