@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
 import { validateDisplayName } from "@/lib/profanity";
 import { syncLocalProgressToCloud, reconcileProgressWithCloud } from "@/lib/question-progress";
+import { toast } from "@/components/ui/use-toast";
 
 export interface LocalProfile {
   display_name: string;
@@ -57,6 +58,7 @@ export interface CloudProfile extends LocalProfile {
   xp: number;
   streak: number;
   last_active_date: string | null;
+  streak_freezes_available?: number;
 }
 
 export interface PendingIdentityConflict {
