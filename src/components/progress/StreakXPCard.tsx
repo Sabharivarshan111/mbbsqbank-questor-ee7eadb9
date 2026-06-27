@@ -1,4 +1,4 @@
-import { Flame, Award } from "lucide-react";
+import { Flame, Award, Snowflake } from "lucide-react";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { getThemeGradient } from "@/lib/theme-gradients";
@@ -7,6 +7,7 @@ interface Props {
   xp: number;          // year XP (primary)
   lifetimeXp?: number; // lifetime XP (subtitle)
   streak: number;
+  freezes?: number;
 }
 
 const BADGES = [
@@ -16,7 +17,7 @@ const BADGES = [
   { n: 500, label: "Legend" },
 ];
 
-const StreakXPCard = ({ xp, lifetimeXp, streak }: Props) => {
+const StreakXPCard = ({ xp, lifetimeXp, streak, freezes = 0 }: Props) => {
   const level = Math.floor(xp / 50) + 1;
   const inLevel = xp % 50;
   const pct = (inLevel / 50) * 100;
@@ -39,6 +40,15 @@ const StreakXPCard = ({ xp, lifetimeXp, streak }: Props) => {
             className={`h-5 w-5 text-orange-500 ${streak > 0 ? "animate-pulse drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]" : ""}`}
           />
           <span className="font-semibold">{streakAnim} day streak</span>
+          {freezes > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30"
+              title={`${freezes} streak freeze${freezes > 1 ? "es" : ""} available — auto-saves your streak if you miss a day`}
+            >
+              <Snowflake className="h-3 w-3" />
+              {freezes}
+            </span>
+          )}
         </div>
         <div className="text-xs text-muted-foreground text-right">
           <div>

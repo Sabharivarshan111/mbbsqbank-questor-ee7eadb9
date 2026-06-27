@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Progress } from "@/components/ui/progress";
-import { FlaskConical } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FlaskConical, Sparkles } from "lucide-react";
 import type { Year } from "@/lib/year-subjects";
 import { getYearSubjects } from "@/lib/year-subjects";
-import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import { collectQuestions, countDone, isQuestionDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import QuizSession from "./QuizSession";
 
 interface Props {
   year: Year;
@@ -12,6 +14,7 @@ interface Props {
 const SubjectsList = ({ year }: Props) => {
   const subjects = useMemo(() => getYearSubjects(year), [year]);
   const [tick, setTick] = useState(0);
+  const [quizFor, setQuizFor] = useState<{ name: string; questions: string[] } | null>(null);
 
   useEffect(() => {
     const handler = () => setTick((t) => t + 1);
@@ -35,6 +38,8 @@ const SubjectsList = ({ year }: Props) => {
         const total = unique.length;
         const done = countDone(unique);
         const pct = total ? Math.round((done / total) * 100) : 0;
+        const ticked = unique.filter(isQuestionDone);
+        const canQuiz = ticked.length >= 3;
         return (
           <div
             key={s.key + tick}
@@ -52,9 +57,29 @@ const SubjectsList = ({ year }: Props) => {
               <Progress value={pct} className="h-1.5 mt-1" />
               <p className="text-[11px] text-muted-foreground mt-1">{done} / {total} questions</p>
             </div>
+            {canQuiz && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-shrink-0 gap-1"
+                onClick={() => setQuizFor({ name: s.name, questions: ticked })}
+                title="AI quiz me on what I've studied"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Quiz
+              </Button>
+            )}
           </div>
         );
       })}
+      {quizFor && (
+        <QuizSession
+          open={!!quizFor}
+          onClose={() => setQuizFor(null)}
+          subject={quizFor.name}
+          questions={quizFor.questions}
+        />
+      )}
     </div>
   );
 };

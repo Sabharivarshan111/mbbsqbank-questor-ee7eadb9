@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Year } from "@/lib/year-subjects";
 import { validateDisplayName } from "@/lib/profanity";
 import { syncLocalProgressToCloud, reconcileProgressWithCloud } from "@/lib/question-progress";
+import { toast } from "@/components/ui/use-toast";
 
 export interface LocalProfile {
   display_name: string;
@@ -57,6 +58,7 @@ export interface CloudProfile extends LocalProfile {
   xp: number;
   streak: number;
   last_active_date: string | null;
+  streak_freezes_available?: number;
 }
 
 export interface PendingIdentityConflict {
@@ -138,7 +140,7 @@ export function useProfile() {
       const anon = !!sess.session?.user?.is_anonymous;
       const { data } = await supabase
         .from("profiles")
-        .select("id, display_name, year, xp, streak, last_active_date")
+        .select("id, display_name, year, xp, streak, last_active_date, streak_freezes_available")
         .eq("id", userId)
         .maybeSingle();
       if (data) {
@@ -159,7 +161,18 @@ export function useProfile() {
       const { data: openRes } = await (supabase as any).rpc("register_open");
       const openRow = Array.isArray(openRes) ? openRes[0] : openRes;
       if (openRow && typeof openRow.streak === "number") {
-        setCloud((c) => c ? { ...c, streak: openRow.streak, last_active_date: openRow.last_active_date } : c);
+        setCloud((c) => c ? {
+          ...c,
+          streak: openRow.streak,
+          last_active_date: openRow.last_active_date,
+          streak_freezes_available: openRow.freezes_available ?? c.streak_freezes_available,
+        } : c);
+        if (openRow.freeze_used) {
+          toast({
+            title: "❄️ Streak freeze used",
+            description: "You missed a day, but a freeze saved your streak.",
+          });
+        }
       }
       // Push any locally-completed questions to the cloud so XP/leaderboard catch up
       await syncLocalProgressToCloud();

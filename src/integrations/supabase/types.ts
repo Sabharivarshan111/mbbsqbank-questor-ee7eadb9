@@ -68,6 +68,36 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_targets: {
+        Row: {
+          created_at: string
+          exam_date: string
+          id: string
+          subject: string | null
+          updated_at: string
+          user_id: string
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Insert: {
+          created_at?: string
+          exam_date: string
+          id?: string
+          subject?: string | null
+          updated_at?: string
+          user_id: string
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Update: {
+          created_at?: string
+          exam_date?: string
+          id?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string
+          year?: Database["public"]["Enums"]["app_year"]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -79,6 +109,8 @@ export type Database = {
           id: string
           last_active_date: string | null
           streak: number
+          streak_freezes_available: number
+          streak_freezes_granted_week: string | null
           updated_at: string
           xp: number
           year: Database["public"]["Enums"]["app_year"]
@@ -93,6 +125,8 @@ export type Database = {
           id: string
           last_active_date?: string | null
           streak?: number
+          streak_freezes_available?: number
+          streak_freezes_granted_week?: string | null
           updated_at?: string
           xp?: number
           year: Database["public"]["Enums"]["app_year"]
@@ -107,6 +141,8 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           streak?: number
+          streak_freezes_available?: number
+          streak_freezes_granted_week?: string | null
           updated_at?: string
           xp?: number
           year?: Database["public"]["Enums"]["app_year"]
@@ -131,6 +167,39 @@ export type Database = {
           question_id?: string
           user_id?: string
           year?: Database["public"]["Enums"]["app_year"] | null
+        }
+        Relationships: []
+      }
+      revision_schedule: {
+        Row: {
+          created_at: string
+          due_date: string
+          ease: number
+          interval_days: number
+          last_reviewed_at: string | null
+          question_id: string
+          user_id: string
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string
+          ease?: number
+          interval_days?: number
+          last_reviewed_at?: string | null
+          question_id: string
+          user_id: string
+          year: Database["public"]["Enums"]["app_year"]
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          ease?: number
+          interval_days?: number
+          last_reviewed_at?: string | null
+          question_id?: string
+          user_id?: string
+          year?: Database["public"]["Enums"]["app_year"]
         }
         Relationships: []
       }
@@ -251,6 +320,7 @@ export type Database = {
     Functions: {
       app_today: { Args: never; Returns: string }
       app_week_start: { Args: never; Returns: string }
+      award_quiz_xp: { Args: { _amount: number }; Returns: undefined }
       claim_or_merge_profile: {
         Args: {
           _device_id: string
@@ -267,6 +337,8 @@ export type Database = {
           id: string
           last_active_date: string | null
           streak: number
+          streak_freezes_available: number
+          streak_freezes_granted_week: string | null
           updated_at: string
           xp: number
           year: Database["public"]["Enums"]["app_year"]
@@ -332,8 +404,18 @@ export type Database = {
       register_open: {
         Args: never
         Returns: {
+          freeze_used: boolean
+          freezes_available: number
           last_active_date: string
           streak: number
+        }[]
+      }
+      review_question: {
+        Args: { _grade: string; _question_id: string }
+        Returns: {
+          new_ease: number
+          new_interval: number
+          next_due: string
         }[]
       }
     }
