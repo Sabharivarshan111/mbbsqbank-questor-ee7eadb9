@@ -15,6 +15,9 @@ import StreakTipsCard from "./StreakTipsCard";
 import ProgressCalendarTab from "./ProgressCalendarTab";
 import ProgressNotesTab from "./ProgressNotesTab";
 import IdentityConflictDialog from "./IdentityConflictDialog";
+import ReviseDueCard from "./ReviseDueCard";
+import ExamCountdownCard from "./ExamCountdownCard";
+import WeakTopicHeatmap from "./WeakTopicHeatmap";
 import { getYearNode, YEAR_LABELS } from "@/lib/year-subjects";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { readLocalXp } from "@/lib/rewards";
@@ -127,10 +130,15 @@ const ProgressDashboard = () => {
         </TabsList>
         <TabsContent value="stats" className="space-y-4 mt-4">
           <YearRingCard completed={completed} total={total} />
-          <div data-tour="streak-xp-card"><StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} /></div>
+          <div data-tour="streak-xp-card">
+            <StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} freezes={cloud?.streak_freezes_available ?? 0} />
+          </div>
+          <ExamCountdownCard userId={userId} year={year} totalQuestions={total} completedQuestions={completed} />
+          <ReviseDueCard userId={userId} year={year} />
           <StreakTipsCard xp={xp} streak={streak} />
           <div data-tour="rewards-shelf"><RewardsShelf xp={xp} streak={streak} /></div>
           <div data-tour="leaderboard"><Leaderboard year={year} currentUserId={userId} enabled={!!userId} /></div>
+          <WeakTopicHeatmap year={year} />
           <SubjectsList year={year} />
         </TabsContent>
         <TabsContent value="calendar" className="mt-4">
