@@ -133,7 +133,7 @@ const ProgressDashboard = () => {
           <div data-tour="streak-xp-card">
             <StreakXPCard xp={xp} lifetimeXp={lifetimeXp} streak={streak} freezes={cloud?.streak_freezes_available ?? 0} />
           </div>
-          <ExamCountdownCard userId={userId} year={year} totalQuestions={total} completedQuestions={completed} />
+          <ExamCountdownCard userId={userId} year={year} />
           <ReviseDueCard userId={userId} year={year} />
           <StreakTipsCard xp={xp} streak={streak} />
           <div data-tour="rewards-shelf"><RewardsShelf xp={xp} streak={streak} /></div>
