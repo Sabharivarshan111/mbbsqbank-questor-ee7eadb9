@@ -17,6 +17,9 @@ import { toast } from '@/components/ui/use-toast';
 import { useLongPressDrag } from '@/hooks/use-long-press-drag';
 import { useProfile } from '@/hooks/use-profile';
 import { useCalendarEvents } from '@/hooks/use-calendar-events';
+import { useExamTarget, deriveDailyTarget } from '@/hooks/use-exam-target';
+import { getYearNode } from '@/lib/year-subjects';
+import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
 import { format } from 'date-fns';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
@@ -40,8 +43,10 @@ const PomodoroTimer = () => {
   const { settings, update: updateSettings } = usePomodoroSettings();
   const { todayMinutes, addFocusMinutes } = usePomodoroStats();
   const { onlineCount } = useOnlinePresence();
-  const { userId } = useProfile();
+  const { userId, local } = useProfile();
+  const year = local?.year ?? 'first';
   const { events: calendarEvents } = useCalendarEvents(userId);
+  const { target, doneToday } = useExamTarget(userId, year);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const todayEvents = calendarEvents.filter((e) => e.event_date === todayKey);
   const reminderText = todayEvents.length === 0
@@ -50,6 +55,30 @@ const PomodoroTimer = () => {
       ? todayEvents[0].title
       : todayEvents.slice(0, 2).map((e) => e.title).join(' • ') +
         (todayEvents.length > 2 ? ` +${todayEvents.length - 2} more` : '');
+
+  // Daily-target line — recompute on tick events
+  const [, setQTick] = useState(0);
+  useEffect(() => {
+    const h = () => setQTick((t) => t + 1);
+    window.addEventListener(QUESTION_PROGRESS_EVENT, h);
+    return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
+  }, []);
+  const targetLine = (() => {
+    if (!target) return null;
+    const node = getYearNode(year);
+    const all = Array.from(new Set([
+      ...collectQuestions(node, 'essay'),
+      ...collectQuestions(node, 'short-notes'),
+    ]));
+    const d = deriveDailyTarget({
+      examDateISO: target.exam_date,
+      totalQuestions: all.length,
+      completedQuestions: countDone(all),
+      doneToday,
+    });
+    if (!d || d.perDay === 0) return null;
+    return d.leftToday === 0 ? '🎯 today’s target done' : `🎯 ${d.leftToday} left today`;
+  })();
 
   const handleComplete = useCallback(
     (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
@@ -509,6 +538,11 @@ const PomodoroTimer = () => {
         {reminderText && (
           <div className={`text-center text-[11px] opacity-90 ${styles.text} truncate mt-1 pt-1 border-t border-white/10`}>
             📌 {reminderText}
+          </div>
+        )}
+        {targetLine && (
+          <div className={`text-center text-[11px] opacity-90 ${styles.text} truncate mt-1`}>
+            {targetLine}
           </div>
         )}
       </div>
