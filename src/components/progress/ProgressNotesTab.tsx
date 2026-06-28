@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Plus, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Pencil, Image as ImageIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useUserNotes, type UserNote } from "@/hooks/use-user-notes";
 import DrawingCanvas from "./DrawingCanvas";
+import { exportNoteToPdf } from "@/lib/note-pdf-export";
+import { toast } from "@/components/ui/use-toast";
 
 interface Props { userId: string | null; }
 
@@ -44,6 +46,20 @@ const ProgressNotesTab = ({ userId }: Props) => {
               {n.drawing_data && <ImageIcon className="h-4 w-4 text-muted-foreground mt-1" />}
               <button onClick={() => setEditing(n)} className="text-muted-foreground hover:text-foreground" aria-label="edit">
                 <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await exportNoteToPdf(n);
+                  } catch {
+                    toast({ title: "Couldn't export PDF", description: "Please try again." });
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="download pdf"
+                title="Download as PDF"
+              >
+                <Download className="h-4 w-4" />
               </button>
               <button onClick={() => deleteNote(n.id)} className="text-muted-foreground hover:text-destructive" aria-label="delete">
                 <Trash2 className="h-4 w-4" />

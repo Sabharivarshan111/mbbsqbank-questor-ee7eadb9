@@ -24,10 +24,12 @@ import Biochemistry from "./pages/subjects/Biochemistry";
 import Microbiology from "./pages/subjects/Microbiology";
 import GlobalCelebrations from "./components/GlobalCelebrations";
 import { useScreenTime } from "./hooks/use-screen-time";
+import { useNotificationSync } from "./hooks/use-notification-sync";
 
 const queryClient = new QueryClient();
 
 const ScreenTimeTracker = () => { useScreenTime(); return null; };
+const NotificationSync = () => { useNotificationSync(); return null; };
 
 const App = () => (
 
@@ -38,6 +40,7 @@ const App = () => (
         <Sonner />
         <GlobalCelebrations />
         <ScreenTimeTracker />
+        <NotificationSync />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
