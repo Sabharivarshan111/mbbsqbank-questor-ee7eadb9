@@ -142,6 +142,31 @@ const PomodoroTimer = () => {
     toggleTimer();
   }, [toggleTimer]);
 
+  // Schedule a local OS notification for when the current session ends (Capacitor only)
+  useEffect(() => {
+    if (!isRunning) {
+      cancel([NOTIF_IDS.pomodoro]).catch(() => {});
+      return;
+    }
+    const endsAt = new Date(Date.now() + (minutes * 60 + seconds) * 1000);
+    const title =
+      mode === 'focus'
+        ? '🍅 Focus done!'
+        : mode === 'long'
+          ? '🌿 Long break over'
+          : '☕ Break over';
+    const body =
+      mode === 'focus'
+        ? 'Nice work — time for a break.'
+        : 'Back to focus when you’re ready.';
+    scheduleOne({ id: NOTIF_IDS.pomodoro, title, body, at: endsAt }).catch(() => {});
+    return () => {
+      cancel([NOTIF_IDS.pomodoro]).catch(() => {});
+    };
+    // re-schedule only when the session truly changes (start/mode), not every tick
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning, mode]);
+
   useEffect(() => {
     const savedVisibility = localStorage.getItem('pomodoroVisible');
     if (savedVisibility !== null) {
