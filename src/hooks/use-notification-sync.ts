@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { useProfile } from "./use-profile";
 import { useCalendarEvents } from "./use-calendar-events";
 import { useExamTarget, deriveDailyTarget } from "./use-exam-target";
-import { useUserProfile } from "./use-user-profile"; // best-effort; fallback below
 import { getYearNode } from "@/lib/year-subjects";
 import { collectQuestions, countDone } from "@/lib/question-progress";
 import {
@@ -22,7 +21,7 @@ import {
  * Re-runs on app open, calendar changes, and every 30 min.
  */
 export function useNotificationSync() {
-  const { userId, local, profile } = useProfile() as any;
+  const { userId, local, cloud } = useProfile();
   const year = local?.year ?? "first";
   const { events } = useCalendarEvents(userId);
   const { target, doneToday } = useExamTarget(userId, year);
@@ -107,8 +106,8 @@ export function useNotificationSync() {
 
       // 🔥 Streak-at-risk — 21:00 IST today (15:30 UTC) if streak ≥ 2 & no open today
       await cancel([NOTIF_IDS.streakRisk]);
-      const streak = Number(profile?.current_streak ?? 0);
-      const lastOpenStr: string | null = profile?.last_open_date ?? null;
+      const streak = Number(cloud?.streak ?? 0);
+      const lastOpenStr: string | null = cloud?.last_active_date ?? null;
       const todayIstStr = new Date(Date.now() + 5.5 * 60 * 60 * 1000)
         .toISOString()
         .slice(0, 10);
@@ -128,5 +127,5 @@ export function useNotificationSync() {
     run();
     const t = setInterval(run, 30 * 60 * 1000);
     return () => clearInterval(t);
-  }, [year, target, doneToday, profile?.current_streak, profile?.last_open_date]);
+  }, [year, target, doneToday, cloud?.streak, cloud?.last_active_date]);
 }
