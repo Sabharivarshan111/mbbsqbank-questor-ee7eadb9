@@ -21,6 +21,7 @@ import { useExamTarget, deriveDailyTarget } from '@/hooks/use-exam-target';
 import { getYearNode } from '@/lib/year-subjects';
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
 import { format } from 'date-fns';
+import { scheduleOne, cancel, NOTIF_IDS } from '@/lib/notifications';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
