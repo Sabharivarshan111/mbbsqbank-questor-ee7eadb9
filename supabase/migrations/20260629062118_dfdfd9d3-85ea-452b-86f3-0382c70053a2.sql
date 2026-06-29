@@ -1,0 +1,1 @@
+ALTER TABLE public.exam_targets ADD COLUMN IF NOT EXISTS label TEXT;
