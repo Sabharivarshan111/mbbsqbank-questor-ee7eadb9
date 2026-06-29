@@ -2,34 +2,23 @@ import { useMemo, useState } from "react";
 import { CalendarClock, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deriveDailyTarget, useExamTarget } from "@/hooks/use-exam-target";
-import { getYearNode, type Year } from "@/lib/year-subjects";
-import { collectQuestions, countDone } from "@/lib/question-progress";
-import { format } from "date-fns";
+import { useExamTarget } from "@/hooks/use-exam-target";
+import { type Year } from "@/lib/year-subjects";
+import { format, differenceInCalendarDays } from "date-fns";
 
 interface Props { userId: string | null; year: Year; }
 
 const ExamCountdownCard = ({ userId, year }: Props) => {
-  const { target, doneToday, save, clear } = useExamTarget(userId, year);
+  const { target, save, clear } = useExamTarget(userId, year);
   const [editing, setEditing] = useState(false);
   const [draftDate, setDraftDate] = useState("");
   const [draftLabel, setDraftLabel] = useState("");
 
-  const { total, completed } = useMemo(() => {
-    const node = getYearNode(year);
-    const all = Array.from(new Set([
-      ...collectQuestions(node, "essay"),
-      ...collectQuestions(node, "short-notes"),
-    ]));
-    return { total: all.length, completed: countDone(all) };
-  }, [year]);
-
-  const derived = deriveDailyTarget({
-    examDateISO: target?.exam_date,
-    totalQuestions: total,
-    completedQuestions: completed,
-    doneToday,
-  });
+  const daysLeft = useMemo(() => {
+    if (!target?.exam_date) return null;
+    const d = differenceInCalendarDays(new Date(target.exam_date + "T00:00:00"), new Date());
+    return d;
+  }, [target?.exam_date]);
 
   const startEdit = () => {
     setDraftDate(target?.exam_date ?? "");
@@ -57,17 +46,18 @@ const ExamCountdownCard = ({ userId, year }: Props) => {
             {target?.label ? target.label : "Exam countdown"}
           </p>
           {!target && !editing && (
-            <p className="text-xs text-muted-foreground">Set your exam date to get a daily target.</p>
+            <p className="text-xs text-muted-foreground">Set your exam date to see a daily countdown.</p>
           )}
-          {target && !editing && derived && (
+          {target && !editing && daysLeft !== null && (
             <p className="text-xs text-muted-foreground">
-              📅 {examPretty} · D-{derived.daysLeft} · target {derived.perDay} Q/day ·{" "}
-              <span className={derived.leftToday === 0 ? "text-emerald-500 font-medium" : ""}>
-                {derived.leftToday === 0 ? "done today 🎉" : `${derived.leftToday} left today`}
-              </span>
+              📅 {examPretty}
+              {daysLeft > 0 && <> · D-{daysLeft}</>}
+              {daysLeft === 0 && <> · <span className="text-rose-500 font-medium">Today 🎯</span></>}
+              {daysLeft < 0 && <> · <span className="text-muted-foreground">passed</span></>}
             </p>
           )}
         </div>
+
         {!editing && (
           target ? (
             <div className="flex gap-1 flex-shrink-0">

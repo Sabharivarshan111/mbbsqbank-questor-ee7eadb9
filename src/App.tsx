@@ -23,6 +23,7 @@ import Pharmacology from "./pages/subjects/Pharmacology";
 import Biochemistry from "./pages/subjects/Biochemistry";
 import Microbiology from "./pages/subjects/Microbiology";
 import GlobalCelebrations from "./components/GlobalCelebrations";
+import ExamReminderPopup from "./components/ExamReminderPopup";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
 
@@ -39,6 +40,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <GlobalCelebrations />
+        <ExamReminderPopup />
         <ScreenTimeTracker />
         <NotificationSync />
         <BrowserRouter>
