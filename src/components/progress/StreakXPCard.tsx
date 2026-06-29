@@ -42,6 +42,7 @@ const StreakXPCard = ({ xp, lifetimeXp, streak, freezes = 0 }: Props) => {
           <span className="font-semibold">{streakAnim} day streak</span>
           {freezes > 0 && (
             <span
+              data-tour="streak-freeze"
               className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30"
               title={`${freezes} streak freeze${freezes > 1 ? "es" : ""} available — auto-saves your streak if you miss a day`}
             >

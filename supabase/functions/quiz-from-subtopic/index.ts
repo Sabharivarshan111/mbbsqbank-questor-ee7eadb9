@@ -45,7 +45,7 @@ Rules:
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "raw-fetch" },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "google/gemini-2.5-flash",
       messages: [{ role: "user", content: prompt }],
       response_format: {
         type: "json_schema",

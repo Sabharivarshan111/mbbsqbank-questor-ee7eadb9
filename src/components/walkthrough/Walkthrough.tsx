@@ -6,7 +6,7 @@ import { walkthroughSteps } from "./walkthroughSteps";
 import WalkthroughProfileSetup from "./WalkthroughProfileSetup";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "orbit-walkthrough-completed";
+const STORAGE_KEY = "orbit-walkthrough-completed-v2";
 const PADDING = 8;
 const CARD_WIDTH = 360;
 const CARD_HEIGHT_ESTIMATE = 240;

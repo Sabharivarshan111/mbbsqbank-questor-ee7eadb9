@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -8,6 +8,7 @@ export interface ExamTarget {
   year: string;
   subject: string | null;
   exam_date: string;
+  label: string | null;
 }
 
 export function useExamTarget(userId: string | null, year: string) {
@@ -54,13 +55,23 @@ export function useExamTarget(userId: string | null, year: string) {
     return () => { supabase.removeChannel(ch); };
   }, [userId, fetchTarget, fetchDoneToday]);
 
-  const save = useCallback(async (examDate: string) => {
+  const save = useCallback(async (examDate: string, label?: string | null) => {
     if (!userId) return;
-    await (supabase as any).from("exam_targets").upsert(
-      { user_id: userId, year, subject: null, exam_date: examDate },
-      { onConflict: "user_id,year,subject" } as any,
-    );
-    fetchTarget();
+    // Manual upsert (avoid relying on partial unique index with COALESCE)
+    const { data: existing } = await supabase
+      .from("exam_targets" as any)
+      .select("id")
+      .eq("user_id", userId)
+      .eq("year", year)
+      .is("subject", null)
+      .maybeSingle();
+    const payload: any = { user_id: userId, year, subject: null, exam_date: examDate, label: label ?? null };
+    if ((existing as any)?.id) {
+      await supabase.from("exam_targets" as any).update(payload).eq("id", (existing as any).id);
+    } else {
+      await supabase.from("exam_targets" as any).insert(payload);
+    }
+    await fetchTarget();
   }, [userId, year, fetchTarget]);
 
   const clear = useCallback(async () => {
