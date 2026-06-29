@@ -49,6 +49,24 @@ export const walkthroughSteps: WalkthroughStep[] = [
     pomodoro: 'hide',
   },
   {
+    id: "streak-freeze",
+    title: "Streak Freeze ❄️",
+    description:
+      "You earn 1 freeze every week (max 2). If you miss a day, a freeze is used automatically so your streak survives. The badge shows freezes available.",
+    targetSelector: '[data-tour="streak-freeze"]',
+    action: 'open-progress-tab',
+    pomodoro: 'hide',
+  },
+  {
+    id: "weak-topic-heatmap",
+    title: "Weak-topic Heatmap 🟥🟩",
+    description:
+      "Red = weak, green = strong. Tap any subject tile to expand it and see exactly which subtopics need more work.",
+    targetSelector: '[data-tour="weak-topic-heatmap"]',
+    action: 'open-progress-tab',
+    pomodoro: 'hide',
+  },
+  {
     id: "ranking-stats",
     title: "Badges & Ranks 🏆",
     description:
