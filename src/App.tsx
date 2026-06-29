@@ -40,6 +40,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <GlobalCelebrations />
+        <ExamReminderPopup />
         <ScreenTimeTracker />
         <NotificationSync />
         <BrowserRouter>
