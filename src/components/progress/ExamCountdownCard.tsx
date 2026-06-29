@@ -2,15 +2,14 @@ import { useMemo, useState } from "react";
 import { CalendarClock, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deriveDailyTarget, useExamTarget } from "@/hooks/use-exam-target";
-import { getYearNode, type Year } from "@/lib/year-subjects";
-import { collectQuestions, countDone } from "@/lib/question-progress";
-import { format } from "date-fns";
+import { useExamTarget } from "@/hooks/use-exam-target";
+import { type Year } from "@/lib/year-subjects";
+import { format, differenceInCalendarDays } from "date-fns";
 
 interface Props { userId: string | null; year: Year; }
 
 const ExamCountdownCard = ({ userId, year }: Props) => {
-  const { target, doneToday, save, clear } = useExamTarget(userId, year);
+  const { target, save, clear } = useExamTarget(userId, year);
   const [editing, setEditing] = useState(false);
   const [draftDate, setDraftDate] = useState("");
   const [draftLabel, setDraftLabel] = useState("");
