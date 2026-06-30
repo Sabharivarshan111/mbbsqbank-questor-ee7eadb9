@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, X as XIcon } from "lucide-react";
+import { AlertCircle, Loader2, Check, RefreshCcw, X as XIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -14,34 +14,63 @@ interface Props {
   questions: string[];
 }
 
+const readFunctionError = async (error: any) => {
+  const fallback = error?.message || "Try again later.";
+  const context = error?.context;
+  if (!context || typeof context.json !== "function") return fallback;
+
+  try {
+    const body = await context.json();
+    return body?.error || body?.message || fallback;
+  } catch {
+    try {
+      const text = typeof context.text === "function" ? await context.text() : "";
+      return text || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+};
+
 const QuizSession = ({ open, onClose, subject, questions }: Props) => {
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mcqs, setMcqs] = useState<Mcq[]>([]);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
+  const loadQuiz = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    setMcqs([]);
+    setI(0);
+    setPicked(null);
+    setScore(0);
+    setDone(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("quiz-from-subtopic", {
+        body: { subject, questions: questions.slice(0, 20) },
+      });
+      if (error) throw error;
+      const list = (data as any)?.mcqs as Mcq[];
+      if (!Array.isArray(list) || list.length === 0) throw new Error("No MCQs returned. Please try again.");
+      setMcqs(list);
+    } catch (e: any) {
+      const message = await readFunctionError(e);
+      setErrorMessage(message);
+      toast({ title: "Quiz unavailable", description: message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [subject, questions]);
+
   useEffect(() => {
     if (!open) return;
-    setLoading(true); setMcqs([]); setI(0); setPicked(null); setScore(0); setDone(false);
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("quiz-from-subtopic", {
-          body: { subject, questions: questions.slice(0, 20) },
-        });
-        if (error) throw error;
-        const list = (data as any)?.mcqs as Mcq[];
-        if (!Array.isArray(list) || list.length === 0) throw new Error("No MCQs returned");
-        setMcqs(list);
-      } catch (e: any) {
-        toast({ title: "Quiz unavailable", description: e?.message ?? "Try again later.", variant: "destructive" });
-        onClose();
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [open, subject, questions, onClose]);
+    void loadQuiz();
+  }, [open, loadQuiz]);
 
   const cur = mcqs[i];
   const correct = picked === cur?.correctIndex;
@@ -74,7 +103,26 @@ const QuizSession = ({ open, onClose, subject, questions }: Props) => {
             <Loader2 className="h-4 w-4 animate-spin" /> Generating 5 MCQs…
           </div>
         )}
-        {!loading && !done && cur && (
+        {!loading && errorMessage && (
+          <div className="space-y-3 py-4">
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                <div>
+                  <p className="font-medium text-destructive">Quiz unavailable</p>
+                  <p className="mt-1 text-muted-foreground">{errorMessage}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={onClose}>Close</Button>
+              <Button className="flex-1 gap-2" onClick={() => void loadQuiz()}>
+                <RefreshCcw className="h-4 w-4" /> Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {!loading && !errorMessage && !done && cur && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">Q {i + 1} / {mcqs.length} · Score {score}</p>
             <p className="font-medium">{cur.question}</p>
