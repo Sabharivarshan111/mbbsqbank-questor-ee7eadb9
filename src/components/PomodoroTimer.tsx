@@ -65,20 +65,14 @@ const PomodoroTimer = () => {
     return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
   }, []);
   const targetLine = (() => {
-    if (!target) return null;
-    const node = getYearNode(year);
-    const all = Array.from(new Set([
-      ...collectQuestions(node, 'essay'),
-      ...collectQuestions(node, 'short-notes'),
-    ]));
-    const d = deriveDailyTarget({
-      examDateISO: target.exam_date,
-      totalQuestions: all.length,
-      completedQuestions: countDone(all),
-      doneToday,
-    });
-    if (!d || d.perDay === 0) return null;
-    return d.leftToday === 0 ? '🎯 today’s target done' : `🎯 ${d.leftToday} left today`;
+    if (!target?.exam_date) return null;
+    const examDate = new Date(target.exam_date + 'T00:00:00');
+    const days = Math.ceil((examDate.getTime() - Date.now()) / 86400000);
+    const name = target.label?.trim() || 'Exam';
+    if (days < 0) return null;
+    if (days === 0) return `🎯 ${name} · today`;
+    if (days === 1) return `🎯 ${name} · 1 day left`;
+    return `🎯 ${name} · ${days} days left`;
   })();
 
   const handleComplete = useCallback(
