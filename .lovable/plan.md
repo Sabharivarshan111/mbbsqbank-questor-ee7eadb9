@@ -1,82 +1,23 @@
-## Scope
+Root cause found:
+- The Quiz button calls `quiz-from-subtopic`.
+- That Edge Function directly calls Lovable AI Gateway with a raw `fetch` request using the wrong/old gateway header pattern and a strict JSON schema payload.
+- When the gateway rejects that call, Supabase returns a non-2xx error and the app only shows the generic message: “Edge Function returned a non-2xx status code”.
+- The Edge Function logs only show boot/shutdown, so the current function also does not log enough detail to debug failures from the app.
 
-Two features, no backend changes required.
+Plan to fix:
+1. Update `supabase/functions/quiz-from-subtopic/index.ts`
+   - Use the same working gateway style as the existing AI chat function: `Authorization: Bearer LOVABLE_API_KEY`.
+   - Add safe request logging for subject, question count, gateway status, and parse failures.
+   - Remove/relax the fragile `response_format` schema if it is causing provider rejection, while still enforcing JSON via prompt and server-side validation.
+   - Add a fallback JSON extraction step so MCQs still parse if the model returns a code fence or extra text.
+   - Return clearer user-facing errors for missing key, billing/credits, rate limit, invalid input, and parse failure.
 
-1. **Export Notes as PDF** — download button on every note (typed + drawing).
-2. **Local Push Notifications** — Pomodoro end, calendar reminder (10 min before), daily target nudge, streak-at-risk warning. On-device only, no Firebase.
+2. Improve `src/components/progress/QuizSession.tsx`
+   - Show the real Edge Function error message from `error.context`/response body instead of only “non-2xx”.
+   - Keep the quiz dialog open long enough to show a clean inline error and Retry button instead of instantly closing.
+   - Make the function call stable so it does not refire unnecessarily when React re-renders.
 
----
-
-## 1. Export Notes as PDF
-
-### User flow
-- In the Notes tab, every note card gets a small **⬇ PDF** icon next to the existing edit/delete buttons.
-- Tap → generates an A4 PDF named `<note-title>-orbit.pdf` and triggers a download (web) or opens the share sheet (Android via Capacitor).
-- PDF contains: note title, date, the typed content (formatted), the drawing canvas (if present) as an embedded image, and a small footer "Made with Orbit MBBS QBank · orbit.app".
-
-### Implementation
-- Install `jspdf` and `html2canvas` (~150 KB combined, client-side only).
-- New file `src/lib/note-pdf-export.ts` exposing `exportNoteToPdf(note)`:
-  - Builds an off-screen styled div with the note's HTML.
-  - Uses `html2canvas` to rasterise typed content; paginates if taller than A4.
-  - If the note has a drawing, snapshots the existing canvas via `canvas.toDataURL('image/png')` and adds it on a new page.
-  - On native (Capacitor), uses `@capacitor/filesystem` + `@capacitor/share` to save to Documents and open share sheet. On web, triggers a normal anchor download.
-- Edit `src/components/progress/ProgressNotesTab.tsx` to add the PDF button per row and call the helper.
-
-### Constraints
-- No edits to other tabs or business logic.
-- Works offline.
-
----
-
-## 2. Local Push Notifications (Capacitor)
-
-### Triggers covered
-| Trigger | When it fires |
-|---|---|
-| 🍅 Pomodoro end | Exactly when the active focus/break timer hits 0, even if app is backgrounded |
-| 📌 Calendar reminder | 10 minutes before each `calendar_events` row's start time (today + upcoming) |
-| 🎯 Daily target | Once at 19:00 IST if `questions_today < daily_target` |
-| 🔥 Streak at risk | Once at 21:00 IST if user hasn't opened the app today and streak ≥ 2 |
-
-### Implementation
-- Install `@capacitor/local-notifications`. Run `npx cap sync` (user-side step, will be noted in the closing message).
-- New file `src/lib/notifications.ts`:
-  - `ensurePermission()` — requests permission on first app open after install.
-  - `scheduleOne({ id, title, body, at })` — wraps `LocalNotifications.schedule`.
-  - `cancel(id)` — wraps `LocalNotifications.cancel`.
-  - Stable integer IDs per category (Pomodoro=1, target=2, streak=3; calendar events use `1000 + hash(event.id) % 100000`).
-- **Pomodoro integration** (`src/components/PomodoroTimer.tsx`):
-  - On timer start: schedule notification at `Date.now() + remainingMs`.
-  - On pause/reset/skip: cancel id 1.
-- **Calendar integration** (new `src/hooks/use-notification-sync.ts`, mounted once in `App.tsx`):
-  - Subscribes to `calendar_events` realtime; on every change, cancels all calendar IDs and re-schedules today + next 7 days at `event.start - 10 min`.
-  - Skips events already in the past.
-- **Daily target + streak** (same hook):
-  - On app open and every 30 min, computes target gap and last-open date; schedules/cancels the 19:00 and 21:00 IST notifications for today.
-- **Web fallback**: the helper no-ops on web (already toast-driven). Notifications fire only inside the Capacitor APK.
-
-### Settings (small addition)
-- One toggle row in the existing profile area: **"Reminders & alerts"** (on by default). When off, all schedules are cancelled and no new ones are queued. Persisted in `localStorage` under `orbit.notif.enabled`.
-
-### Constraints
-- No FCM, no Firebase, no server, no new Supabase tables.
-- No changes to XP, ranking, or other features.
-
----
-
-## File checklist
-
-**New**
-- `src/lib/note-pdf-export.ts`
-- `src/lib/notifications.ts`
-- `src/hooks/use-notification-sync.ts`
-
-**Edited**
-- `src/components/progress/ProgressNotesTab.tsx` — PDF button
-- `src/components/PomodoroTimer.tsx` — schedule/cancel on timer events
-- `src/App.tsx` — mount `useNotificationSync()` and `ensurePermission()`
-- `package.json` — `jspdf`, `html2canvas`, `@capacitor/local-notifications`
-
-**User action after build**
-- `git pull` → `npm install` → `npx cap sync android` → rebuild APK. Notifications need this once for the new native plugin.
+3. Verify the fix
+   - Test `quiz-from-subtopic` directly with a sample subject and 3+ studied questions.
+   - Confirm the subject Quiz button opens a generated MCQ quiz instead of the red toast.
+   - If the gateway returns a real billing/rate-limit issue, the app will display that exact cause cleanly rather than a vague non-2xx message.
