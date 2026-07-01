@@ -8,6 +8,9 @@ const Body = z.object({
 
 interface Mcq { question: string; options: string[]; correctIndex: number; explanation: string; }
 
+const GEMINI_MODEL = "gemini-2.5-flash";
+const QUIZ_COUNT = 5;
+
 const json = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -22,6 +25,64 @@ const stripJsonFence = (value: string) => {
   const last = trimmed.lastIndexOf("}");
   if (first >= 0 && last > first) return trimmed.slice(first, last + 1);
   return trimmed;
+};
+
+const extractBalancedJson = (value: string) => {
+  const stripped = stripJsonFence(value);
+  const start = stripped.indexOf("{");
+  if (start < 0) return stripped;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let idx = start; idx < stripped.length; idx += 1) {
+    const char = stripped[idx];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return stripped.slice(start, idx + 1);
+    }
+  }
+
+  return stripped.slice(start);
+};
+
+const normalizeMcq = (item: unknown): Mcq | null => {
+  const raw = item as Partial<Mcq> & { answerIndex?: unknown; correct?: unknown; answer?: unknown };
+  if (!raw || typeof raw.question !== "string" || !Array.isArray(raw.options)) return null;
+
+  const options = raw.options
+    .map((option) => String(option ?? "").replace(/^\s*[A-D](?:[).:-]\s+|\s+-\s+)/i, "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  let correctIndex = Number.isInteger(raw.correctIndex) ? Number(raw.correctIndex) : -1;
+  if (correctIndex < 0 && Number.isInteger(raw.answerIndex)) correctIndex = Number(raw.answerIndex);
+  if (correctIndex < 0 && typeof raw.correct === "string") {
+    const letter = raw.correct.trim().match(/^[A-D]/i)?.[0]?.toUpperCase();
+    if (letter) correctIndex = letter.charCodeAt(0) - 65;
+  }
+  if (correctIndex < 0 && typeof raw.answer === "string") {
+    const answer = raw.answer.trim();
+    const letter = answer.match(/^[A-D]/i)?.[0]?.toUpperCase();
+    if (letter) correctIndex = letter.charCodeAt(0) - 65;
+    else correctIndex = options.findIndex((option) => option.toLowerCase() === answer.toLowerCase());
+  }
+
+  const explanation = typeof raw.explanation === "string" && raw.explanation.trim()
+    ? raw.explanation.trim()
+    : "Review this concept from your ticked questions.";
+
+  const mcq = { question: raw.question.trim(), options, correctIndex, explanation };
+  return isValidMcq(mcq) ? mcq : null;
 };
 
 const isValidMcq = (item: unknown): item is Mcq => {
@@ -71,7 +132,7 @@ Deno.serve(async (req) => {
   console.log(`quiz-from-subtopic: generating quiz`, { subject, questionCount: questions.length });
 
   const sample = questions.slice(0, 12).map((q, i) => `${i + 1}. ${q}`).join("\n");
-  const prompt = `You are an MBBS examiner. Create EXACTLY 5 high-quality MCQs for an undergraduate medical student studying "${subject}".
+  const prompt = `You are an MBBS examiner. Create EXACTLY ${QUIZ_COUNT} high-quality MCQs for an undergraduate medical student studying "${subject}".
 Base them on these study questions the student has already revised:
 ${sample}
 
@@ -79,28 +140,49 @@ Rules:
 - Each MCQ must have exactly 4 options (A,B,C,D).
 - Only ONE correct option.
 - "correctIndex" is 0-based (0=A, 1=B, 2=C, 3=D).
-- Add a short, evidence-based explanation (1-2 sentences).
+- Add a concise explanation under 22 words.
 - Cover different concepts from the list.
-- Return JSON only — no prose, no markdown fence.
+- Return compact JSON only — no prose, no markdown fence.
 
 Required JSON shape:
 {"mcqs":[{"question":"...","options":["...","...","...","..."],"correctIndex":0,"explanation":"..."}]}`;
 
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const requestBody = {
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.35,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          mcqs: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                question: { type: "STRING" },
+                options: { type: "ARRAY", items: { type: "STRING" } },
+                correctIndex: { type: "INTEGER" },
+                explanation: { type: "STRING" },
+              },
+              required: ["question", "options", "correctIndex", "explanation"],
+            },
+          },
+        },
+        required: ["mcqs"],
+      },
+      maxOutputTokens: 8192,
+    },
+  };
 
   let aiRes: Response;
   try {
     aiRes = await fetch(geminiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: "application/json",
-          maxOutputTokens: 2048,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
   } catch (err) {
     console.error("quiz-from-subtopic: network error", err);
@@ -116,18 +198,19 @@ Required JSON shape:
 
   const data = await aiRes.json();
   const content: string = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text ?? "").join("") ?? "";
+  const finishReason = data?.candidates?.[0]?.finishReason;
 
   let mcqs: Mcq[] = [];
   try {
-    const obj = JSON.parse(stripJsonFence(content));
-    mcqs = (obj?.mcqs ?? []).filter(isValidMcq).slice(0, 5);
+    const obj = JSON.parse(extractBalancedJson(content));
+    mcqs = (obj?.mcqs ?? []).map(normalizeMcq).filter(Boolean).slice(0, QUIZ_COUNT) as Mcq[];
   } catch {
-    console.error("quiz-from-subtopic: could not parse Gemini response", content.slice(0, 200));
-    return json({ error: "AI returned an unreadable quiz. Please try again." }, 502);
+    console.error("quiz-from-subtopic: could not parse Gemini response", { finishReason, length: content.length, preview: content.slice(0, 300) });
+    return json({ error: finishReason === "MAX_TOKENS" ? "Gemini quiz response was cut off. Please retry." : "Gemini returned an unreadable quiz. Please retry." }, 502);
   }
 
   if (mcqs.length === 0) {
-    console.error("quiz-from-subtopic: no valid MCQs returned");
+    console.error("quiz-from-subtopic: no valid MCQs returned", { finishReason, length: content.length, preview: content.slice(0, 300) });
     return json({ error: "AI did not return valid MCQs. Please try again." }, 502);
   }
 
