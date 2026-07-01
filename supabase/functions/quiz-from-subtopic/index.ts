@@ -60,7 +60,7 @@ const normalizeMcq = (item: unknown): Mcq | null => {
   if (!raw || typeof raw.question !== "string" || !Array.isArray(raw.options)) return null;
 
   const options = raw.options
-    .map((option) => String(option ?? "").replace(/^[A-D][).:-]?\s*/i, "").trim())
+    .map((option) => String(option ?? "").replace(/^\s*[A-D](?:[).:-]\s+|\s+-\s+)/i, "").trim())
     .filter(Boolean)
     .slice(0, 4);
 
