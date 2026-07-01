@@ -551,8 +551,42 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
       let text = "";
       let usedFallback = false;
 
-      // PRIMARY: Try Lovable AI Gateway with gemini-2.5-flash-lite (highest free quota)
-      if (LOVABLE_API_KEY) {
+      // PRIMARY: Direct Gemini API (uses your GEMINI_API_KEY)
+      if (model) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const modelPromise = model.generateContent({
+              contents: messages,
+              generationConfig
+            });
+
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
+            });
+
+            const result = await Promise.race([modelPromise, timeoutPromise]) as any;
+            text = result.response.text();
+            if (text) {
+              logWithTimestamp(`[${requestId}] Response generated via direct Gemini API`);
+              break;
+            }
+          } catch (geminiErr) {
+            const errMsg = geminiErr.message || "";
+            logWithTimestamp(`[${requestId}] Direct Gemini attempt ${attempt + 1} failed: ${errMsg}`);
+
+            if ((errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("Service Unavailable")) && attempt === 0) {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
+            if (attempt === 1) break;
+          }
+        }
+      }
+
+      // FALLBACK: Lovable AI Gateway (only if direct Gemini failed AND key present)
+      if (!text && LOVABLE_API_KEY) {
+        usedFallback = true;
+        logWithTimestamp(`[${requestId}] Falling back to Lovable AI Gateway`);
         try {
           const openaiMessages: { role: string; content: string }[] = [
             { role: "system", content: systemPrompt }
@@ -581,57 +615,14 @@ Again, make sure all URLs are complete, correct, and from reputable medical sour
             }),
           });
 
-          if (gatewayResponse.status === 429) {
-            logWithTimestamp(`[${requestId}] Lovable Gateway rate limit (429), trying fallback`);
-          } else if (gatewayResponse.status === 402) {
-            logWithTimestamp(`[${requestId}] Lovable Gateway credits exhausted (402), trying fallback`);
-          } else if (!gatewayResponse.ok) {
-            const errText = await gatewayResponse.text();
-            logWithTimestamp(`[${requestId}] Lovable Gateway error: ${gatewayResponse.status} ${errText}`);
-          } else {
+          if (gatewayResponse.ok) {
             const gatewayData = await gatewayResponse.json();
             text = gatewayData.choices?.[0]?.message?.content || "";
-            if (text) {
-              logWithTimestamp(`[${requestId}] Response generated via Lovable Gateway (${LOVABLE_MODEL})`);
-            }
+          } else {
+            logWithTimestamp(`[${requestId}] Lovable Gateway fallback failed: ${gatewayResponse.status}`);
           }
         } catch (gatewayErr) {
           logWithTimestamp(`[${requestId}] Lovable Gateway exception: ${gatewayErr.message}`);
-        }
-      }
-
-      // FALLBACK: Direct Gemini API if gateway failed and we have a key
-      if (!text && model) {
-        usedFallback = true;
-        logWithTimestamp(`[${requestId}] Falling back to direct Gemini API`);
-
-        for (let attempt = 0; attempt < 2; attempt++) {
-          try {
-            const modelPromise = model.generateContent({
-              contents: messages,
-              generationConfig
-            });
-
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
-            });
-
-            const result = await Promise.race([modelPromise, timeoutPromise]) as any;
-            text = result.response.text();
-            break; // Success
-          } catch (geminiErr) {
-            const errMsg = geminiErr.message || "";
-            logWithTimestamp(`[${requestId}] Gemini fallback attempt ${attempt + 1} failed: ${errMsg}`);
-
-            if (errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("Service Unavailable")) {
-              if (attempt === 0) {
-                await new Promise(r => setTimeout(r, 2000));
-                continue;
-              }
-            } else if (attempt === 1) {
-              throw geminiErr;
-            }
-          }
         }
       }
 
