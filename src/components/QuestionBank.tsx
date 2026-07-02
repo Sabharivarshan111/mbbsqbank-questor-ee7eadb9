@@ -9,6 +9,7 @@ import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
 import ProgressDashboard from "./progress/ProgressDashboard";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { AdService } from "@/lib/ad-service";
 
 export interface QuestionType {
   name: string;
@@ -137,6 +138,9 @@ const QuestionBank = () => {
             setActiveTab(next);
             if (next === "progress" || next === "materials") {
               window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
+            }
+            if (next === "progress") {
+              AdService.showRewarded();
             }
           }}
         >
