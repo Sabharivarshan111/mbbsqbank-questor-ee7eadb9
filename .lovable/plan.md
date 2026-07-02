@@ -1,42 +1,67 @@
-# Root cause
+## Goal
 
-- `quiz-from-subtopic` calls **only** the Lovable AI Gateway (`ai.gateway.lovable.dev`) using `LOVABLE_API_KEY`. The workspace is out of Lovable credits, so the gateway returns **402 Payment Required** → the edge function returns non-2xx → UI shows "Quiz unavailable".
-- `ask-gemini` (AI chat) tries the Lovable Gateway first and only falls back to direct Gemini if the gateway fails. When the gateway returns 402/timeout, chat degrades or errors out too.
-- Your `GEMINI_API_KEY` secret is already set in Supabase — it is currently only used as a fallback in `ask-gemini`, and not used at all in the quiz function.
+Wire native AdMob **Rewarded Ads only** into the web app via the `AndroidBridge` JS interface your Capacitor Android wrapper exposes. No interstitials anywhere. Triggered at two high-intent moments:
 
-# Fix: use your Gemini API key directly (Google Generative Language API), drop Lovable Gateway dependency
+1. When the user opens the **"Your Progress"** tab.
+2. When the user **completes a quiz** in Quiz Me.
 
-## 1. `supabase/functions/quiz-from-subtopic/index.ts`
-- Remove all Lovable Gateway code (`ai.gateway.lovable.dev`, `LOVABLE_API_KEY`).
-- Call Google Gemini directly:
-  - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
-  - Body: `{ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.7 } }`
-- Keep existing `stripJsonFence` + `isValidMcq` validation and the 5-MCQ cap.
-- Error mapping:
-  - Missing `GEMINI_API_KEY` → clear "AI quiz is not configured" message.
-  - `429` → "Gemini is rate-limited, try again shortly".
-  - `400/403` → surface Gemini's `error.message` (usually key/permission issue).
-  - Other 5xx → generic retry message.
-- Add safe logs: subject, question count, Gemini status, parse failures.
+Web / Lovable preview stays fully functional — the fallback is a silent no-op that still lets the user proceed.
 
-## 2. `supabase/functions/ask-gemini/index.ts`
-- Flip priority: **direct Gemini first, Lovable Gateway removed** (or kept only as an optional last-resort behind an env flag).
-- Use existing `@google/generative-ai` client already imported (`genAI.getGenerativeModel({ model: "gemini-2.5-flash" })`).
-- Preserve conversation history, system prompt, image handling, streaming/timeout logic already in place.
-- Same error mapping as quiz (402 disappears entirely because we're not touching the gateway).
+---
 
-## 3. Frontend — no behavior change required
-- `QuizSession.tsx` already reads the edge function's `error` field and shows a Retry button — that stays.
-- Users will now see real Gemini errors (rare) instead of the constant "Lovable credits" 402.
+## Files to add / change
 
-## 4. Verification
-- Deploy both functions.
-- `curl` `quiz-from-subtopic` with a sample subject + 5 questions → expect `{ mcqs: [...] }` with 5 items.
-- Open a subject in the app, click **Quiz** → 5 MCQs render.
-- Open AI chat, ask a medical question → response streams from Gemini directly.
-- Confirm no Lovable Gateway calls in the edge function logs.
+### 1. New: `src/lib/ad-service.ts`
+Rewarded-only helper. Nothing else.
 
-## Notes / trade-offs
-- Google's free Gemini tier has per-minute quotas; `gemini-2.5-flash` is generous but if you hit 429 we'll surface it clearly.
-- If you ever want image generation, that still requires Lovable AI Gateway credits — Gemini API does not do image gen on this key. Chat + quiz text generation both work fully on the direct Gemini key.
-- No schema/DB changes. No new secrets — `GEMINI_API_KEY` is already stored.
+- `AdService.showRewarded(onReward?: (amount:number)=>void)` — assigns `window.onRewardedAdCompleted = onReward`, then calls `window.AndroidBridge.showRewardedAd()`. In browser/preview it logs and does nothing (no fake reward, since we're not gating anything on the reward — see behavior matrix).
+- `AdService.isNative()` — returns `!!window.AndroidBridge?.showRewardedAd`.
+- Wrapped in try/catch so a broken bridge can never crash the UI.
+- Cooldown: `sessionStorage` timestamp, default 90s, so tapping "Your Progress" repeatedly won't spam ads.
+
+### 2. `src/components/QuestionBank.tsx`
+In the existing `Tabs onValueChange`, when `next === "progress"`, fire `AdService.showRewarded()` (fire-and-forget). Tab switch is never blocked by the ad. All current logic (pomodoro hide event, setActiveTab) stays as is.
+
+### 3. `src/components/progress/QuizSession.tsx`
+In `next()`, right **after** `award_quiz_xp` finishes and we set `done = true`, call `AdService.showRewarded()`. Base score is always saved even if the user dismisses the ad. No bonus XP tied to the reward — see open question below if you want that.
+
+### 4. New: `src/types/android-bridge.d.ts`
+```ts
+interface AndroidBridge {
+  showRewardedAd?: () => void;
+}
+interface Window {
+  AndroidBridge?: AndroidBridge;
+  onRewardedAdCompleted?: (amount: number) => void;
+}
+```
+
+---
+
+## Behavior matrix
+
+| Environment | Progress tab tap | Quiz finish |
+|---|---|---|
+| Android APK (bridge present) | Rewarded ad shown (90s cooldown) | Rewarded ad shown after score is saved |
+| Web / Lovable preview | Silent no-op, tab opens normally | Silent no-op, results screen shows normally |
+
+---
+
+## What I will NOT change
+
+- No interstitials. No `showInterstitialAd`, no `isInterstitialAdLoaded`. Just rewarded.
+- No routing changes — the app already uses `react-router` throughout.
+- No changes to `AdBanner.tsx` (AdSense web banner is unrelated).
+- No Capacitor AdMob plugin install — you're using your own Android-side `AndroidBridge`.
+
+---
+
+## Open question before I build
+
+Right now the ad plays but the user gets **nothing extra** for watching — it's pure monetization. Do you want the rewarded ad to actually **reward** the user with something? Common patterns:
+
+- **+5 bonus XP** on quiz finish if they watch to completion (call `award_quiz_xp` a second time inside the reward callback).
+- **+1 streak freeze** as an occasional reward.
+- **Nothing** — just show the ad (current plan).
+
+Tell me which and I'll wire it in. Otherwise I'll ship the "nothing extra" version by default.
