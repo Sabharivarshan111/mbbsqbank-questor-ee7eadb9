@@ -52,7 +52,12 @@ const QuestionBankContent = ({
       <Accordion
         type="multiple"
         value={localExpandedItems}
-        onValueChange={setLocalExpandedItems}
+        onValueChange={(next) => {
+          if (next.length > localExpandedItems.length) {
+            window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
+          }
+          setLocalExpandedItems(next);
+        }}
         className={accordionClassName}
       >
         {Object.entries(filteredData).map(([topicKey, topic]) => (
