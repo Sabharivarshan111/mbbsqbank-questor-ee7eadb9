@@ -1,26 +1,12 @@
-import { ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface StudyMaterialsCardProps {
   driveLink?: string;
 }
 
-const StudyMaterialsCard = ({
-  driveLink = "https://drive.google.com/drive/folders/1FT6Tg6K4POa5jfet_twGk7iC3nH2yJdm",
-}: StudyMaterialsCardProps) => {
+const StudyMaterialsCard = (_props: StudyMaterialsCardProps) => {
   const { theme } = useTheme();
-
-  const handleOpenDrive = () => {
-    window.open(driveLink, "_blank", "noopener,noreferrer");
-  };
-
-  const getButtonClass = () => {
-    if (theme === "blackpink") {
-      return "bg-transparent hover:bg-black/80 text-[#FF5C8D] border border-[#FF5C8D] shadow-[0_0_10px_rgba(255,92,141,0.3)]";
-    }
-    return "bg-blue-600 hover:bg-blue-700 text-white";
-  };
 
   return (
     <div
@@ -30,6 +16,17 @@ const StudyMaterialsCard = ({
           : "bg-card"
       }`}
     >
+      <div
+        className={`mb-4 h-16 w-16 rounded-full flex items-center justify-center ${
+          theme === "blackpink"
+            ? "bg-[#FF5C8D]/10 text-[#FF5C8D] border border-[#FF5C8D]/40"
+            : "bg-muted text-muted-foreground border"
+        }`}
+        aria-label="Locked"
+      >
+        <Lock className="h-8 w-8" />
+      </div>
+
       <h3
         className={`text-2xl font-bold mb-3 ${
           theme === "blackpink" ? "text-[#FF5C8D]" : ""
@@ -37,14 +34,20 @@ const StudyMaterialsCard = ({
       >
         Study Materials
       </h3>
-      <p className="text-sm text-muted-foreground mb-8 max-w-md">
-        Lecture notes, supplementary PDFs, and extra resources curated for MBBS
-        students.
+
+      <p className="text-sm text-muted-foreground mb-4 max-w-md">
+        Currently locked while we sort out copyright clearances.
       </p>
-      <Button size="lg" className={getButtonClass()} onClick={handleOpenDrive}>
-        <ExternalLink className="mr-2 h-5 w-5" />
-        Open Google Drive
-      </Button>
+
+      <span
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-pulse ${
+          theme === "blackpink"
+            ? "bg-[#FF5C8D]/15 text-[#FF5C8D] border border-[#FF5C8D]/40"
+            : "bg-primary/10 text-primary border border-primary/30"
+        }`}
+      >
+        New study material coming soon
+      </span>
     </div>
   );
 };
