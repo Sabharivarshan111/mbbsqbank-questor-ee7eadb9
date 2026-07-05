@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-type Theme = "dark" | "light" | "blackpink" | "custom" | "liquid-glass";
+export type Theme = "dark" | "light" | "blackpink" | "custom" | "liquid-glass";
 
 export type CustomColors = {
   background: string; // hex
