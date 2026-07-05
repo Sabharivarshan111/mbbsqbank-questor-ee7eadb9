@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from "react";
-import { Moon, Sun, Palette, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Moon, Sun, Palette, Sparkles, RotateCcw, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/theme/ThemeProvider";
+import { useTheme, Theme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { CustomThemeDialog } from "./CustomThemeDialog";
 import { CircleLabel } from "./CircleLabel";
@@ -19,6 +18,9 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const [pendingTheme, setPendingTheme] = useState<Theme | null>(null);
+  const originalThemeRef = useRef<Theme>(theme);
 
   // After mounting, we have access to the theme
   useEffect(() => {
@@ -42,6 +44,39 @@ export function ThemeToggle() {
       window.removeEventListener('orbit:close-theme-menu', closeMenu);
     };
   }, []);
+
+  const startPreview = (t: Theme) => {
+    if (t === theme && pendingTheme === null) {
+      // Already active and not previewing — just close
+      setMenuOpen(false);
+      return;
+    }
+    if (pendingTheme === null) {
+      originalThemeRef.current = theme;
+    }
+    setPendingTheme(t);
+    setTheme(t);
+  };
+
+  const handleApply = () => {
+    setPendingTheme(null);
+    setMenuOpen(false);
+  };
+
+  const handleRevert = () => {
+    setTheme(originalThemeRef.current);
+    setPendingTheme(null);
+    setMenuOpen(false);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && pendingTheme !== null) {
+      // User closed the menu without confirming — auto-revert
+      setTheme(originalThemeRef.current);
+      setPendingTheme(null);
+    }
+    setMenuOpen(open);
+  };
 
   if (!mounted) {
     return null;
@@ -70,12 +105,14 @@ export function ThemeToggle() {
       ? { backgroundColor: customColors.card, color: customColors.foreground }
       : undefined;
 
+  const isPreviewing = pendingTheme !== null && pendingTheme !== originalThemeRef.current;
+
   return (
     <div className="flex items-center gap-2">
       <span data-tour="font-size"><FontSizeToggle /></span>
       <span data-tour="theme-toggle">
       <CircleLabel text="THEMES">
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenu open={menuOpen} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
@@ -111,32 +148,32 @@ export function ThemeToggle() {
             <span className="sr-only">Toggle theme</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setTheme("dark")}
+            onSelect={(e) => { e.preventDefault(); startPreview("dark"); }}
           >
             <Moon className="h-4 w-4" />
             <span>Dark</span>
-            {theme === "dark" && <span className="ml-auto">Default</span>}
+            {theme === "dark" && <span className="ml-auto text-xs">Default</span>}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setTheme("light")}
+            onSelect={(e) => { e.preventDefault(); startPreview("light"); }}
           >
             <Sun className="h-4 w-4" />
             <span>Light</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setTheme("blackpink")}
+            onSelect={(e) => { e.preventDefault(); startPreview("blackpink"); }}
           >
             <span className="text-[#FF5C8D] font-bold">BP</span>
             <span>Black Pink</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setTheme("liquid-glass")}
+            onSelect={(e) => { e.preventDefault(); startPreview("liquid-glass"); }}
             style={{
               fontFamily: '-apple-system, "SF Pro Display", "SF Pro", BlinkMacSystemFont, "Helvetica Neue", sans-serif',
               fontWeight: 700,
@@ -148,7 +185,7 @@ export function ThemeToggle() {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setTheme("custom")}
+            onSelect={(e) => { e.preventDefault(); startPreview("custom"); }}
           >
             <span
               className="h-4 w-4 rounded-full border border-border"
@@ -160,11 +197,42 @@ export function ThemeToggle() {
           <DropdownMenuItem
             data-tour="theme-create-own"
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setCustomOpen(true)}
+            onClick={() => {
+              if (pendingTheme !== null) {
+                setTheme(originalThemeRef.current);
+                setPendingTheme(null);
+              }
+              setCustomOpen(true);
+              setMenuOpen(false);
+            }}
           >
             <Palette className="h-4 w-4" />
             <span>Create Your Own…</span>
           </DropdownMenuItem>
+
+          {isPreviewing && (
+            <div className="px-2 pt-2 pb-1 border-t mt-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-8 text-xs"
+                  onClick={handleRevert}
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Revert
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 h-8 text-xs"
+                  onClick={handleApply}
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       </CircleLabel>
