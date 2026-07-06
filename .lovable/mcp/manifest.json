@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "orbit-mbbs-qbank-mcp",
+      "version": "0.1.0",
+      "title": "ORBIT MBBS QBANK"
+    },
+    "tools": [
+      {
+        "name": "app_info",
+        "title": "App info",
+        "description": "Get information about the ORBIT MBBS QBANK app, its features, and available study content.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_subjects",
+        "title": "List subjects",
+        "description": "List all MBBS subjects available in the ORBIT MBBS QBANK question bank.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "ask_medical_ai",
+        "title": "Ask medical AI",
+        "description": "Ask the ORBIT MBBS QBANK medical AI assistant a question. Returns an educational answer suitable for MBBS study. Not medical advice.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000,
+              "description": "The medical/study question to ask (max 4000 chars)."
+            }
+          },
+          "required": [
+            "prompt"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
