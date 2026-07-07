@@ -1,36 +1,25 @@
-## Theme Picker — Apply / Revert Flow
+## Goal
+Make the "Create Your Own Theme" dialog fit on a mobile screen so **Reset / Apply Theme** are visible without scrolling, and make the Apply button styling adapt per active theme (matching what the screenshots show — white pill in Dark, blue pill in Liquid Glass, etc.).
 
-### Problem
-Right now clicking any theme in the dropdown immediately applies it permanently. Users want to preview first, then decide.
+## Changes (single file: `src/components/theme/CustomThemeDialog.tsx`)
 
-### Solution
-Turn the theme dropdown into a preview-then-confirm flow.
+1. **Compact the layout so footer is above the fold on ~640px mobile:**
+   - Reduce color-swatch tiles: shorter preview bar (`h-6` instead of `h-10`), tighter padding (`p-2`), remove the "hint" subtext (keep only the label). Keeps 2×2 grid but ~40% shorter.
+   - Presets row: single line, smaller chips.
+   - Live preview: shrink — remove "Sample Heading" + long paragraph, keep just a mini card row + Primary Button sample. Drop internal padding to `p-3`.
+   - Tighten vertical rhythm: wrap sections in a `space-y-3` container instead of default gaps.
+   - Make dialog `max-h-[90dvh]` and keep scroll as a fallback, but sticky the footer (`sticky bottom-0 bg-background pt-2`) so Reset/Apply are always visible even if content overflows on very small screens.
 
-### Changes
+2. **Theme-aware Apply button** (matches screenshots):
+   - Read `theme` from `useTheme()`.
+   - Apply button uses the default shadcn `Button` (already themed via tokens) — but for **Liquid Glass** override to the vivid blue gradient shown in screenshot 2, and for **Dark / BlackPink** keep the white-on-dark pill shown in screenshot 1.
+   - Reset button uses `variant="outline"` (already adapts).
 
-**1. `src/components/theme/ThemeToggle.tsx`**
-- Add local state: `previewTheme: Theme | null` and `appliedTheme: Theme` ( mirrors the current saved theme).
-- When a user clicks a theme item (Dark, Light, Black Pink, Liquid Glass, My Theme):
-  - Set `previewTheme` to that value.
-  - Call `setTheme(previewTheme)` so the app previews it live.
-  - Do NOT change `appliedTheme` yet.
-- When user clicks **"Create Your Own…"**, keep existing behavior: open `CustomThemeDialog`, no preview state change.
-- Render a confirmation bar **below the theme list** inside the dropdown, visible only when `previewTheme !== null && previewTheme !== appliedTheme`:
-  - **Left button:** "Revert" — calls `setTheme(appliedTheme)` and clears `previewTheme`.
-  - **Right button:** "Apply" — calls `setTheme(previewTheme)`, updates `appliedTheme` to `previewTheme`, and clears `previewTheme`.
-- The active indicator ("Default", "Active") stays on `appliedTheme` until Apply is pressed, or moves to `previewTheme` if we prefer. We'll keep it on `appliedTheme` to avoid confusion.
-- Close the dropdown automatically after Apply or Revert.
+3. No logic changes: `apply()`, `reset()`, `setCustomColors`, preset list, color pickers all unchanged.
 
-**2. `src/components/theme/ThemeProvider.tsx`** (no changes needed)
-- `setTheme` already handles live switching and localStorage. We'll just call it for preview and apply.
+## Out of scope
+- No changes to `ThemeProvider`, `ThemeToggle`, or the preview/revert flow in the theme dropdown.
+- No new presets or color logic.
 
-**3. Edge cases**
-- If user closes the dropdown without clicking Apply or Revert, the previewed theme remains active. We can either auto-revert on dropdown close, or leave it. Safer behavior: on `onOpenChange` → false, if `previewTheme` is set and not applied, revert to `appliedTheme` automatically so the user doesn't get stuck with an accidental preview.
-
-### Acceptance criteria
-- Clicking a theme previews it instantly across the app.
-- "Apply" and "Revert" buttons appear below the theme list during preview.
-- Apply saves the theme and closes the dropdown.
-- Revert restores the previous theme and closes the dropdown.
-- Closing the dropdown without pressing either auto-reverts to the last saved theme.
-- "Create Your Own…" still opens the custom dialog without triggering the preview bar.
+## Verification
+- Open dialog on 384×643 viewport (current user viewport) in each theme (Dark, Light, BlackPink, Liquid Glass, Custom) via Playwright, screenshot, confirm "Apply Theme" is visible without scrolling and its color matches the reference screenshots.

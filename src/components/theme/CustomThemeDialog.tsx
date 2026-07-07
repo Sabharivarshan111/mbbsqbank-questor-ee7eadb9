@@ -20,11 +20,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const SWATCHES: { key: keyof CustomColors; label: string; hint: string }[] = [
-  { key: "background", label: "Background", hint: "Main page color" },
-  { key: "foreground", label: "Text", hint: "Main text color" },
-  { key: "primary", label: "Accent", hint: "Buttons & highlights" },
-  { key: "card", label: "Card", hint: "Cards & panels" },
+const SWATCHES: { key: keyof CustomColors; label: string }[] = [
+  { key: "background", label: "Background" },
+  { key: "foreground", label: "Text" },
+  { key: "primary", label: "Accent" },
+  { key: "card", label: "Card" },
 ];
 
 const PRESETS: { name: string; colors: CustomColors }[] = [
@@ -35,7 +35,7 @@ const PRESETS: { name: string; colors: CustomColors }[] = [
 ];
 
 export function CustomThemeDialog({ open, onOpenChange }: Props) {
-  const { customColors, setCustomColors, setTheme } = useTheme();
+  const { theme, customColors, setCustomColors, setTheme } = useTheme();
   const [draft, setDraft] = useState<CustomColors>(customColors);
 
   const apply = () => {
@@ -52,32 +52,34 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     );
   }, [open]);
 
+  const applyBtnClass =
+    theme === "liquid-glass"
+      ? "flex-1 bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:opacity-90 border-0"
+      : "flex-1";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-tour="custom-theme-dialog"
-        className="max-w-md max-h-[85dvh] overflow-y-auto w-[calc(100vw-2rem)]"
+        className="max-w-md max-h-[90dvh] overflow-y-auto w-[calc(100vw-2rem)] p-4 gap-3"
       >
-        <DialogHeader>
-          <DialogTitle>🎨 Create Your Own Theme</DialogTitle>
-          <DialogDescription>
-            Pick colors for your perfect look. Changes preview live below.
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-base">🎨 Create Your Own Theme</DialogTitle>
+          <DialogDescription className="text-xs">
+            Pick colors. Preview updates live.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-3">
-          {SWATCHES.map(({ key, label, hint }) => (
+        <div className="grid grid-cols-2 gap-2">
+          {SWATCHES.map(({ key, label }) => (
             <Popover key={key}>
               <PopoverTrigger asChild>
-                <button className="flex flex-col items-start gap-2 p-3 rounded-lg border border-border hover:border-primary transition-colors text-left">
+                <button className="flex flex-col items-start gap-1.5 p-2 rounded-lg border border-border hover:border-primary transition-colors text-left">
                   <div
-                    className="w-full h-10 rounded-md border border-border shadow-inner"
+                    className="w-full h-6 rounded-md border border-border shadow-inner"
                     style={{ backgroundColor: draft[key] }}
                   />
-                  <div>
-                    <div className="text-sm font-medium">{label}</div>
-                    <div className="text-xs text-muted-foreground">{hint}</div>
-                  </div>
+                  <div className="text-xs font-medium">{label}</div>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3" align="start">
@@ -94,19 +96,19 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
         </div>
 
         <div>
-          <div className="text-xs font-medium text-muted-foreground mb-2">Quick presets</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="text-[11px] font-medium text-muted-foreground mb-1.5">Quick presets</div>
+          <div className="flex flex-wrap gap-1.5">
             {PRESETS.map((p) => (
               <button
                 key={p.name}
                 onClick={() => setDraft(p.colors)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border hover:border-primary text-xs transition-colors"
+                className="flex items-center gap-1 px-2 py-1 rounded-md border border-border hover:border-primary text-[11px] transition-colors"
               >
                 <span className="flex">
                   {Object.values(p.colors).map((c, i) => (
                     <span
                       key={i}
-                      className="w-3 h-3 rounded-sm -ml-0.5 first:ml-0 border border-border"
+                      className="w-2.5 h-2.5 rounded-sm -ml-0.5 first:ml-0 border border-border"
                       style={{ backgroundColor: c }}
                     />
                   ))}
@@ -118,36 +120,32 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
         </div>
 
         <div
-          className="rounded-lg p-4 border space-y-3"
+          className="rounded-lg p-3 border flex items-center justify-between gap-3"
           style={{
             backgroundColor: draft.background,
             color: draft.foreground,
             borderColor: draft.primary + "40",
           }}
         >
-          <div className="text-xs opacity-60">Live preview</div>
-          <h3 className="text-lg font-bold">Sample Heading</h3>
-          <p className="text-sm opacity-80">This is how your text will look across the app.</p>
-          <div className="rounded-md p-3" style={{ backgroundColor: draft.card }}>
-            <div className="text-sm font-medium">Card component</div>
-            <div className="text-xs opacity-70 mt-1">Subject content lives here.</div>
+          <div className="rounded-md px-3 py-2 text-xs flex-1" style={{ backgroundColor: draft.card }}>
+            Live preview
           </div>
           <button
-            className="px-4 py-2 rounded-md text-sm font-medium"
+            className="px-3 py-2 rounded-md text-xs font-medium shrink-0"
             style={{
               backgroundColor: draft.primary,
               color: hexToTextColor(draft.primary),
             }}
           >
-            Primary Button
+            Button
           </button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="sticky bottom-0 -mx-4 px-4 pt-2 pb-1 bg-background flex gap-2 border-t">
           <Button variant="outline" onClick={reset} className="flex-1">
             Reset
           </Button>
-          <Button onClick={apply} data-tour="custom-theme-apply" className="flex-1">
+          <Button onClick={apply} data-tour="custom-theme-apply" className={applyBtnClass}>
             Apply Theme
           </Button>
         </div>
