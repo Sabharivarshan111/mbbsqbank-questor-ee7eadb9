@@ -82,31 +82,33 @@
     --background: 0 0% 0%;
     --foreground: 336 100% 70%;
 
-    --card: 0 0% 0%;
+    /* Slightly lifted card so panels are visible against pure-black bg */
+    --card: 336 40% 8%;
     --card-foreground: 336 100% 70%;
 
-    --popover: 0 0% 0%;
+    --popover: 336 30% 6%;
     --popover-foreground: 336 100% 70%;
 
     --primary: 336 100% 70%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 0%;
+    --secondary: 336 30% 10%;
     --secondary-foreground: 336 100% 70%;
 
-    --muted: 0 0% 0%;
-    --muted-foreground: 336 100% 60%;
+    --muted: 336 20% 8%;
+    --muted-foreground: 336 60% 75%;
 
-    --accent: 0 0% 0%;
+    --accent: 336 40% 12%;
     --accent-foreground: 336 100% 70%;
 
     --destructive: 0 100% 50%;
     --destructive-foreground: 336 100% 70%;
 
-    --border: 336 100% 70%;
-    --input: 0 0% 0%;
+    --border: 336 80% 55%;
+    --input: 336 30% 10%;
     --ring: 336 100% 70%;
   }
+
 }
 
 @layer base {
@@ -394,21 +396,27 @@
   background-color: rgba(255, 92, 141, 0.1) !important;
 }
 
-/* Fix card backgrounds in blackpink theme */
+/* Cards in blackpink: subtle pink-tinted panel with visible pink border */
 .blackpink .card {
-  background-color: #000000;
-  border-color: #FF5C8D;
+  background-color: #1a0510;
+  border-color: rgba(255, 92, 141, 0.4);
 }
 
-/* Fix for the background in various parts of the UI */
-.blackpink .bg-white, 
-.blackpink .bg-card, 
-.blackpink .bg-background, 
+/* Lift cards/panels so they're visible against pure-black bg */
+.blackpink .bg-card {
+  background-color: #1a0510 !important;
+  border: 1px solid rgba(255, 92, 141, 0.35);
+}
+.blackpink .bg-white,
+.blackpink .bg-background {
+  background-color: #000000 !important;
+}
 .blackpink .bg-secondary,
 .blackpink .bg-muted,
 .blackpink .bg-accent {
-  background-color: #000000 !important;
+  background-color: #1a0510 !important;
 }
+
 
 /* Fix scrollbars for blackpink theme */
 .blackpink ::-webkit-scrollbar-track {
