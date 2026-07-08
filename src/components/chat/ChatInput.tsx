@@ -54,7 +54,7 @@ export const ChatInput = ({ prompt, setPrompt, onSubmit, isLoading, isDisabled }
 
   return (
     <form onSubmit={onSubmit} className="w-full">
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-end">
         <Textarea
           ref={textareaRef}
           placeholder={isDisabled ? "Please wait before sending another message..." : "Ask a medical question..."}
