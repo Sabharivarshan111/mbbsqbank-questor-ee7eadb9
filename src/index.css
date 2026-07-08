@@ -223,27 +223,45 @@
 }
 
 /* Enhanced AI chatbox styling for blackpink theme */
+.blackpink .ai-chat-section > .rounded-lg,
+.blackpink .ai-chat-section [class*="rounded"] {
+  border-color: #FF5C8D !important;
+}
 .blackpink .ai-chat-section {
   background-color: black !important;
-  border-color: #FF5C8D !important;
-  box-shadow: 0 0 8px rgba(255, 222, 226, 0.2) !important;
+  border: 1px solid #FF5C8D !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 12px rgba(255, 92, 141, 0.35) !important;
 }
 
 .blackpink .ai-chat-section * {
   color: #FF5C8D !important;
 }
 
+.blackpink .ai-chat-section textarea {
+  border: 1px solid #FF5C8D !important;
+  background-color: #0a0000 !important;
+}
+
 .blackpink .ai-message {
   background-color: rgba(255, 222, 226, 0.05) !important;
-  border-color: #FF5C8D !important;
+  border: 1px solid #FF5C8D !important;
   box-shadow: 0 0 5px rgba(255, 222, 226, 0.3) !important;
 }
 
 .blackpink .user-message {
   background-color: rgba(0, 0, 0, 0.6) !important;
-  border-color: #FF5C8D !important;
+  border: 1px solid #FF5C8D !important;
   box-shadow: 0 0 5px rgba(255, 222, 226, 0.3) !important;
 }
+
+/* Ensure visible borders on tabs lists in blackpink */
+.blackpink [role="tablist"] {
+  border: 1.5px solid #FF5C8D !important;
+  background-color: #000000 !important;
+  box-shadow: 0 0 8px rgba(255, 92, 141, 0.25) !important;
+}
+
 
 /* Transition and animation utilities */
 .transition-colors {

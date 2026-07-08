@@ -54,7 +54,7 @@ export const ChatInput = ({ prompt, setPrompt, onSubmit, isLoading, isDisabled }
 
   return (
     <form onSubmit={onSubmit} className="w-full">
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-end">
         <Textarea
           ref={textareaRef}
           placeholder={isDisabled ? "Please wait before sending another message..." : "Ask a medical question..."}
@@ -74,7 +74,8 @@ export const ChatInput = ({ prompt, setPrompt, onSubmit, isLoading, isDisabled }
         />
         <Button
           type="submit"
-          className={`${getButtonClass()} transition-colors duration-200 h-9 w-9 p-0 flex items-center justify-center`}
+          className={`${getButtonClass()} transition-colors duration-200 h-9 w-9 shrink-0 p-0 flex items-center justify-center rounded-md`}
+
           disabled={isLoading || isDisabled}
         >
           {isLoading ? (
