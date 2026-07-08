@@ -74,7 +74,8 @@ export const ChatInput = ({ prompt, setPrompt, onSubmit, isLoading, isDisabled }
         />
         <Button
           type="submit"
-          className={`${getButtonClass()} transition-colors duration-200 h-9 w-9 p-0 flex items-center justify-center`}
+          className={`${getButtonClass()} transition-colors duration-200 h-9 w-9 shrink-0 p-0 flex items-center justify-center rounded-md`}
+
           disabled={isLoading || isDisabled}
         >
           {isLoading ? (
