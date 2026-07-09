@@ -10,6 +10,7 @@ declare global {
     AndroidBridge?: AndroidBridge;
     onRewardedAdCompleted?: (amount: number) => void;
     onRewardedAdLoaded?: () => void;
+    onRewardedAdFailedToLoad?: () => void;
     onRewardedAdDismissed?: () => void;
   }
 }

@@ -2,7 +2,10 @@
 // `window.AndroidBridge`. Safe no-op in browser / Lovable preview.
 
 const COOLDOWN_MS = 90_000;
-const STORAGE_KEY = "orbit:ad:lastRewardedAt";
+// v2 intentionally ignores the old key because the previous implementation
+// could write cooldown even when native had no loaded ad and showed nothing.
+const STORAGE_KEY = "orbit:ad:lastRewardedShownAt:v2";
+const LOAD_TIMEOUT_MS = 15_000;
 
 const now = () => Date.now();
 
@@ -28,20 +31,52 @@ const markShown = () => {
 
 // Track load state on the JS side so we don't re-request while one is inflight.
 let loadInFlight = false;
+let loadTimeout: ReturnType<typeof setTimeout> | null = null;
+let pendingRewardCallback: ((amount: number) => void) | undefined;
+
+const clearLoadState = () => {
+  loadInFlight = false;
+  if (loadTimeout) {
+    clearTimeout(loadTimeout);
+    loadTimeout = null;
+  }
+};
 
 const wireLoadCallbacks = () => {
   if (typeof window === "undefined") return;
-  if (!window.onRewardedAdLoaded) {
-    window.onRewardedAdLoaded = () => {
-      loadInFlight = false;
-      console.log("[AdService] Rewarded ad loaded and ready.");
-    };
-  }
-  if (!window.onRewardedAdDismissed) {
-    window.onRewardedAdDismissed = () => {
-      console.log("[AdService] Rewarded ad dismissed; preloading next.");
-      AdService.preloadRewarded();
-    };
+  window.onRewardedAdLoaded = () => {
+    clearLoadState();
+    console.log("[AdService] Rewarded ad loaded and ready.");
+  };
+  window.onRewardedAdFailedToLoad = () => {
+    clearLoadState();
+    console.log("[AdService] Rewarded ad failed to load; will retry later.");
+  };
+  window.onRewardedAdCompleted = (amount: number) => {
+    markShown();
+    const callback = pendingRewardCallback;
+    pendingRewardCallback = undefined;
+    if (callback) {
+      try {
+        callback(amount);
+      } catch (e) {
+        console.warn("[AdService] onReward callback threw", e);
+      }
+    }
+  };
+  window.onRewardedAdDismissed = () => {
+    markShown();
+    pendingRewardCallback = undefined;
+    console.log("[AdService] Rewarded ad dismissed; preloading next.");
+    AdService.preloadRewarded();
+  };
+};
+
+const hasExplicitReadyCheck = () => {
+  try {
+    return typeof window !== "undefined" && typeof window.AndroidBridge?.isRewardedAdReady === "function";
+  } catch {
+    return false;
   }
 };
 
@@ -89,9 +124,13 @@ export const AdService = {
       }
       loadInFlight = true;
       bridge.loadRewardedAd();
+      loadTimeout = setTimeout(() => {
+        clearLoadState();
+        console.log("[AdService] Rewarded preload timed out; next trigger may retry.");
+      }, LOAD_TIMEOUT_MS);
       console.log("[AdService] Rewarded ad preload requested.");
     } catch (e) {
-      loadInFlight = false;
+      clearLoadState();
       console.warn("[AdService] preloadRewarded failed", e);
     }
   },
@@ -108,28 +147,21 @@ export const AdService = {
         console.log("[AdService] Rewarded skipped: not running in Android wrapper.");
         return;
       }
+      wireLoadCallbacks();
+      AdService.preloadRewarded();
+
       if (withinCooldown()) {
         console.log("[AdService] Rewarded skipped: within cooldown window.");
         return;
       }
-      wireLoadCallbacks();
 
-      if (!AdService.isRewardedReady()) {
+      if (hasExplicitReadyCheck() && !AdService.isRewardedReady()) {
         console.log("[AdService] Rewarded not ready; preloading for next trigger.");
         AdService.preloadRewarded();
         return;
       }
 
-      if (onReward) {
-        window.onRewardedAdCompleted = (amount: number) => {
-          try {
-            onReward(amount);
-          } catch (e) {
-            console.warn("[AdService] onReward callback threw", e);
-          }
-        };
-      }
-      markShown();
+      pendingRewardCallback = onReward;
       window.AndroidBridge!.showRewardedAd!();
       // Kick off the next preload so subsequent triggers are instant.
       setTimeout(() => AdService.preloadRewarded(), 500);
