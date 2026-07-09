@@ -5,6 +5,7 @@ import { useTheme, Theme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { CustomThemeDialog } from "./CustomThemeDialog";
 import { CircleLabel } from "./CircleLabel";
+import { AdService } from "@/lib/ad-service";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -14,6 +14,7 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { useTheme, DEFAULT_CUSTOM_COLORS, CustomColors } from "./ThemeProvider";
+import { AdService } from "@/lib/ad-service";
 
 interface Props {
   open: boolean;
@@ -42,6 +43,7 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     setCustomColors(draft);
     setTheme("custom");
     onOpenChange(false);
+    AdService.showRewarded();
   };
 
   const reset = () => setDraft(DEFAULT_CUSTOM_COLORS);
