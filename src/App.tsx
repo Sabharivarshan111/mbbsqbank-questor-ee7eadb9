@@ -45,7 +45,7 @@ const AdPreloader = () => {
     window.addEventListener("focus", preload);
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
-      timers.forEach(window.clearTimeout);
+      timers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("focus", preload);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
