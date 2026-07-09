@@ -1,25 +1,68 @@
-## Goal
-Make the "Create Your Own Theme" dialog fit on a mobile screen so **Reset / Apply Theme** are visible without scrolling, and make the Apply button styling adapt per active theme (matching what the screenshots show — white pill in Dark, blue pill in Liquid Glass, etc.).
+## Root cause: first "My Progress" tap shows no ad
 
-## Changes (single file: `src/components/theme/CustomThemeDialog.tsx`)
+Rewarded ads work like this on Android:
+1. You must **load** the ad (`RewardedAd.load(...)`) — takes a few seconds over network.
+2. Only when it's fully loaded can `.show()` actually display anything.
 
-1. **Compact the layout so footer is above the fold on ~640px mobile:**
-   - Reduce color-swatch tiles: shorter preview bar (`h-6` instead of `h-10`), tighter padding (`p-2`), remove the "hint" subtext (keep only the label). Keeps 2×2 grid but ~40% shorter.
-   - Presets row: single line, smaller chips.
-   - Live preview: shrink — remove "Sample Heading" + long paragraph, keep just a mini card row + Primary Button sample. Drop internal padding to `p-3`.
-   - Tighten vertical rhythm: wrap sections in a `space-y-3` container instead of default gaps.
-   - Make dialog `max-h-[90dvh]` and keep scroll as a fallback, but sticky the footer (`sticky bottom-0 bg-background pt-2`) so Reset/Apply are always visible even if content overflows on very small screens.
+Current `AdService.showRewarded()` calls `window.AndroidBridge.showRewardedAd()` **directly**, with no preload. So:
 
-2. **Theme-aware Apply button** (matches screenshots):
-   - Read `theme` from `useTheme()`.
-   - Apply button uses the default shadcn `Button` (already themed via tokens) — but for **Liquid Glass** override to the vivid blue gradient shown in screenshot 2, and for **Dark / BlackPink** keep the white-on-dark pill shown in screenshot 1.
-   - Reset button uses `variant="outline"` (already adapts).
+- **1st tap on Progress** → native side receives `showRewardedAd()`, sees no ad loaded, starts loading one, returns silently. Nothing is shown.
+- Ad finishes loading ~2–5s later and sits in memory.
+- **2nd tap on Progress** → ad is ready, so it plays.
 
-3. No logic changes: `apply()`, `reset()`, `setCustomColors`, preset list, color pickers all unchanged.
+That's exactly the "shows only the second time" behavior you're seeing. Same bug will hit theme-apply if we don't fix it first.
 
-## Out of scope
-- No changes to `ThemeProvider`, `ThemeToggle`, or the preview/revert flow in the theme dropdown.
-- No new presets or color logic.
+## Fix
 
-## Verification
-- Open dialog on 384×643 viewport (current user viewport) in each theme (Dark, Light, BlackPink, Liquid Glass, Custom) via Playwright, screenshot, confirm "Apply Theme" is visible without scrolling and its color matches the reference screenshots.
+**1. Add a preload path in `src/lib/ad-service.ts`:**
+- New `preloadRewarded()` — tells the Android wrapper to start loading an ad now.
+- New `isRewardedReady()` — checks a bridge flag before calling show.
+- `showRewarded()` becomes: if ready → show; else → call `preloadRewarded()` and skip this trigger (so we never "consume" a trigger with a blank screen). Immediately after any show/dismiss, call `preloadRewarded()` again so the next trigger is instant.
+- Call `AdService.preloadRewarded()` once at app boot (in `src/App.tsx`) so the very first Progress tap has an ad ready.
+
+**2. Extend the bridge contract in `src/types/android-bridge.d.ts`:**
+```ts
+interface AndroidBridge {
+  showRewardedAd?: () => void;
+  loadRewardedAd?: () => void;      // NEW — start loading
+  isRewardedAdReady?: () => boolean; // NEW — sync ready check
+}
+window.onRewardedAdLoaded?: () => void;    // NEW — native pings JS when load finishes
+window.onRewardedAdDismissed?: () => void; // NEW — native pings JS on close, so we can preload next
+```
+Web build stays a safe no-op (all optional).
+
+**Native wrapper change you'll need to add (Android side):**
+- `loadRewardedAd()` → `RewardedAd.load(context, AD_UNIT_ID, request, callback)` that stores the loaded ad in a field and calls `webView.evaluateJavascript("window.onRewardedAdLoaded && onRewardedAdLoaded()")`.
+- `isRewardedAdReady()` → returns `loadedAd != null`.
+- `showRewardedAd()` → if `loadedAd != null`, show it; in the `onAdDismissedFullScreenContent` callback, null it out and call `window.onRewardedAdDismissed()`.
+- Add `@JavascriptInterface` on all three.
+
+Until the native side ships these two new methods, JS falls back to the current behavior (still calls `showRewardedAd()` directly), so nothing breaks.
+
+## Add the same rewarded ad to theme apply
+
+Same `AdService.showRewarded()` call, wired into the two places you asked for:
+
+- **`src/components/theme/ThemeToggle.tsx` → `handleApply()`** — fires when user picks a built-in theme (Dark / Light / Blackpink / Liquid Glass / My Theme) and clicks **Apply**.
+- **`src/components/theme/CustomThemeDialog.tsx` → `apply()`** — fires when user clicks **Apply Theme** inside *Create Your Own*.
+
+Guardrails already in `AdService`:
+- 90-second cooldown (won't spam users who fiddle with themes).
+- Skips silently in browser/Lovable preview.
+- Only runs when `AndroidBridge` is present.
+
+**Not touched:**
+- Rewarded ad on Progress tab & Quiz finish — unchanged.
+- Revert button — no ad (per your earlier "annoy previewers" concern; only Apply counts).
+- Essays / Short Notes tabs — no ad code goes near them.
+
+## Files to change
+
+- `src/lib/ad-service.ts` — add preload + ready check + auto re-preload.
+- `src/types/android-bridge.d.ts` — expand type declarations.
+- `src/App.tsx` — one-time `AdService.preloadRewarded()` on mount.
+- `src/components/theme/ThemeToggle.tsx` — call in `handleApply`.
+- `src/components/theme/CustomThemeDialog.tsx` — call in `apply`.
+
+Reply **go** to implement.

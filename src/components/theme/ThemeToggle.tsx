@@ -61,6 +61,7 @@ export function ThemeToggle() {
   const handleApply = () => {
     setPendingTheme(null);
     setMenuOpen(false);
+    AdService.showRewarded();
   };
 
   const handleRevert = () => {
