@@ -4,14 +4,16 @@
 const COOLDOWN_MS = 90_000;
 // v2 intentionally ignores the old key because the previous implementation
 // could write cooldown even when native had no loaded ad and showed nothing.
-const STORAGE_KEY = "orbit:ad:lastRewardedShownAt:v2";
+const STORAGE_PREFIX = "orbit:ad:lastRewardedShownAt:v2";
 const LOAD_TIMEOUT_MS = 15_000;
 
 const now = () => Date.now();
 
-const withinCooldown = () => {
+const storageKeyFor = (placement: string) => `${STORAGE_PREFIX}:${placement}`;
+
+const withinCooldown = (placement: string) => {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(storageKeyFor(placement));
     if (!raw) return false;
     const ts = parseInt(raw, 10);
     if (Number.isNaN(ts)) return false;
@@ -21,9 +23,9 @@ const withinCooldown = () => {
   }
 };
 
-const markShown = () => {
+const markShown = (placement: string) => {
   try {
-    sessionStorage.setItem(STORAGE_KEY, String(now()));
+    sessionStorage.setItem(storageKeyFor(placement), String(now()));
   } catch {
     // ignore
   }
@@ -33,6 +35,7 @@ const markShown = () => {
 let loadInFlight = false;
 let loadTimeout: ReturnType<typeof setTimeout> | null = null;
 let pendingRewardCallback: ((amount: number) => void) | undefined;
+let pendingRewardPlacement = "default";
 
 const clearLoadState = () => {
   loadInFlight = false;
@@ -53,7 +56,7 @@ const wireLoadCallbacks = () => {
     console.log("[AdService] Rewarded ad failed to load; will retry later.");
   };
   window.onRewardedAdCompleted = (amount: number) => {
-    markShown();
+    markShown(pendingRewardPlacement);
     const callback = pendingRewardCallback;
     pendingRewardCallback = undefined;
     if (callback) {
@@ -65,7 +68,7 @@ const wireLoadCallbacks = () => {
     }
   };
   window.onRewardedAdDismissed = () => {
-    markShown();
+    markShown(pendingRewardPlacement);
     pendingRewardCallback = undefined;
     console.log("[AdService] Rewarded ad dismissed; preloading next.");
     AdService.preloadRewarded();
@@ -141,7 +144,7 @@ export const AdService = {
    * `window.onRewardedAdCompleted(amount)` when the user finishes watching.
    * In browser / preview this is a silent no-op.
    */
-  showRewarded(onReward?: (amount: number) => void): void {
+  showRewarded(onReward?: (amount: number) => void, placement = "default"): void {
     try {
       if (!AdService.isNative()) {
         console.log("[AdService] Rewarded skipped: not running in Android wrapper.");
@@ -150,7 +153,7 @@ export const AdService = {
       wireLoadCallbacks();
       AdService.preloadRewarded();
 
-      if (withinCooldown()) {
+      if (withinCooldown(placement)) {
         console.log("[AdService] Rewarded skipped: within cooldown window.");
         return;
       }
@@ -162,6 +165,7 @@ export const AdService = {
       }
 
       pendingRewardCallback = onReward;
+      pendingRewardPlacement = placement;
       window.AndroidBridge!.showRewardedAd!();
       // Kick off the next preload so subsequent triggers are instant.
       setTimeout(() => AdService.preloadRewarded(), 500);
