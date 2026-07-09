@@ -34,7 +34,22 @@ const queryClient = new QueryClient();
 const ScreenTimeTracker = () => { useScreenTime(); return null; };
 const NotificationSync = () => { useNotificationSync(); return null; };
 const AdPreloader = () => {
-  useEffect(() => { AdService.preloadRewarded(); }, []);
+  useEffect(() => {
+    const preload = () => AdService.preloadRewarded();
+    const timers = [0, 1_200, 3_000, 6_000, 10_000].map((delay) =>
+      window.setTimeout(preload, delay)
+    );
+    const handleVisibility = () => {
+      if (!document.hidden) preload();
+    };
+    window.addEventListener("focus", preload);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("focus", preload);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
   return null;
 };
 

@@ -140,7 +140,7 @@ const QuestionBank = () => {
               window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
             }
             if (next === "progress") {
-              AdService.showRewarded();
+              AdService.showRewarded(undefined, "progress");
             }
           }}
         >
