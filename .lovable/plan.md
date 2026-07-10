@@ -1,68 +1,71 @@
-## Root cause: first "My Progress" tap shows no ad
+## Root cause
 
-Rewarded ads work like this on Android:
-1. You must **load** the ad (`RewardedAd.load(...)`) — takes a few seconds over network.
-2. Only when it's fully loaded can `.show()` actually display anything.
+The native Android wrapper (from your AI Studio snippet) exposes:
 
-Current `AdService.showRewarded()` calls `window.AndroidBridge.showRewardedAd()` **directly**, with no preload. So:
+- `AndroidBridge.showInterstitialAd()` / `isInterstitialAdLoaded()`
+- `AndroidBridge.showRewardedAd()` / `isRewardedLoaded()`  ← note: **`isRewardedLoaded`**, not `isRewardedAdReady`
+- Callbacks: `window.onRewardedAdCompleted(amount)`, `window.onRewardedAdDismissed()`, `window.onRewardedAdFailed()`
 
-- **1st tap on Progress** → native side receives `showRewardedAd()`, sees no ad loaded, starts loading one, returns silently. Nothing is shown.
-- Ad finishes loading ~2–5s later and sits in memory.
-- **2nd tap on Progress** → ad is ready, so it plays.
+Our current `src/lib/ad-service.ts` calls names that **do not exist** on this bridge:
 
-That's exactly the "shows only the second time" behavior you're seeing. Same bug will hit theme-apply if we don't fix it first.
+- `bridge.loadRewardedAd()` — not implemented → preload never happens
+- `bridge.isRewardedAdReady()` — not implemented → readiness gate never opens
+- `window.onRewardedAdLoaded` / `onRewardedAdFailedToLoad` — never fired
 
-## Fix
+So on the first "My Progress" tap:
+1. `preloadRewarded()` tries to call `loadRewardedAd` → missing → returns silently, `loadInFlight` stays false forever.
+2. `showRewarded()` checks `hasExplicitReadyCheck()` → false (method missing) → falls through and calls `showRewardedAd()` directly.
+3. But the native side loads its own ad lazily on `showRewardedAd()`, so the first tap kicks off a load and shows nothing. Second tap finds the ad ready → shows.
 
-**1. Add a preload path in `src/lib/ad-service.ts`:**
-- New `preloadRewarded()` — tells the Android wrapper to start loading an ad now.
-- New `isRewardedReady()` — checks a bridge flag before calling show.
-- `showRewarded()` becomes: if ready → show; else → call `preloadRewarded()` and skip this trigger (so we never "consume" a trigger with a blank screen). Immediately after any show/dismiss, call `preloadRewarded()` again so the next trigger is instant.
-- Call `AdService.preloadRewarded()` once at app boot (in `src/App.tsx`) so the very first Progress tap has an ad ready.
+Fix = make `AdService` speak the exact API the native wrapper actually exposes.
 
-**2. Extend the bridge contract in `src/types/android-bridge.d.ts`:**
+## Changes
+
+### 1. `src/types/android-bridge.d.ts`
+Replace with the real surface:
 ```ts
 interface AndroidBridge {
   showRewardedAd?: () => void;
-  loadRewardedAd?: () => void;      // NEW — start loading
-  isRewardedAdReady?: () => boolean; // NEW — sync ready check
+  isRewardedLoaded?: () => boolean;
+  showInterstitialAd?: () => void;
+  isInterstitialAdLoaded?: () => boolean;
 }
-window.onRewardedAdLoaded?: () => void;    // NEW — native pings JS when load finishes
-window.onRewardedAdDismissed?: () => void; // NEW — native pings JS on close, so we can preload next
+interface Window {
+  AndroidBridge?: AndroidBridge;
+  onRewardedAdCompleted?: (amount: number) => void;
+  onRewardedAdDismissed?: () => void;
+  onRewardedAdFailed?: () => void;
+}
 ```
-Web build stays a safe no-op (all optional).
+Drop the fictional `loadRewardedAd`, `isRewardedAdReady`, `onRewardedAdLoaded`, `onRewardedAdFailedToLoad`.
 
-**Native wrapper change you'll need to add (Android side):**
-- `loadRewardedAd()` → `RewardedAd.load(context, AD_UNIT_ID, request, callback)` that stores the loaded ad in a field and calls `webView.evaluateJavascript("window.onRewardedAdLoaded && onRewardedAdLoaded()")`.
-- `isRewardedAdReady()` → returns `loadedAd != null`.
-- `showRewardedAd()` → if `loadedAd != null`, show it; in the `onAdDismissedFullScreenContent` callback, null it out and call `window.onRewardedAdDismissed()`.
-- Add `@JavascriptInterface` on all three.
+### 2. `src/lib/ad-service.ts` — rewrite around the real bridge
+- `isRewardedReady()` → call `AndroidBridge.isRewardedLoaded()`.
+- Remove `preloadRewarded()` calls to `loadRewardedAd` (native has no such method — it auto-preloads after each show). Keep `preloadRewarded()` as a no-op export so existing callers (`App.tsx`) don't break.
+- `showRewarded(onReward, placement)`:
+  1. If not native → skip.
+  2. If `withinCooldown(placement)` → skip.
+  3. If `isRewardedLoaded()` is false → skip this tap (native is still loading); do NOT mark cooldown, so next tap retries.
+  4. Wire fresh one-shot `window.onRewardedAdCompleted` / `onRewardedAdDismissed` / `onRewardedAdFailed` handlers exactly like the AI Studio snippet (unique per call, cleaned up on any terminal event). Only mark cooldown on Completed or Dismissed — not on Failed.
+  5. Call `AndroidBridge.showRewardedAd()`.
+- Keep the per-placement cooldown (`orbit:ad:lastRewardedShownAt:v2:<placement>`) so theme ads don't block Progress.
 
-Until the native side ships these two new methods, JS falls back to the current behavior (still calls `showRewardedAd()` directly), so nothing breaks.
+### 3. `src/App.tsx`
+`AdPreloader` becomes a no-op (or we remove the retries) — native handles preloading internally, so the JS-side timers and focus/visibility handlers are noise. Keep the component mounted but empty to avoid churn elsewhere.
 
-## Add the same rewarded ad to theme apply
+### 4. Callers stay unchanged
+- `QuestionBank.tsx`: `AdService.showRewarded(undefined, "progress")` still valid.
+- `ThemeToggle.tsx` Apply: `AdService.showRewarded()` still valid.
+- `CustomThemeDialog.tsx` apply: `AdService.showRewarded()` still valid.
 
-Same `AdService.showRewarded()` call, wired into the two places you asked for:
+### 5. Not touched
+- Interstitials — you didn't ask to wire any triggers yet. The type is added so we can add `AdService.showInterstitial()` later if you want.
+- Essays / Short Notes / Revert — no ads there.
 
-- **`src/components/theme/ThemeToggle.tsx` → `handleApply()`** — fires when user picks a built-in theme (Dark / Light / Blackpink / Liquid Glass / My Theme) and clicks **Apply**.
-- **`src/components/theme/CustomThemeDialog.tsx` → `apply()`** — fires when user clicks **Apply Theme** inside *Create Your Own*.
+## Result
 
-Guardrails already in `AdService`:
-- 90-second cooldown (won't spam users who fiddle with themes).
-- Skips silently in browser/Lovable preview.
-- Only runs when `AndroidBridge` is present.
+First "My Progress" tap: if the native ad is already loaded (usual case within a couple seconds of app open) → shows immediately. If not loaded yet → silently skipped, no cooldown burned, next tap shows it. No more "shows only on second tap" once the native side has completed its first preload.
 
-**Not touched:**
-- Rewarded ad on Progress tab & Quiz finish — unchanged.
-- Revert button — no ad (per your earlier "annoy previewers" concern; only Apply counts).
-- Essays / Short Notes tabs — no ad code goes near them.
+## Native-side requirement
 
-## Files to change
-
-- `src/lib/ad-service.ts` — add preload + ready check + auto re-preload.
-- `src/types/android-bridge.d.ts` — expand type declarations.
-- `src/App.tsx` — one-time `AdService.preloadRewarded()` on mount.
-- `src/components/theme/ThemeToggle.tsx` — call in `handleApply`.
-- `src/components/theme/CustomThemeDialog.tsx` — call in `apply`.
-
-Reply **go** to implement.
+Your Android wrapper must, after every rewarded ad finishes/dismisses/fails, immediately call `loadRewardedAd()` internally so `isRewardedLoaded()` returns true again quickly. If the native side already does this (the AI Studio snippet implies it does), no Android change is needed.

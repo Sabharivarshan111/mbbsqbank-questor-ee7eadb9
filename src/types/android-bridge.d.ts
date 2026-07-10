@@ -3,14 +3,14 @@ export {};
 declare global {
   interface AndroidBridge {
     showRewardedAd?: () => void;
-    loadRewardedAd?: () => void;
-    isRewardedAdReady?: () => boolean;
+    isRewardedLoaded?: () => boolean;
+    showInterstitialAd?: () => void;
+    isInterstitialAdLoaded?: () => boolean;
   }
   interface Window {
     AndroidBridge?: AndroidBridge;
     onRewardedAdCompleted?: (amount: number) => void;
-    onRewardedAdLoaded?: () => void;
-    onRewardedAdFailedToLoad?: () => void;
     onRewardedAdDismissed?: () => void;
+    onRewardedAdFailed?: () => void;
   }
 }
