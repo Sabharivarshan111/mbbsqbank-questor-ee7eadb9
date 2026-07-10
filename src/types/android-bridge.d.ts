@@ -12,5 +12,7 @@ declare global {
     onRewardedAdCompleted?: (amount: number) => void;
     onRewardedAdDismissed?: () => void;
     onRewardedAdFailed?: () => void;
+    onInterstitialAdDismissed?: () => void;
+    onInterstitialAdFailed?: () => void;
   }
 }

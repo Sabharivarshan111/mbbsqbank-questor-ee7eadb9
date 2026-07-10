@@ -9,7 +9,7 @@ import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
 import ProgressDashboard from "./progress/ProgressDashboard";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { AdService } from "@/lib/ad-service";
+import { showRewardedAd } from "@/services/AndroidAds";
 
 export interface QuestionType {
   name: string;
@@ -140,7 +140,13 @@ const QuestionBank = () => {
               window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
             }
             if (next === "progress") {
-              AdService.showRewarded(undefined, "progress");
+              showRewardedAd("progress").then((result) => {
+                if (result.completed) {
+                  console.log(`[Progress] Rewarded ad completed (+${result.amount})`);
+                } else if (result.reason === "not-loaded") {
+                  console.log("[Progress] Rewarded ad not loaded yet — will retry on next open.");
+                }
+              });
             }
           }}
         >
