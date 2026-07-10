@@ -26,8 +26,8 @@ import GlobalCelebrations from "./components/GlobalCelebrations";
 import ExamReminderPopup from "./components/ExamReminderPopup";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
-import { useEffect } from "react";
-import { AdService } from "@/lib/ad-service";
+
+
 
 const queryClient = new QueryClient();
 
