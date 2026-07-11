@@ -4,6 +4,8 @@ declare global {
   interface AndroidBridge {
     showRewardedAd?: () => void;
     isRewardedLoaded?: () => boolean;
+    isRewardedAdLoaded?: () => boolean;
+    isRewardedAdReady?: () => boolean;
     showInterstitialAd?: () => void;
     isInterstitialAdLoaded?: () => boolean;
   }
