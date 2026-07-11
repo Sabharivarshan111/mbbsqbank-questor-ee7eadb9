@@ -5,6 +5,8 @@
 // Native surface expected on `window.AndroidBridge`:
 //   showRewardedAd()            -> void
 //   isRewardedLoaded()          -> boolean
+//   isRewardedAdLoaded()        -> boolean (supported alias)
+//   isRewardedAdReady()         -> boolean (supported alias)
 //   showInterstitialAd()        -> void
 //   isInterstitialAdLoaded()    -> boolean
 // Native fires these window callbacks:
@@ -56,6 +58,14 @@ const markShown = (placement: string) => {
 export const isAndroidBridgeAvailable = (): boolean => {
   try {
     return typeof window !== "undefined" && !!window.AndroidBridge?.showRewardedAd;
+  } catch {
+    return false;
+  }
+};
+
+const isInterstitialBridgeAvailable = (): boolean => {
+  try {
+    return typeof window !== "undefined" && !!window.AndroidBridge?.showInterstitialAd;
   } catch {
     return false;
   }
@@ -230,7 +240,7 @@ export const showRewardedAd = async (placement = "default"): Promise<RewardedRes
 // --- Interstitial -----------------------------------------------------------
 
 export const showInterstitialAd = (): Promise<InterstitialResult> => {
-  if (!isAndroidBridgeAvailable()) return simulateInterstitial();
+  if (!isInterstitialBridgeAvailable()) return simulateInterstitial();
   if (!isInterstitialLoaded()) {
     return Promise.resolve({ shown: false, reason: "not-loaded" });
   }
