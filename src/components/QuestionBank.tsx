@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSwipeable } from "react-swipeable";
@@ -63,6 +63,21 @@ const QuestionBank = () => {
   } = useQuestionBank();
 
   const { theme } = useTheme();
+  const lastProgressAdRequestRef = useRef(0);
+
+  const handleProgressAd = useCallback(() => {
+    const now = Date.now();
+    if (now - lastProgressAdRequestRef.current < 1_500) return;
+    lastProgressAdRequestRef.current = now;
+
+    void showRewardedAd("progress").then((result) => {
+      if (result.completed) {
+        console.log(`[Progress] Rewarded ad completed (+${result.amount})`);
+      } else {
+        console.log(`[Progress] Rewarded ad did not complete: ${result.reason ?? "unknown"}`);
+      }
+    });
+  }, []);
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -82,11 +97,12 @@ const QuestionBank = () => {
       const tab = (e as CustomEvent<string>).detail;
       if (tab === "progress" || tab === "materials" || tab === "essay" || tab === "short-notes") {
         setActiveTab(tab as TabValue);
+        if (tab === "progress") handleProgressAd();
       }
     };
     window.addEventListener("orbit:set-tab", handler);
     return () => window.removeEventListener("orbit:set-tab", handler);
-  }, [setActiveTab]);
+  }, [handleProgressAd, setActiveTab]);
 
   if (!isRendered) {
     return (
@@ -140,13 +156,7 @@ const QuestionBank = () => {
               window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
             }
             if (next === "progress") {
-              showRewardedAd("progress").then((result) => {
-                if (result.completed) {
-                  console.log(`[Progress] Rewarded ad completed (+${result.amount})`);
-                } else if (result.reason === "not-loaded") {
-                  console.log("[Progress] Rewarded ad not loaded yet — will retry on next open.");
-                }
-              });
+              handleProgressAd();
             }
           }}
         >
@@ -155,7 +165,7 @@ const QuestionBank = () => {
             data-tour="qbank-header"
             className={`w-full grid grid-cols-2 h-12 ${getTabsListClass()} rounded-lg mb-3 p-1`}
           >
-            <TabsTrigger value="progress" data-tour="progress-tab" className={`progress-tab-button ${topTriggerClass}`}>
+            <TabsTrigger value="progress" data-tour="progress-tab" className={`progress-tab-button ${topTriggerClass}`} onClick={handleProgressAd}>
               Your Progress
             </TabsTrigger>
             <TabsTrigger value="materials" data-tour="study-materials-tab" className={`extras-tab-button ${topTriggerClass}`}>

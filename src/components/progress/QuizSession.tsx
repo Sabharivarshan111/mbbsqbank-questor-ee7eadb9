@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Loader2, Check, RefreshCcw, X as XIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { AdService } from "@/lib/ad-service";
+import { showRewardedAd } from "@/services/AndroidAds";
 
 interface Mcq { question: string; options: string[]; correctIndex: number; explanation: string; }
 
@@ -82,7 +82,7 @@ const QuizSession = ({ open, onClose, subject, questions }: Props) => {
       if (score > 0) {
         await (supabase as any).rpc("award_quiz_xp", { _amount: score });
       }
-      AdService.showRewarded();
+      void showRewardedAd("quiz-complete");
     } else {
       setI(i + 1); setPicked(null);
     }

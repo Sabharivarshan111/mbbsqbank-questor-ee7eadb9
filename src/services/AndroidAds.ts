@@ -5,6 +5,8 @@
 // Native surface expected on `window.AndroidBridge`:
 //   showRewardedAd()            -> void
 //   isRewardedLoaded()          -> boolean
+//   isRewardedAdLoaded()        -> boolean (supported alias)
+//   isRewardedAdReady()         -> boolean (supported alias)
 //   showInterstitialAd()        -> void
 //   isInterstitialAdLoaded()    -> boolean
 // Native fires these window callbacks:
@@ -27,6 +29,8 @@ export type InterstitialResult = {
 
 const COOLDOWN_MS = 90_000;
 const COOLDOWN_PREFIX = "orbit:ad:lastRewardedShownAt:v3";
+const REWARDED_READY_RETRY_MS = 2_500;
+const REWARDED_READY_POLL_MS = 250;
 
 const now = () => Date.now();
 const cooldownKey = (placement: string) => `${COOLDOWN_PREFIX}:${placement}`;
@@ -53,18 +57,56 @@ const markShown = (placement: string) => {
 
 export const isAndroidBridgeAvailable = (): boolean => {
   try {
-    return typeof window !== "undefined" && !!window.AndroidBridge;
+    return typeof window !== "undefined" && !!window.AndroidBridge?.showRewardedAd;
   } catch {
     return false;
   }
 };
 
+const isInterstitialBridgeAvailable = (): boolean => {
+  try {
+    return typeof window !== "undefined" && !!window.AndroidBridge?.showInterstitialAd;
+  } catch {
+    return false;
+  }
+};
+
+const log = (message: string, details?: unknown) => {
+  if (details === undefined) {
+    console.log(`[AndroidAds] ${message}`);
+    return;
+  }
+  console.log(`[AndroidAds] ${message}`, details);
+};
+
+const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+const readRewardedLoaded = (): boolean => {
+  const b = window.AndroidBridge;
+  if (!b) return false;
+  if (typeof b.isRewardedLoaded === "function") return !!b.isRewardedLoaded();
+  if (typeof b.isRewardedAdLoaded === "function") return !!b.isRewardedAdLoaded();
+  if (typeof b.isRewardedAdReady === "function") return !!b.isRewardedAdReady();
+  return true; // older wrapper: show method exists but no readiness method
+};
+
+const waitForRewardedLoaded = async (timeoutMs = REWARDED_READY_RETRY_MS): Promise<boolean> => {
+  const startedAt = now();
+  while (now() - startedAt <= timeoutMs) {
+    try {
+      if (readRewardedLoaded()) return true;
+    } catch (e) {
+      console.warn("[AndroidAds] rewarded readiness check failed", e);
+      return false;
+    }
+    await sleep(REWARDED_READY_POLL_MS);
+  }
+  return false;
+};
+
 export const isRewardedLoaded = (): boolean => {
   try {
-    const b = window.AndroidBridge;
-    if (!b) return false;
-    if (typeof b.isRewardedLoaded === "function") return !!b.isRewardedLoaded();
-    return true; // older wrapper: assume ready
+    return readRewardedLoaded();
   } catch {
     return false;
   }
@@ -91,7 +133,7 @@ const simulateRewarded = (): Promise<RewardedResult> =>
     }
     // Tiny non-blocking mock so the flow can be exercised in preview.
     setTimeout(() => {
-      console.log("[AndroidAds] (browser mock) rewarded ad completed");
+      log("browser mock rewarded ad completed");
       resolve({ completed: true, amount: 1, reason: "simulated" });
     }, 400);
   });
@@ -105,10 +147,11 @@ const simulateInterstitial = (): Promise<InterstitialResult> =>
 
 let rewardedInFlight: Promise<RewardedResult> | null = null;
 
-export const showRewardedAd = (placement = "default"): Promise<RewardedResult> => {
+export const showRewardedAd = async (placement = "default"): Promise<RewardedResult> => {
   if (rewardedInFlight) return rewardedInFlight;
 
   if (!isAndroidBridgeAvailable()) {
+    log(`rewarded '${placement}' using browser simulation: AndroidBridge unavailable`);
     rewardedInFlight = simulateRewarded().finally(() => {
       rewardedInFlight = null;
     });
@@ -116,20 +159,24 @@ export const showRewardedAd = (placement = "default"): Promise<RewardedResult> =
   }
 
   if (withinCooldown(placement)) {
+    log(`rewarded '${placement}' skipped: cooldown active`);
     return Promise.resolve({ completed: false, amount: 0, reason: "cooldown" });
   }
 
-  if (!isRewardedLoaded()) {
+  if (!(await waitForRewardedLoaded())) {
     // Don't burn cooldown; user can retry as soon as native reports loaded.
+    log(`rewarded '${placement}' skipped: native ad not loaded after retry window`);
     return Promise.resolve({ completed: false, amount: 0, reason: "not-loaded" });
   }
 
+  log(`rewarded '${placement}' show requested`);
   rewardedInFlight = new Promise<RewardedResult>((resolve) => {
     let settled = false;
     const timeoutId = window.setTimeout(() => {
       if (settled) return;
       settled = true;
       cleanup();
+      log(`rewarded '${placement}' timed out waiting for native callback`);
       resolve({ completed: false, amount: 0, reason: "failed" });
     }, 60_000);
 
@@ -149,6 +196,7 @@ export const showRewardedAd = (placement = "default"): Promise<RewardedResult> =
       if (settled) return;
       settled = true;
       cleanup();
+      log(`rewarded '${placement}' completed`, { amount: earnedAmount });
       resolve({ completed: true, amount: earnedAmount, reason: "completed" });
     };
     window.onRewardedAdDismissed = () => {
@@ -157,9 +205,11 @@ export const showRewardedAd = (placement = "default"): Promise<RewardedResult> =
       cleanup();
       if (earnedAmount > 0) {
         markShown(placement);
+        log(`rewarded '${placement}' dismissed after reward`, { amount: earnedAmount });
         resolve({ completed: true, amount: earnedAmount, reason: "completed" });
       } else {
         markShown(placement);
+        log(`rewarded '${placement}' dismissed before reward`);
         resolve({ completed: false, amount: 0, reason: "dismissed" });
       }
     };
@@ -167,6 +217,7 @@ export const showRewardedAd = (placement = "default"): Promise<RewardedResult> =
       if (settled) return;
       settled = true;
       cleanup();
+      log(`rewarded '${placement}' failed by native callback`);
       resolve({ completed: false, amount: 0, reason: "failed" });
     };
 
@@ -189,7 +240,7 @@ export const showRewardedAd = (placement = "default"): Promise<RewardedResult> =
 // --- Interstitial -----------------------------------------------------------
 
 export const showInterstitialAd = (): Promise<InterstitialResult> => {
-  if (!isAndroidBridgeAvailable()) return simulateInterstitial();
+  if (!isInterstitialBridgeAvailable()) return simulateInterstitial();
   if (!isInterstitialLoaded()) {
     return Promise.resolve({ shown: false, reason: "not-loaded" });
   }
