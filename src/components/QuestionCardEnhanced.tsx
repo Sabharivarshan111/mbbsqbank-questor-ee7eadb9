@@ -51,35 +51,37 @@ const QuestionCardEnhanced: React.FC<QuestionCardEnhancedProps> = ({ question, i
   // Single tap handler that determines whether to trigger double or triple tap
   const handleTap = () => {
     const now = Date.now();
-    const tapDelay = 500; // Using the same delay as in triple tap hook
+    const tapDelay = 280; // Faster window so quick taps register
     const timeSinceLastTap = now - lastTapTime.current;
-    
-    // Clear any existing timeout
+
+    // Clear any pending timeout
     if (tapTimeoutRef.current !== null) {
       window.clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
     }
-    
+
     if (timeSinceLastTap > tapDelay) {
-      // Too much time has passed, reset counter
       tapCount.current = 1;
     } else {
-      // Increment tap count
       tapCount.current += 1;
     }
-    
+
     lastTapTime.current = now;
-    
-    // Set a timeout to process the tap sequence after the delay
+
+    // Fire triple-tap immediately on the 3rd tap — no waiting
+    if (tapCount.current >= 3) {
+      handleTripleTapAction();
+      resetTapCount();
+      return;
+    }
+
+    // For a 2-tap sequence, wait briefly to see if a 3rd tap comes in
     tapTimeoutRef.current = window.setTimeout(() => {
       if (tapCount.current === 2) {
-        // Double tap detected - trigger MCQ generation
         handleDoubleTapAction();
-      } else if (tapCount.current === 3) {
-        // Triple tap detected - trigger answer request
-        handleTripleTapAction();
       }
-      // Reset for next sequence
       resetTapCount();
+      tapTimeoutRef.current = null;
     }, tapDelay);
   };
   
