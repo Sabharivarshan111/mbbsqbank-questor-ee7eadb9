@@ -7,6 +7,9 @@ import SearchBar from "./question-bank/SearchBar";
 import NoResultsMessage from "./question-bank/NoResultsMessage";
 import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
+import HandwrittenNotesHub from "./handwritten/HandwrittenNotesHub";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { BookLock, ChevronDown } from "lucide-react";
 import ProgressDashboard from "./progress/ProgressDashboard";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { showRewardedAd } from "@/services/AndroidAds";
@@ -169,7 +172,7 @@ const QuestionBank = () => {
               Your Progress
             </TabsTrigger>
             <TabsTrigger value="materials" data-tour="study-materials-tab" className={`extras-tab-button ${topTriggerClass}`}>
-              Study Materials
+              Handwritten Notes
             </TabsTrigger>
           </TabsList>
 
@@ -232,9 +235,25 @@ const QuestionBank = () => {
 
             <TabsContent
               value="materials"
-              className="mt-0 min-h-[500px] bg-transparent"
+              className="mt-0 min-h-[500px] bg-transparent space-y-4"
             >
-              <StudyMaterialsCard driveLink={googleDriveLink} />
+              <HandwrittenNotesHub />
+
+              <Collapsible>
+                <CollapsibleTrigger className="w-full flex items-center gap-3 rounded-xl border bg-card p-3 hover:bg-muted/40 transition text-left">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <BookLock className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium">Study Materials</p>
+                    <p className="text-[11px] text-muted-foreground">Curated PDFs & Drive links</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3">
+                  <StudyMaterialsCard driveLink={googleDriveLink} />
+                </CollapsibleContent>
+              </Collapsible>
             </TabsContent>
 
             <TabsContent
