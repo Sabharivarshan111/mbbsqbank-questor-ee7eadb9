@@ -101,6 +101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      handwritten_notes: {
+        Row: {
+          content: Json
+          created_at: string
+          subject: string
+          subtopic_key: string
+          subtopic_name: string
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          subject: string
+          subtopic_key: string
+          subtopic_name: string
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          subject?: string
+          subtopic_key?: string
+          subtopic_name?: string
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
