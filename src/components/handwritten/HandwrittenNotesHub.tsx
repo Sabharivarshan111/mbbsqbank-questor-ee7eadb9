@@ -272,6 +272,16 @@ function NotesDetailView({
 
       {content && !loading && (
         <>
+          {Array.isArray((content as any).warnings) && (content as any).warnings.length > 0 && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+                Partial notes — {(content as any).warnings.length} batch(es) failed
+              </p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1">
+                Tap Regenerate later to fill in the missing parts.
+              </p>
+            </div>
+          )}
           <HandwrittenNotesView subtopicName={topic.name} content={content} />
           <div className="flex justify-center pt-2">
             <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
