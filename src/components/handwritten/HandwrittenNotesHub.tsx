@@ -220,7 +220,20 @@ function NotesDetailView({
           regenerate,
         },
       });
-      if (error) throw error;
+      if (error) {
+        let realMsg = error.message ?? "Failed to generate notes";
+        try {
+          const ctx = (error as any).context;
+          if (ctx?.json) {
+            const j = await ctx.json();
+            if (j?.error) realMsg = typeof j.error === "string" ? j.error : JSON.stringify(j.error);
+          } else if (ctx?.text) {
+            const t = await ctx.text();
+            if (t) realMsg = t.slice(0, 300);
+          }
+        } catch { /* ignore */ }
+        throw new Error(realMsg);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       setContent((data as any).content);
     } catch (e: any) {
