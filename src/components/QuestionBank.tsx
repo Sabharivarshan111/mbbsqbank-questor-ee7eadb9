@@ -67,6 +67,7 @@ const QuestionBank = () => {
 
   const { theme } = useTheme();
   const lastProgressAdRequestRef = useRef(0);
+  const shortNotesAdTimerRef = useRef<number | null>(null);
 
   const handleProgressAd = useCallback(() => {
     const now = Date.now();
@@ -81,6 +82,32 @@ const QuestionBank = () => {
       }
     });
   }, []);
+
+  const SHORT_NOTES_AD_KEY = "orbit:ad:shortNotesShownDate";
+  const scheduleShortNotesAd = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(SHORT_NOTES_AD_KEY) === today) return;
+    if (shortNotesAdTimerRef.current) return; // already scheduled
+    shortNotesAdTimerRef.current = window.setTimeout(() => {
+      shortNotesAdTimerRef.current = null;
+      // re-check in case another tab won the race
+      if (localStorage.getItem(SHORT_NOTES_AD_KEY) === today) return;
+      localStorage.setItem(SHORT_NOTES_AD_KEY, today);
+      void showRewardedAd("short-notes").then((result) => {
+        console.log(`[ShortNotes] Rewarded ad: ${result.completed ? "completed" : result.reason ?? "unknown"}`);
+      });
+    }, 60_000);
+  }, []);
+
+  const cancelShortNotesAd = useCallback(() => {
+    if (shortNotesAdTimerRef.current) {
+      clearTimeout(shortNotesAdTimerRef.current);
+      shortNotesAdTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => cancelShortNotesAd(), [cancelShortNotesAd]);
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -101,11 +128,12 @@ const QuestionBank = () => {
       if (tab === "progress" || tab === "materials" || tab === "essay" || tab === "short-notes") {
         setActiveTab(tab as TabValue);
         if (tab === "progress") handleProgressAd();
+        if (tab === "short-notes") scheduleShortNotesAd(); else cancelShortNotesAd();
       }
     };
     window.addEventListener("orbit:set-tab", handler);
     return () => window.removeEventListener("orbit:set-tab", handler);
-  }, [handleProgressAd, setActiveTab]);
+  }, [handleProgressAd, setActiveTab, scheduleShortNotesAd, cancelShortNotesAd]);
 
   if (!isRendered) {
     return (
@@ -161,6 +189,7 @@ const QuestionBank = () => {
             if (next === "progress") {
               handleProgressAd();
             }
+            if (next === "short-notes") scheduleShortNotesAd(); else cancelShortNotesAd();
           }}
         >
           {/* Top row: Your Progress / Study Materials — single TabsList with gradient */}

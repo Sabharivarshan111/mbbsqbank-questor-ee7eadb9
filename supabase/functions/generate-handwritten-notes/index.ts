@@ -17,8 +17,10 @@ const BodySchema = z.object({
   regenerate: z.boolean().optional(),
 });
 
-const BATCH_SIZE = 10;
-const INTER_BATCH_DELAY_MS = 1200;
+// Combine 3 questions into ONE Gemini call, then segregate — reduces total requests.
+const BATCH_SIZE = 3;
+// Rate limit: 5 requests per minute → 12 s between calls.
+const INTER_BATCH_DELAY_MS = 12_000;
 
 const SYSTEM_PROMPT = `You are an expert MBBS professor generating exam-ready HANDWRITTEN-STYLE study notes.
 Given a SUBTOPIC and its previous-year essay + short-note questions, synthesise ONE unified study page.
@@ -275,7 +277,7 @@ Generate the handwritten-style study page JSON now. Ensure every listed question
     return new Response(
       JSON.stringify({
         error: isQuota
-          ? "Daily Gemini quota reached (20/day free tier). Try again tomorrow or upgrade your Gemini plan."
+          ? "Gemini is rate-limited right now. Please try again in a minute."
           : msg,
       }),
       { status: isQuota ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
