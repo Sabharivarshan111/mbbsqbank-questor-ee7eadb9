@@ -8,19 +8,35 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+/**
+ * Two modes, one endpoint:
+ *
+ * 1) GENERATE ONE BATCH — client sends batchIndex (0-based) and batchSize.
+ *    Server slices questions[batchIndex*size .. +size] and calls Gemini ONCE.
+ *    Returns { content, batchIndex, totalBatches, hasMore, estSecondsPerBatch }.
+ *    Client is responsible for spacing calls (>=12s) and merging.
+ *
+ * 2) SAVE MERGED — client sends saveContent=true + content (already merged).
+ *    Server upserts into handwritten_notes cache. No Gemini call.
+ *
+ * The server also serves cache: if batchIndex=0 and !regenerate and a cached
+ * row exists, we return the full cached notes with totalBatches=0/hasMore=false.
+ */
 const BodySchema = z.object({
   subtopicKey: z.string().min(1).max(300),
   year: z.string().min(1).max(40),
   subject: z.string().min(1).max(120),
   subtopicName: z.string().min(1).max(200),
-  questions: z.array(z.string().max(1000)).min(1).max(200),
+  questions: z.array(z.string().max(1000)).min(1).max(400),
+  batchIndex: z.number().int().min(0).max(200).optional(),
+  batchSize: z.number().int().min(1).max(10).optional(),
   regenerate: z.boolean().optional(),
+  saveContent: z.boolean().optional(),
+  content: z.any().optional(),
 });
 
-// Combine 3 questions into ONE Gemini call, then segregate — reduces total requests.
-const BATCH_SIZE = 3;
-// Rate limit: 5 requests per minute → 12 s between calls.
-const INTER_BATCH_DELAY_MS = 12_000;
+const DEFAULT_BATCH_SIZE = 3;
+const EST_SECONDS_PER_BATCH = 15; // Gemini call typically 8-15s; padded for client countdown UX
 
 const SYSTEM_PROMPT = `You are an expert MBBS professor generating exam-ready HANDWRITTEN-STYLE study notes.
 Given a SUBTOPIC and its previous-year essay + short-note questions, synthesise ONE unified study page.
@@ -77,7 +93,7 @@ async function callGemini(apiKey: string, userPrompt: string): Promise<string> {
       generationConfig: {
         temperature: 0.55,
         topP: 0.9,
-        maxOutputTokens: 6000,
+        maxOutputTokens: 8000,
         responseMimeType: "application/json",
       },
     }),
@@ -88,24 +104,23 @@ async function callGemini(apiKey: string, userPrompt: string): Promise<string> {
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  if (!text) throw new GeminiError(500, "Empty response from Gemini");
+  const finishReason = data?.candidates?.[0]?.finishReason;
+  if (!text) throw new GeminiError(500, `Empty response from Gemini (finishReason=${finishReason ?? "?"})`);
   return text;
 }
 
 async function callGeminiWithRetry(apiKey: string, prompt: string): Promise<string> {
-  const delays = [2000, 5000, 12000];
+  const delays = [1500, 4000];
   let lastErr: unknown = null;
-  for (let attempt = 0; attempt < delays.length; attempt++) {
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
     try {
       return await callGemini(apiKey, prompt);
     } catch (e) {
       lastErr = e;
       const status = e instanceof GeminiError ? e.status : 0;
-      // only retry on transient
-      if (status !== 429 && status !== 503 && status !== 500 && status !== 502 && status !== 504) {
-        throw e;
-      }
-      if (attempt < delays.length - 1) {
+      // retry only on transient
+      if (![429, 500, 502, 503, 504].includes(status)) throw e;
+      if (attempt < delays.length) {
         await new Promise((r) => setTimeout(r, delays[attempt]));
       }
     }
@@ -125,50 +140,6 @@ function parseJson(raw: string): any {
     if (!m) throw new Error("Model did not return JSON");
     return JSON.parse(m[0]);
   }
-}
-
-function mergeNotes(parts: any[]): any {
-  const merged: any = { highYieldTip: "", pyqYears: [], sections: [] };
-  const extraTips: string[] = [];
-  const yearSet = new Set<string>();
-  const sectionsByTitle = new Map<string, any>();
-
-  for (const p of parts) {
-    if (!p) continue;
-    if (p.highYieldTip) {
-      if (!merged.highYieldTip) merged.highYieldTip = p.highYieldTip;
-      else extraTips.push(p.highYieldTip);
-    }
-    if (Array.isArray(p.pyqYears)) p.pyqYears.forEach((y: string) => y && yearSet.add(String(y)));
-    if (Array.isArray(p.sections)) {
-      for (const s of p.sections) {
-        const key = (s?.title ?? "").toLowerCase().trim();
-        if (!key) { merged.sections.push(s); continue; }
-        const existing = sectionsByTitle.get(key);
-        if (!existing) {
-          sectionsByTitle.set(key, s);
-          merged.sections.push(s);
-        } else {
-          // merge items where applicable
-          if (existing.payload?.items && s.payload?.items && Array.isArray(existing.payload.items)) {
-            existing.payload.items = [...existing.payload.items, ...s.payload.items];
-          }
-          if (Array.isArray(existing.pyqYears) && Array.isArray(s.pyqYears)) {
-            existing.pyqYears = Array.from(new Set([...existing.pyqYears, ...s.pyqYears]));
-          }
-        }
-      }
-    }
-  }
-  if (extraTips.length) merged.highYieldTip += " " + extraTips.join(" ");
-  merged.pyqYears = Array.from(yearSet).sort();
-  return merged;
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
 }
 
 serve(async (req) => {
@@ -192,92 +163,94 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { subtopicKey, year, subject, subtopicName, questions, regenerate } = parsed.data;
+    const {
+      subtopicKey, year, subject, subtopicName, questions,
+      batchIndex, batchSize, regenerate, saveContent, content,
+    } = parsed.data;
 
-    // 1. Cache
-    if (!regenerate) {
+    // ---------- Mode 2: SAVE merged ----------
+    if (saveContent === true) {
+      if (!content || typeof content !== "object") {
+        return new Response(JSON.stringify({ error: "content required to save" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await admin.from("handwritten_notes").upsert({
+        subtopic_key: subtopicKey,
+        year, subject, subtopic_name: subtopicName,
+        content,
+        updated_at: new Date().toISOString(),
+      });
+      return new Response(JSON.stringify({ saved: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ---------- Mode 1: batch generation ----------
+    const size = batchSize ?? DEFAULT_BATCH_SIZE;
+    const totalBatches = Math.max(1, Math.ceil(questions.length / size));
+    const idx = batchIndex ?? 0;
+
+    // Cache hit on first batch (unless regenerate)
+    if (idx === 0 && !regenerate) {
       const { data: cached } = await admin
         .from("handwritten_notes")
-        .select("content, updated_at")
+        .select("content")
         .eq("subtopic_key", subtopicKey)
         .maybeSingle();
       if (cached?.content) {
-        return new Response(JSON.stringify({ cached: true, content: cached.content }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(JSON.stringify({
+          cached: true,
+          content: cached.content,
+          batchIndex: 0,
+          totalBatches: 1,
+          hasMore: false,
+          estSecondsPerBatch: EST_SECONDS_PER_BATCH,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
-    // 2. Chunk & call Gemini sequentially
-    const batches = questions.length <= BATCH_SIZE ? [questions] : chunk(questions, BATCH_SIZE);
-    const results: any[] = [];
-    const warnings: string[] = [];
-    let firstFatalError: Error | null = null;
+    if (idx >= totalBatches) {
+      return new Response(JSON.stringify({ error: `batchIndex ${idx} out of range (total ${totalBatches})` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      const essayList = batch.map((q, idx) => `${idx + 1}. ${q}`).join("\n");
-      const userPrompt = `SUBJECT: ${subject}
+    const batch = questions.slice(idx * size, idx * size + size);
+    const essayList = batch.map((q, i) => `${i + 1}. ${q}`).join("\n");
+    const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
-${batches.length > 1 ? `\nBATCH ${i + 1} of ${batches.length} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
+${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
 ${essayList}
 
 Generate the handwritten-style study page JSON now. Ensure every listed question is answered inside the sections.`;
 
-      try {
-        const raw = await callGeminiWithRetry(geminiKey, userPrompt);
-        const parsedBatch = parseJson(raw);
-        if (parsedBatch && Array.isArray(parsedBatch.sections)) {
-          results.push(parsedBatch);
-        } else {
-          warnings.push(`Batch ${i + 1}: invalid structure returned`);
-        }
-      } catch (e) {
-        const msg = (e as Error).message ?? "unknown";
-        const status = e instanceof GeminiError ? e.status : 0;
-        warnings.push(`Batch ${i + 1} failed${status ? ` (${status})` : ""}: ${msg.slice(0, 200)}`);
-        // If it's a hard quota failure and we have no results yet, treat as fatal
-        if (results.length === 0 && i === batches.length - 1) {
-          firstFatalError = e as Error;
-        }
-      }
-
-      if (i < batches.length - 1) {
-        await new Promise((r) => setTimeout(r, INTER_BATCH_DELAY_MS));
-      }
+    const raw = await callGeminiWithRetry(geminiKey, userPrompt);
+    const batchContent = parseJson(raw);
+    if (!batchContent || !Array.isArray(batchContent.sections)) {
+      throw new Error("Model returned invalid structure");
     }
 
-    if (results.length === 0) {
-      throw firstFatalError ?? new Error(warnings[0] ?? "All batches failed");
-    }
+    const hasMore = idx + 1 < totalBatches;
+    return new Response(JSON.stringify({
+      cached: false,
+      content: batchContent,
+      batchIndex: idx,
+      totalBatches,
+      hasMore,
+      estSecondsPerBatch: EST_SECONDS_PER_BATCH,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const content = results.length === 1 ? results[0] : mergeNotes(results);
-    if (warnings.length) content.warnings = warnings;
-
-    // 3. Cache (only if fully successful, so retry can succeed later)
-    if (warnings.length === 0) {
-      await admin.from("handwritten_notes").upsert({
-        subtopic_key: subtopicKey,
-        year,
-        subject,
-        subtopic_name: subtopicName,
-        content,
-        updated_at: new Date().toISOString(),
-      });
-    }
-
-    return new Response(JSON.stringify({ cached: false, content, partial: warnings.length > 0 }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   } catch (err) {
     const msg = (err as Error).message ?? "Unknown error";
     console.error("generate-handwritten-notes error:", err);
     const isQuota = /429/.test(msg) || /quota/i.test(msg);
+    const isRate = /rate/i.test(msg);
     return new Response(
       JSON.stringify({
-        error: isQuota
-          ? "Gemini is rate-limited right now. Please try again in a minute."
+        error: isQuota || isRate
+          ? "Gemini is rate-limited right now. Please wait ~60 seconds and retry."
           : msg,
       }),
       { status: isQuota ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
