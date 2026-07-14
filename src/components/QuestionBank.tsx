@@ -189,6 +189,7 @@ const QuestionBank = () => {
             if (next === "progress") {
               handleProgressAd();
             }
+            if (next === "short-notes") scheduleShortNotesAd(); else cancelShortNotesAd();
           }}
         >
           {/* Top row: Your Progress / Study Materials — single TabsList with gradient */}
