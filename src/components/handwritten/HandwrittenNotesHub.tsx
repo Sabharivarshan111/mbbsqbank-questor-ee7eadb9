@@ -266,6 +266,11 @@ function NotesDetailView({
         <div className="rounded-2xl border border-rose-300 bg-rose-50 dark:bg-rose-950/20 p-4">
           <p className="text-sm text-rose-700 dark:text-rose-300 font-medium">Couldn't generate notes</p>
           <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">{error}</p>
+          <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-2">
+            <p className="text-[11px] text-amber-800 dark:text-amber-200">
+              ⚡ Handwritten Notes is in <b>Beta</b>. AI generation can occasionally fail — please try again in a minute.
+            </p>
+          </div>
           <Button size="sm" variant="outline" className="mt-3" onClick={() => load(false)}>Try again</Button>
         </div>
       )}
