@@ -277,7 +277,7 @@ Generate the handwritten-style study page JSON now. Ensure every listed question
     return new Response(
       JSON.stringify({
         error: isQuota
-          ? "Daily Gemini quota reached (20/day free tier). Try again tomorrow or upgrade your Gemini plan."
+          ? "Gemini is rate-limited right now. Please try again in a minute."
           : msg,
       }),
       { status: isQuota ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
