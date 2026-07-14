@@ -17,8 +17,10 @@ const BodySchema = z.object({
   regenerate: z.boolean().optional(),
 });
 
-const BATCH_SIZE = 10;
-const INTER_BATCH_DELAY_MS = 1200;
+// Combine 3 questions into ONE Gemini call, then segregate — reduces total requests.
+const BATCH_SIZE = 3;
+// Rate limit: 5 requests per minute → 12 s between calls.
+const INTER_BATCH_DELAY_MS = 12_000;
 
 const SYSTEM_PROMPT = `You are an expert MBBS professor generating exam-ready HANDWRITTEN-STYLE study notes.
 Given a SUBTOPIC and its previous-year essay + short-note questions, synthesise ONE unified study page.
