@@ -128,11 +128,12 @@ const QuestionBank = () => {
       if (tab === "progress" || tab === "materials" || tab === "essay" || tab === "short-notes") {
         setActiveTab(tab as TabValue);
         if (tab === "progress") handleProgressAd();
+        if (tab === "short-notes") scheduleShortNotesAd(); else cancelShortNotesAd();
       }
     };
     window.addEventListener("orbit:set-tab", handler);
     return () => window.removeEventListener("orbit:set-tab", handler);
-  }, [handleProgressAd, setActiveTab]);
+  }, [handleProgressAd, setActiveTab, scheduleShortNotesAd, cancelShortNotesAd]);
 
   if (!isRendered) {
     return (
