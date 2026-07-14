@@ -198,53 +198,169 @@ function TopicsView({
   );
 }
 
+/** Merge multiple batch payloads into one NotesContent (client-side). */
+function mergeNotes(parts: NotesContent[]): NotesContent {
+  const merged: any = { highYieldTip: "", pyqYears: [], sections: [] };
+  const extraTips: string[] = [];
+  const yearSet = new Set<string>();
+  const byTitle = new Map<string, any>();
+  for (const p of parts) {
+    if (!p) continue;
+    if (p.highYieldTip) {
+      if (!merged.highYieldTip) merged.highYieldTip = p.highYieldTip;
+      else extraTips.push(p.highYieldTip);
+    }
+    if (Array.isArray(p.pyqYears)) p.pyqYears.forEach((y) => y && yearSet.add(String(y)));
+    if (Array.isArray(p.sections)) {
+      for (const s of p.sections) {
+        const key = (s?.title ?? "").toLowerCase().trim();
+        if (!key) { merged.sections.push(s); continue; }
+        const existing = byTitle.get(key);
+        if (!existing) {
+          byTitle.set(key, s);
+          merged.sections.push(s);
+        } else if (existing.payload?.items && s.payload?.items && Array.isArray(existing.payload.items)) {
+          existing.payload.items = [...existing.payload.items, ...s.payload.items];
+        }
+      }
+    }
+  }
+  if (extraTips.length) merged.highYieldTip = (merged.highYieldTip + " " + extraTips.join(" ")).trim();
+  merged.pyqYears = Array.from(yearSet).sort();
+  return merged as NotesContent;
+}
+
+/** Delay between batch requests — respects 5 req/min (12s) + jitter. */
+const INTER_BATCH_DELAY_MS = 13_000;
+
 function NotesDetailView({
   year, subject, topic, onBack,
 }: { year: Year; subject: string; topic: LeafTopic; onBack: () => void }) {
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState<NotesContent | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  // batch state
+  const [totalBatches, setTotalBatches] = useState<number>(0);
+  const [completedBatches, setCompletedBatches] = useState<number>(0);
+  const [phase, setPhase] = useState<"idle" | "loading" | "waiting" | "done">("idle");
+  const [waitSecs, setWaitSecs] = useState<number>(0);
+  const [failedBatches, setFailedBatches] = useState<number[]>([]);
 
-  async function load(regenerate = false) {
-    setError(null);
-    if (regenerate) setRegenerating(true); else setLoading(true);
+  async function callBatch(batchIndex: number, regenerate: boolean) {
+    const { data, error: fnErr } = await supabase.functions.invoke("generate-handwritten-notes", {
+      body: {
+        subtopicKey: topic.key,
+        year: YEAR_LABELS[year],
+        subject,
+        subtopicName: topic.name,
+        questions: topic.questions,
+        batchIndex,
+        batchSize: 3,
+        regenerate: regenerate && batchIndex === 0,
+      },
+    });
+    if (fnErr) {
+      let realMsg = fnErr.message ?? "Failed";
+      try {
+        const ctx = (fnErr as any).context;
+        if (ctx?.json) {
+          const j = await ctx.json();
+          if (j?.error) realMsg = typeof j.error === "string" ? j.error : JSON.stringify(j.error);
+        } else if (ctx?.text) {
+          const t = await ctx.text();
+          if (t) realMsg = t.slice(0, 300);
+        }
+      } catch {}
+      throw new Error(realMsg);
+    }
+    if ((data as any)?.error) throw new Error((data as any).error);
+    return data as {
+      cached: boolean; content: NotesContent;
+      batchIndex: number; totalBatches: number; hasMore: boolean;
+      estSecondsPerBatch: number;
+    };
+  }
+
+  async function saveMerged(merged: NotesContent) {
     try {
-      const { data, error } = await supabase.functions.invoke("generate-handwritten-notes", {
+      await supabase.functions.invoke("generate-handwritten-notes", {
         body: {
           subtopicKey: topic.key,
           year: YEAR_LABELS[year],
           subject,
           subtopicName: topic.name,
           questions: topic.questions,
-          regenerate,
+          saveContent: true,
+          content: merged,
         },
       });
-      if (error) {
-        let realMsg = error.message ?? "Failed to generate notes";
-        try {
-          const ctx = (error as any).context;
-          if (ctx?.json) {
-            const j = await ctx.json();
-            if (j?.error) realMsg = typeof j.error === "string" ? j.error : JSON.stringify(j.error);
-          } else if (ctx?.text) {
-            const t = await ctx.text();
-            if (t) realMsg = t.slice(0, 300);
-          }
-        } catch { /* ignore */ }
-        throw new Error(realMsg);
+    } catch { /* non-fatal */ }
+  }
+
+  async function load(regenerate = false) {
+    setError(null);
+    setContent(null);
+    setCompletedBatches(0);
+    setFailedBatches([]);
+    if (regenerate) setRegenerating(true);
+    setPhase("loading");
+    const collected: NotesContent[] = [];
+    const failed: number[] = [];
+
+    try {
+      // Batch 0
+      const first = await callBatch(0, regenerate);
+      // Cache hit path
+      if (first.cached) {
+        setContent(first.content);
+        setTotalBatches(1);
+        setCompletedBatches(1);
+        setPhase("done");
+        setRegenerating(false);
+        return;
       }
-      if ((data as any)?.error) throw new Error((data as any).error);
-      setContent((data as any).content);
+      collected.push(first.content);
+      setContent(first.content);
+      setTotalBatches(first.totalBatches);
+      setCompletedBatches(1);
+
+      // Remaining batches
+      for (let i = 1; i < first.totalBatches; i++) {
+        // Countdown before next call
+        setPhase("waiting");
+        for (let s = Math.ceil(INTER_BATCH_DELAY_MS / 1000); s > 0; s--) {
+          setWaitSecs(s);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+        setPhase("loading");
+        try {
+          const next = await callBatch(i, false);
+          collected.push(next.content);
+          setContent(mergeNotes(collected));
+          setCompletedBatches(i + 1);
+        } catch (e: any) {
+          failed.push(i + 1);
+          setFailedBatches([...failed]);
+        }
+      }
+
+      setPhase("done");
+      // Persist merged notes (only if at least one batch succeeded and no failures — keeps cache clean)
+      if (collected.length === first.totalBatches && failed.length === 0) {
+        const merged = collected.length === 1 ? collected[0] : mergeNotes(collected);
+        await saveMerged(merged);
+      }
     } catch (e: any) {
       setError(e?.message ?? "Failed to generate notes");
+      setPhase("idle");
     } finally {
-      setLoading(false);
       setRegenerating(false);
     }
   }
 
   useEffect(() => { load(false); /* eslint-disable-next-line */ }, [topic.key]);
+
+  const initialLoading = phase === "loading" && !content;
 
   return (
     <div className="space-y-3">
@@ -252,17 +368,17 @@ function NotesDetailView({
         <BackHeader onBack={onBack} title={topic.name} subtitle={`${subject} • ${YEAR_LABELS[year]}`} />
       </div>
 
-      {loading && (
+      {initialLoading && (
         <div className="rounded-2xl border bg-card p-8 flex flex-col items-center justify-center text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-          <p className="font-medium">Generating handwritten notes…</p>
+          <p className="font-medium">Generating first section…</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Synthesizing {topic.questions.length} essay & short-note questions
+            {topic.questions.length} questions • ~15s per section
           </p>
         </div>
       )}
 
-      {error && !loading && (
+      {error && !content && (
         <div className="rounded-2xl border border-rose-300 bg-rose-50 dark:bg-rose-950/20 p-4">
           <p className="text-sm text-rose-700 dark:text-rose-300 font-medium">Couldn't generate notes</p>
           <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">{error}</p>
@@ -275,25 +391,52 @@ function NotesDetailView({
         </div>
       )}
 
-      {content && !loading && (
+      {content && (
         <>
-          {Array.isArray((content as any).warnings) && (content as any).warnings.length > 0 && (
+          {totalBatches > 1 && (
+            <div className="rounded-xl border bg-card p-3 flex items-center gap-3">
+              <div className="flex-1">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-semibold">
+                    Section {completedBatches} of {totalBatches}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {phase === "waiting" && `Next in ${waitSecs}s`}
+                    {phase === "loading" && "Generating…"}
+                    {phase === "done" && "Complete"}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${(completedBatches / totalBatches) * 100}%` }}
+                  />
+                </div>
+              </div>
+              {(phase === "loading" || phase === "waiting") && (
+                <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+              )}
+            </div>
+          )}
+
+          {failedBatches.length > 0 && phase === "done" && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
-                Partial notes — {(content as any).warnings.length} batch(es) failed
-              </p>
-              <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1">
-                Tap Regenerate later to fill in the missing parts.
+                {failedBatches.length} section(s) failed — showing what we have. Tap Regenerate to retry.
               </p>
             </div>
           )}
+
           <HandwrittenNotesView subtopicName={topic.name} content={content} />
-          <div className="flex justify-center pt-2">
-            <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
-              {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Regenerate
-            </Button>
-          </div>
+
+          {phase === "done" && (
+            <div className="flex justify-center pt-2">
+              <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
+                {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                Regenerate
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
