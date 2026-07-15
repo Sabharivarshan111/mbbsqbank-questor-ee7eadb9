@@ -19,8 +19,8 @@ const SUBJECT_ICONS: Record<string, string> = {
   "general-medicine": "🩺",
   "general-surgery": "🔪",
   "obstetrics-gynaecology": "👶",
-  paediatrics": "🧒",
-  ent: "👂",
+  "paediatrics": "🧒",
+  "ent": "👂",
   ophthalmology: "👁️",
 };
 
