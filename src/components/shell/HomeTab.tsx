@@ -69,7 +69,7 @@ const HERO_SLIDES = [
 
 export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, meta?: any) => void }) {
   const { local } = useProfile();
-  const { todayMinutes, weeklyMinutes } = usePomodoroStats();
+  const { todayMinutes } = usePomodoroStats();
   const streak = useStreak();
   const [slide, setSlide] = useState(0);
 
@@ -102,7 +102,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
     });
   }, [yearKey]);
 
-  const totalStudyMinutes = todayMinutes + weeklyMinutes;
+  const totalStudyMinutes = todayMinutes;
   const focusStr = formatFocusTime(totalStudyMinutes);
 
   return (

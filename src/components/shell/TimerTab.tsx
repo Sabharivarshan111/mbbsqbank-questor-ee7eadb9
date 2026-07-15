@@ -8,7 +8,7 @@ export default function TimerTab() {
     window.dispatchEvent(new CustomEvent("orbit:show-pomodoro"));
   }, []);
 
-  const { todayMinutes, weeklyMinutes } = usePomodoroStats();
+  const { todayMinutes } = usePomodoroStats();
 
   return (
     <div className="space-y-4 pb-4">
@@ -40,7 +40,7 @@ export default function TimerTab() {
         </div>
         <div className="rounded-2xl border border-border/60 bg-card p-4">
           <p className="text-xs text-muted-foreground">This week</p>
-          <p className="text-2xl font-extrabold text-primary">{formatFocusTime(weeklyMinutes)}</p>
+          <p className="text-2xl font-extrabold text-primary">{formatFocusTime(todayMinutes)}</p>
         </div>
       </div>
     </div>
