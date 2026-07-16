@@ -15,8 +15,10 @@ const Index = () => {
   const [tab, setTab] = useState<ShellTab>("home");
   const [aiInitialQuestion, setAiInitialQuestion] = useState<string | undefined>(undefined);
   const [askAiKey, setAskAiKey] = useState(0);
+  const [browseMeta, setBrowseMeta] = useState<{ subject?: string; year?: string; focus?: "search" } | undefined>(undefined);
 
   const goTo = useCallback((next: ShellTab, meta?: any) => {
+    if (next === "browse") setBrowseMeta(meta ?? {});
     setTab(next);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
