@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight } from "lucide-react";
+import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { usePomodoroStats, formatFocusTime } from "@/hooks/use-pomodoro-stats";
