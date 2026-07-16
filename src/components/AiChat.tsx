@@ -31,6 +31,18 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     handleCopyResponse,
     handleSubmitQuestion
   } = useAiChat({ initialQuestion });
+
+  // Auto-submit an initialQuestion passed in via props (e.g. from triple/double-tap routing).
+  const autoSentRef = useRef<string | null>(null);
+  useEffect(() => {
+    const q = (initialQuestion ?? "").trim();
+    if (!q) return;
+    if (autoSentRef.current === q) return;
+    autoSentRef.current = q;
+    // Clear the input field and fire the request immediately.
+    setPrompt("");
+    handleSubmitQuestion(q);
+  }, [initialQuestion, handleSubmitQuestion, setPrompt]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);

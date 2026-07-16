@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight } from "lucide-react";
+import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { usePomodoroStats, formatFocusTime } from "@/hooks/use-pomodoro-stats";
@@ -68,10 +69,11 @@ const HERO_SLIDES = [
 ];
 
 export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, meta?: any) => void }) {
-  const { local } = useProfile();
+  const { local, saveProfile } = useProfile();
   const { todayMinutes } = usePomodoroStats();
   const streak = useStreak();
   const [slide, setSlide] = useState(0);
+  const [yearPickerOpen, setYearPickerOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
@@ -177,7 +179,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
       <section>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-bold">Your Subjects</h3>
-          <button onClick={() => onNavigate("browse")} className="text-sm text-primary font-medium inline-flex items-center gap-1">
+          <button onClick={() => setYearPickerOpen(true)} className="text-sm text-primary font-medium inline-flex items-center gap-1">
             View all <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -232,6 +234,84 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
           </div>
         </div>
       </section>
+
+      {yearPickerOpen && (
+        <YearPickerDialog
+          currentYear={local?.year ?? "second"}
+          onClose={() => setYearPickerOpen(false)}
+          onPick={(y, makeDefault) => {
+            if (makeDefault && local) {
+              saveProfile({ ...local, year: y }).catch(() => {});
+            }
+            setYearPickerOpen(false);
+            const yk = ({ first: "first-year", second: "second-year", third: "third-year", final: "final-year" } as const)[y];
+            onNavigate("browse", { year: yk });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function YearPickerDialog({
+  currentYear,
+  onClose,
+  onPick,
+}: {
+  currentYear: Year;
+  onClose: () => void;
+  onPick: (y: Year, makeDefault: boolean) => void;
+}) {
+  const [pick, setPick] = useState<Year>(currentYear);
+  const [makeDefault, setMakeDefault] = useState(false);
+  const YEARS: { key: Year; label: string }[] = [
+    { key: "first", label: "1st Year" },
+    { key: "second", label: "2nd Year" },
+    { key: "third", label: "3rd Year" },
+    { key: "final", label: "Final Year" },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold">Select Year</h3>
+            <p className="text-xs text-muted-foreground">Choose the year you want to browse</p>
+          </div>
+          <button onClick={onClose} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {YEARS.map((y) => {
+            const active = pick === y.key;
+            const isDefault = currentYear === y.key;
+            return (
+              <button
+                key={y.key}
+                onClick={() => setPick(y.key)}
+                className={`rounded-xl border p-3 text-left transition ${active ? "border-primary bg-primary/10" : "border-border/60 bg-background/40 hover:border-primary/40"}`}
+              >
+                <p className="font-semibold text-sm">{y.label}</p>
+                {isDefault && <p className="text-[10px] text-primary mt-0.5">Current default</p>}
+              </button>
+            );
+          })}
+        </div>
+        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+          <span className={`h-5 w-5 rounded-md border flex items-center justify-center ${makeDefault ? "bg-primary border-primary" : "border-border"}`}>
+            {makeDefault && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+          </span>
+          <input type="checkbox" className="sr-only" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} />
+          Set as my default year
+        </label>
+        <button
+          onClick={() => onPick(pick, makeDefault)}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-fuchsia-500 text-primary-foreground font-semibold"
+        >
+          Browse {YEARS.find((y) => y.key === pick)?.label}
+        </button>
+      </div>
     </div>
   );
 }
