@@ -23,6 +23,14 @@ const Index = () => {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
+  // Hide the floating global Pomodoro widget unless we're on the Timer tab.
+  // (The bottom-nav center button already exposes the Timer, so the old
+  // floating pill/mini-circle was showing up as a duplicate.)
+  useEffect(() => {
+    const evt = tab === "timer" ? "orbit:pomodoro-walkthrough-clear" : "orbit:pomodoro-walkthrough-hide";
+    window.dispatchEvent(new CustomEvent(evt));
+  }, [tab]);
+
   // Route triple-tap / double-tap AI events to the Ask AI tab.
   useEffect(() => {
     const routeToAi = (rawQuestion: string, mcq: boolean) => {

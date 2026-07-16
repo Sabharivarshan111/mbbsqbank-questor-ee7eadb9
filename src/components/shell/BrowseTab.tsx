@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Search, ChevronRight, BookOpen, FileText } from "lucide-react";
+import { ArrowLeft, ChevronRight, BookOpen, FileText, Timer as TimerIcon, Search } from "lucide-react";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { useProfile } from "@/hooks/use-profile";
-import { Accordion } from "@/components/ui/accordion";
-import TopicAccordion from "@/components/TopicAccordion";
-import SearchBar from "@/components/question-bank/SearchBar";
-import NoResultsMessage from "@/components/question-bank/NoResultsMessage";
-import SearchResults from "@/components/question-bank/SearchResults";
+import QuestionCard from "@/components/QuestionCard";
 import { cn } from "@/lib/utils";
 
 const SUBJECT_ICONS: Record<string, string> = {
@@ -46,6 +42,34 @@ const YEAR_LABEL: Record<string, string> = {
 
 type BrowseMeta = { subject?: string; year?: string; focus?: "search" };
 
+/** Locate essay/short-notes question arrays under a node (topic or paper node) */
+function findTypeQuestions(node: any, type: "essay" | "short-notes"): string[] {
+  if (!node) return [];
+  const shortKeys = ["short-notes", "short-note"];
+  const container = node.subtopics ?? node;
+  if (type === "essay") {
+    const e = container?.essay;
+    if (e?.questions) return e.questions as string[];
+  } else {
+    for (const k of shortKeys) {
+      const s = container?.[k];
+      if (s?.questions) return s.questions as string[];
+    }
+  }
+  return [];
+}
+
+/** True if a subtopic key is a leaf question-type container */
+const LEAF_KEYS = new Set(["essay", "short-notes", "short-note"]);
+
+/** Return real topic children of a node, excluding leaf question-type keys */
+function getTopicChildren(node: any): Array<{ key: string; name: string; node: any }> {
+  const subs = node?.subtopics ?? {};
+  return Object.entries(subs)
+    .filter(([k]) => !LEAF_KEYS.has(k))
+    .map(([k, v]: any) => ({ key: k, name: v.name ?? k, node: v }));
+}
+
 export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   const { local } = useProfile();
   const profileYearKey = useMemo(() => {
@@ -55,13 +79,15 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
 
   const [yearKey, setYearKey] = useState<string>(meta?.year ?? profileYearKey);
   const [subjectKey, setSubjectKey] = useState<string | null>(meta?.subject ?? null);
+  const [paperKey, setPaperKey] = useState<string | null>(null);
+  const [topicKey, setTopicKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"essay" | "short-notes">("essay");
-  const [searchQuery, setSearchQuery] = useState("");
   const [tick, setTick] = useState(0);
+  const [search, setSearch] = useState("");
 
-  // React to Home-triggered navigation meta
+  // React to Home navigation meta
   useEffect(() => {
-    if (meta?.subject) setSubjectKey(meta.subject);
+    if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(null); setTopicKey(null); }
     if (meta?.year) setYearKey(meta.year);
   }, [meta?.subject, meta?.year]);
 
@@ -92,118 +118,44 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearNode, tick]);
 
-  // Filtered data for the selected subject (essay OR short-notes only) with search.
-  const filteredData = useMemo(() => {
-    if (!subjectKey || !yearNode?.subtopics?.[subjectKey]) return {};
-    const q = searchQuery.trim().toLowerCase();
+  const subjectNode = subjectKey ? yearNode?.subtopics?.[subjectKey] : null;
+  const subjectHasPapers = !!(subjectNode?.subtopics?.["paper-1"] || subjectNode?.subtopics?.["paper-2"]);
 
-    const filterQuestions = (qs: string[]): string[] | null => {
-      if (!q) return qs.length ? qs : null;
-      const f = qs.filter((x) => x.toLowerCase().includes(q));
-      return f.length ? f : null;
-    };
+  // ---------- Level: TOPIC DETAIL (essay / short-notes questions) ----------
+  if (subjectKey && topicKey) {
+    const parent = paperKey ? subjectNode?.subtopics?.[paperKey] : subjectNode;
+    const topicNode = parent?.subtopics?.[topicKey];
+    const topicName = topicNode?.name ?? topicKey;
+    const essayQs = findTypeQuestions(topicNode, "essay");
+    const shortQs = findTypeQuestions(topicNode, "short-notes");
+    const questions = activeTab === "essay" ? essayQs : shortQs;
+    const q = search.trim().toLowerCase();
+    const filtered = q ? questions.filter((x) => x.toLowerCase().includes(q)) : questions;
 
-    const walk = (content: any): any | null => {
-      if (!content || typeof content !== "object") return null;
-      if (Array.isArray(content.questions)) {
-        const f = filterQuestions(content.questions);
-        return f ? { ...content, questions: f } : null;
-      }
-      if ("essay" in content || "short-notes" in content || "short-note" in content) {
-        const out: any = { ...content };
-        let kept = false;
-        if (activeTab === "essay") {
-          if (content.essay) {
-            const r = walk(content.essay);
-            if (r) { out.essay = r; kept = true; } else { delete out.essay; }
-          }
-          delete out["short-notes"];
-          delete out["short-note"];
-        } else {
-          const key = "short-notes" in content ? "short-notes" : "short-note" in content ? "short-note" : null;
-          if (key && content[key]) {
-            const r = walk(content[key]);
-            if (r) { out[key] = r; kept = true; } else { delete out[key]; }
-          }
-          delete out.essay;
-        }
-        return kept ? out : null;
-      }
-      if (content.subtopics && typeof content.subtopics === "object") {
-        const subs: Record<string, any> = {};
-        let kept = false;
-        for (const [k, v] of Object.entries(content.subtopics)) {
-          if (activeTab === "essay" && (k === "short-notes" || k === "short-note")) continue;
-          if (activeTab === "short-notes" && k === "essay") continue;
-          const r = walk(v);
-          if (r) { subs[k] = r; kept = true; }
-        }
-        return kept ? { ...content, subtopics: subs } : null;
-      }
-      return null;
-    };
-
-    const subjNode = yearNode.subtopics[subjectKey];
-    const walked = walk(subjNode);
-    // Wrap the subject as a single "topic" so TopicAccordion renders it consistently.
-    if (!walked) return {};
-    return { [subjectKey]: walked };
-  }, [subjectKey, yearNode, activeTab, searchQuery]);
-
-  const isSearching = searchQuery.trim().length > 0;
-  const hasResults = Object.keys(filteredData).length > 0;
-
-  // ---------- SUBJECT DRILL-DOWN VIEW ----------
-  if (subjectKey) {
-    const subj = subjects.find((s) => s.key === subjectKey);
     return (
       <div className="space-y-4 pb-4">
-        {/* Header with back */}
-        <header className="pt-2 flex items-center gap-3">
+        <header className="pt-2 flex items-center justify-between gap-3">
           <button
-            onClick={() => { setSubjectKey(null); setSearchQuery(""); }}
-            aria-label="Back to subjects"
+            onClick={() => setTopicKey(null)}
+            aria-label="Back"
             className="h-10 w-10 rounded-full border border-border/60 bg-card flex items-center justify-center active:scale-95 transition"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-widest">{YEAR_LABEL[yearKey]}</p>
-            <h1 className="text-xl font-extrabold truncate flex items-center gap-2">
-              <span className="text-2xl">{subj?.icon ?? "📘"}</span>
-              <span className="bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
-                {subj?.name ?? subjectKey}
-              </span>
-            </h1>
+          <div className="text-center flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-primary">Topic</p>
+            <h1 className="text-lg font-extrabold truncate">{topicName}</h1>
+          </div>
+          <div className="h-10 w-10 rounded-full border border-border/60 flex items-center justify-center opacity-60">
+            <TimerIcon className="h-4 w-4" />
           </div>
         </header>
 
-        {/* Progress ring bar */}
-        {subj && (
-          <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-primary/10 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Subject Progress</p>
-                <p className="text-lg font-bold">{subj.done} <span className="text-xs text-muted-foreground">/ {subj.total} questions</span></p>
-              </div>
-              <div className="text-2xl font-extrabold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
-                {subj.pct}%
-              </div>
-            </div>
-            <div className="h-2 bg-background/50 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary via-fuchsia-500 to-purple-500 transition-all"
-                style={{ width: `${subj.pct}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Segmented Essay / Short-notes */}
         <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-border/60 bg-card">
           {(["essay", "short-notes"] as const).map((t) => {
             const isActive = activeTab === t;
             const Icon = t === "essay" ? BookOpen : FileText;
+            const count = t === "essay" ? essayQs.length : shortQs.length;
             return (
               <button
                 key={t}
@@ -216,47 +168,180 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
                 )}
               >
                 <Icon className="h-4 w-4" />
-                {t === "essay" ? "Essay" : "Short Notes"}
+                {t === "essay" ? "Essays" : "Short Notes"}
+                <span className="ml-1 text-[10px] opacity-80">{count}</span>
               </button>
             );
           })}
         </div>
 
-        <SearchBar searchQuery={searchQuery} handleSearch={(e) => setSearchQuery(e.target.value)} />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search questions..."
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-card border border-border/60 text-sm focus:outline-none focus:border-primary/60"
+          />
+        </div>
 
-        {/* Content */}
-        {!hasResults ? (
-          isSearching ? (
-            <NoResultsMessage searchQuery={searchQuery} />
-          ) : (
-            <div className="text-center py-10 text-sm text-muted-foreground">
-              No {activeTab === "essay" ? "essays" : "short notes"} available for this subject.
-            </div>
-          )
-        ) : isSearching ? (
-          <div className="grid gap-3">
-            <SearchResults data={filteredData as any} activeTab={activeTab} />
+        {filtered.length === 0 ? (
+          <div className="text-center py-10 text-sm text-muted-foreground">
+            No {activeTab === "essay" ? "essays" : "short notes"} available.
           </div>
         ) : (
-          <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur px-1 py-2">
-            <Accordion type="multiple" className="w-full text-foreground">
-              {Object.entries(filteredData).map(([k, topic]: any) => (
-                <TopicAccordion
-                  key={k}
-                  topicKey={k}
-                  topic={topic}
-                  isExpanded={false}
-                  activeTab={activeTab}
-                />
-              ))}
-            </Accordion>
+          <div className="space-y-3">
+            {filtered.map((question, i) => (
+              <QuestionCard
+                key={`${question.slice(0, 40)}-${i}`}
+                question={question}
+                index={i}
+                isFirstYear={yearKey === "first-year"}
+              />
+            ))}
           </div>
         )}
       </div>
     );
   }
 
-  // ---------- SUBJECT PICKER VIEW ----------
+  // ---------- Level: PAPER → TOPIC LIST ----------
+  if (subjectKey && (paperKey || !subjectHasPapers)) {
+    const parent = paperKey ? subjectNode?.subtopics?.[paperKey] : subjectNode;
+    const topics = getTopicChildren(parent);
+    const subj = subjects.find((s) => s.key === subjectKey);
+    const parentName = paperKey ? (parent?.name ?? paperKey) : subj?.name ?? subjectKey;
+
+    return (
+      <div className="space-y-4 pb-4">
+        <header className="pt-2 flex items-center gap-3">
+          <button
+            onClick={() => (paperKey ? setPaperKey(null) : setSubjectKey(null))}
+            aria-label="Back"
+            className="h-10 w-10 rounded-full border border-border/60 bg-card flex items-center justify-center active:scale-95 transition"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="min-w-0 flex-1 text-center">
+            <p className="text-[10px] uppercase tracking-widest text-primary">
+              {topics.length} Topics
+            </p>
+            <h1 className="text-xl font-extrabold truncate bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
+              {parentName}
+            </h1>
+          </div>
+          <div className="h-10 w-10" />
+        </header>
+
+        {topics.length === 0 ? (
+          <div className="text-center py-12 text-sm text-muted-foreground">
+            No topics available.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {topics.map((t, i) => {
+              const all = Array.from(
+                new Set([...collectQuestions(t.node, "essay"), ...collectQuestions(t.node, "short-notes")])
+              );
+              const done = countDone(all);
+              const pct = all.length ? Math.round((done / all.length) * 100) : 0;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => { setTopicKey(t.key); setActiveTab("essay"); setSearch(""); }}
+                  className="w-full text-left rounded-2xl border border-border/60 bg-card hover:border-primary/40 p-4 flex items-center gap-4 active:scale-[0.99] transition"
+                >
+                  <div className="h-14 w-14 rounded-xl border border-primary/40 bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xl">
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{t.name}</p>
+                    <div className="mt-2 h-1 bg-background/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary to-fuchsia-400 rounded-full"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">{done}/{all.length} questions</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ---------- Level: SUBJECT → PAPER PICKER ----------
+  if (subjectKey && subjectHasPapers) {
+    const subj = subjects.find((s) => s.key === subjectKey);
+    const papers = Object.entries(subjectNode!.subtopics)
+      .filter(([k]) => k === "paper-1" || k === "paper-2")
+      .map(([k, v]: any) => ({ key: k, node: v, name: v.name ?? k }));
+    return (
+      <div className="space-y-5 pb-4">
+        <header className="pt-2 flex items-center gap-3">
+          <button
+            onClick={() => setSubjectKey(null)}
+            aria-label="Back"
+            className="h-10 w-10 rounded-full border border-border/60 bg-card flex items-center justify-center active:scale-95 transition"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="min-w-0 flex-1 text-center">
+            <div className="mx-auto h-14 w-14 rounded-full border border-primary/40 bg-primary/10 flex items-center justify-center text-2xl">
+              {subj?.icon ?? "📘"}
+            </div>
+            <p className="mt-2 text-xl font-extrabold tracking-widest bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent uppercase">
+              {subj?.name ?? subjectKey}
+            </p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Select examination paper</p>
+          </div>
+          <div className="h-10 w-10" />
+        </header>
+
+        <div className="space-y-4">
+          {papers.map((p, i) => {
+            const topicsList = getTopicChildren(p.node);
+            const topicPreview = topicsList.map((t) => t.name).slice(0, 12).join(" • ");
+            return (
+              <div key={p.key} className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+                <button
+                  onClick={() => setPaperKey(p.key)}
+                  className="w-full flex items-center gap-4 p-4 hover:bg-primary/5 transition text-left"
+                >
+                  <div className="h-14 w-14 rounded-xl border border-primary/40 bg-primary/10 flex items-center justify-center text-primary font-extrabold">
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lg font-bold">{p.name}</p>
+                    <div className="h-0.5 w-8 bg-primary rounded-full mt-1" />
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </button>
+                {topicPreview && (
+                  <div className="px-4 pb-3 text-xs text-muted-foreground leading-relaxed">
+                    {topicPreview}
+                  </div>
+                )}
+                <button
+                  onClick={() => setPaperKey(p.key)}
+                  className="w-full flex items-center justify-between px-4 py-3 border-t border-border/60 text-primary text-sm font-semibold hover:bg-primary/5 transition"
+                >
+                  <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" /> Explore Questions</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Level: SUBJECT PICKER ----------
   return (
     <div className="space-y-4 pb-4">
       <header className="pt-2">
@@ -264,7 +349,6 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
         <p className="text-sm text-muted-foreground">Pick a year and a subject to dive in</p>
       </header>
 
-      {/* Year chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
         {YEAR_KEYS.map((yk) => {
           const active = yk === yearKey;
@@ -285,7 +369,6 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
         })}
       </div>
 
-      {/* Subject grid */}
       {subjects.length === 0 ? (
         <div className="text-center py-12 text-sm text-muted-foreground">
           No subjects available for {YEAR_LABEL[yearKey]}.
@@ -295,7 +378,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
           {subjects.map((s) => (
             <button
               key={s.key}
-              onClick={() => { setSubjectKey(s.key); setSearchQuery(""); setActiveTab("essay"); }}
+              onClick={() => { setSubjectKey(s.key); setPaperKey(null); setTopicKey(null); }}
               className={cn(
                 "relative overflow-hidden rounded-2xl border border-border/60 p-4 text-left h-44 flex flex-col justify-end group active:scale-[0.98] transition",
                 "bg-gradient-to-br", s.gradient
