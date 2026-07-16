@@ -91,7 +91,7 @@ const Index = () => {
           {tab === "progress" && <ProgressTab />}
         </div>
         <div style={{ display: tab === "browse" ? "block" : "none" }}>
-          {tab === "browse" && <BrowseTab />}
+          {tab === "browse" && <BrowseTab meta={browseMeta} />}
         </div>
       </main>
 
