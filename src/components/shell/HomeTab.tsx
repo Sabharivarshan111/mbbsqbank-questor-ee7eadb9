@@ -69,10 +69,11 @@ const HERO_SLIDES = [
 ];
 
 export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, meta?: any) => void }) {
-  const { local } = useProfile();
+  const { local, saveProfile } = useProfile();
   const { todayMinutes } = usePomodoroStats();
   const streak = useStreak();
   const [slide, setSlide] = useState(0);
+  const [yearPickerOpen, setYearPickerOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
