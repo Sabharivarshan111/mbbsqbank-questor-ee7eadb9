@@ -87,9 +87,10 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
 
   // React to Home navigation meta
   useEffect(() => {
-    if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(null); setTopicKey(null); }
+    if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
     if (meta?.year) setYearKey(meta.year);
-  }, [meta?.subject, meta?.year]);
+    if (meta?.tab) setActiveTab(meta.tab);
+  }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab]);
 
   useEffect(() => {
     const h = () => setTick((t) => t + 1);
