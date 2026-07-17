@@ -74,6 +74,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
   const streak = useStreak();
   const [slide, setSlide] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
