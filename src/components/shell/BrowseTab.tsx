@@ -147,9 +147,14 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
             <p className="text-[10px] uppercase tracking-widest text-primary">Topic</p>
             <h1 className="text-lg font-extrabold truncate">{topicName}</h1>
           </div>
-          <div className="h-10 w-10 rounded-full border border-border/60 flex items-center justify-center opacity-60">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("orbit:show-pomodoro"))}
+            aria-label="Show Pomodoro timer"
+            className="h-10 w-10 rounded-full border border-border/60 bg-card flex items-center justify-center text-primary hover:border-primary/60 active:scale-95 transition"
+          >
             <TimerIcon className="h-4 w-4" />
-          </div>
+          </button>
         </header>
 
         <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-border/60 bg-card">
