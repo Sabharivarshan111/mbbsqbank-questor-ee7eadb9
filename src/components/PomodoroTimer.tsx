@@ -38,7 +38,7 @@ const MODE_EMOJI: Record<PomodoroMode, string> = {
 const PomodoroTimer = () => {
   const { theme: rawTheme } = useTheme();
   const theme = rawTheme === 'custom' ? 'dark' : rawTheme;
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { settings, update: updateSettings } = usePomodoroSettings();
