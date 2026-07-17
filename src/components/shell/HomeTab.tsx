@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X } from "lucide-react";
+import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X, BookOpen, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
@@ -74,6 +74,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
   const streak = useStreak();
   const [slide, setSlide] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 6000);
@@ -115,16 +116,9 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
           <button aria-label="Menu" className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-muted transition">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="relative h-9 w-9">
-              <div className="absolute inset-0 rounded-full border-2 border-primary/70" />
-              <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary/40 to-primary/10" />
-              <div className="absolute -right-0 top-1 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
-            </div>
-            <div>
-              <h1 className="text-lg font-extrabold tracking-tight leading-none">ORBIT</h1>
-              <p className="text-[10px] text-muted-foreground">Learn. Retain. Master.</p>
-            </div>
+          <div>
+            <h1 className="text-lg font-extrabold tracking-tight leading-none">ORBIT</h1>
+            <p className="text-[10px] text-muted-foreground">Learn. Retain. Master.</p>
           </div>
         </div>
         <ThemeToggle />
@@ -133,20 +127,12 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
       {/* Hero card */}
       <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-5">
         <div className="absolute -right-6 -top-6 h-40 w-40 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-        <div className="absolute -right-2 top-2 opacity-90 pointer-events-none">
-          <div className="text-6xl">🧠</div>
-        </div>
         <div className="relative">
-          <div className="flex items-start gap-3">
-            <div className="text-3xl">⚗️</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Welcome to</p>
-              <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
-                {HERO_SLIDES[slide].title}
-              </h2>
-            </div>
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-[85%]">
+          <p className="text-sm text-muted-foreground">Welcome to</p>
+          <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
+            {HERO_SLIDES[slide].title}
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             {HERO_SLIDES[slide].body}
           </p>
           <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2">
@@ -170,7 +156,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
       {/* Quick actions */}
       <section className="grid grid-cols-4 gap-2">
         <QuickAction icon={TrendingUp} label="Progress" sub="Track your learning" color="text-primary" onClick={() => onNavigate("progress")} />
-        <QuickAction icon={Search} label="Search" sub="Find topics instantly" color="text-cyan-400" onClick={() => onNavigate("browse", { focus: "search" })} />
+        <QuickAction icon={Search} label="Search" sub="Find topics instantly" color="text-cyan-400" onClick={() => setSearchOpen(true)} />
         <QuickAction icon={TimerIcon} label="Timer" sub="Focus with Pomodoro" color="text-emerald-400" onClick={() => onNavigate("timer")} />
         <QuickAction icon={Sparkles} label="Ask AI" sub="Get instant help" color="text-fuchsia-400" onClick={() => onNavigate("askai")} />
       </section>
@@ -249,6 +235,194 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
           }}
         />
       )}
+
+      {searchOpen && (
+        <QuestionSearchOverlay
+          onClose={() => setSearchOpen(false)}
+          onPick={(meta) => {
+            setSearchOpen(false);
+            onNavigate("browse", meta);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+type SearchHit = {
+  question: string;
+  year: string;
+  yearLabel: string;
+  subject: string;
+  subjectName: string;
+  paper: string | null;
+  topic: string;
+  topicName: string;
+  type: "essay" | "short-notes";
+};
+
+const SEARCH_YEAR_LABEL: Record<string, string> = {
+  "first-year": "1st Year",
+  "second-year": "2nd Year",
+  "third-year": "3rd Year",
+  "final-year": "Final Year",
+};
+
+function buildSearchIndex(): SearchHit[] {
+  const hits: SearchHit[] = [];
+  const LEAF = new Set(["essay", "short-note", "short-notes"]);
+  const walkTopic = (
+    topicKey: string,
+    topicNode: any,
+    ctx: { year: string; subject: string; subjectName: string; paper: string | null },
+  ) => {
+    if (!topicNode || typeof topicNode !== "object") return;
+    const topicName: string = topicNode.name ?? topicKey;
+    // Collect essay + short-notes questions anywhere under this topic.
+    const essayQs = collectQuestions(topicNode, "essay");
+    const shortQs = collectQuestions(topicNode, "short-notes");
+    for (const q of essayQs) {
+      hits.push({
+        question: q, type: "essay",
+        year: ctx.year, yearLabel: SEARCH_YEAR_LABEL[ctx.year] ?? ctx.year,
+        subject: ctx.subject, subjectName: ctx.subjectName,
+        paper: ctx.paper, topic: topicKey, topicName,
+      });
+    }
+    for (const q of shortQs) {
+      hits.push({
+        question: q, type: "short-notes",
+        year: ctx.year, yearLabel: SEARCH_YEAR_LABEL[ctx.year] ?? ctx.year,
+        subject: ctx.subject, subjectName: ctx.subjectName,
+        paper: ctx.paper, topic: topicKey, topicName,
+      });
+    }
+  };
+  for (const [yearKey, yearNode] of Object.entries((QUESTION_BANK_DATA as any) ?? {})) {
+    const subjects = (yearNode as any)?.subtopics ?? {};
+    for (const [subKey, subNode] of Object.entries(subjects)) {
+      const subjectName = (subNode as any)?.name ?? subKey;
+      const subChildren = (subNode as any)?.subtopics ?? {};
+      const hasPapers = !!(subChildren["paper-1"] || subChildren["paper-2"]);
+      if (hasPapers) {
+        for (const [pKey, pNode] of Object.entries(subChildren)) {
+          if (pKey !== "paper-1" && pKey !== "paper-2") continue;
+          const topics = (pNode as any)?.subtopics ?? {};
+          for (const [tKey, tNode] of Object.entries(topics)) {
+            if (LEAF.has(tKey)) continue;
+            walkTopic(tKey, tNode, { year: yearKey, subject: subKey, subjectName, paper: pKey });
+          }
+        }
+      } else {
+        for (const [tKey, tNode] of Object.entries(subChildren)) {
+          if (LEAF.has(tKey)) continue;
+          walkTopic(tKey, tNode, { year: yearKey, subject: subKey, subjectName, paper: null });
+        }
+      }
+    }
+  }
+  return hits;
+}
+
+function QuestionSearchOverlay({
+  onClose,
+  onPick,
+}: {
+  onClose: () => void;
+  onPick: (meta: { year: string; subject: string; paper?: string; topic: string; tab: "essay" | "short-notes" }) => void;
+}) {
+  const [q, setQ] = useState("");
+  const index = useMemo(() => buildSearchIndex(), []);
+  const results = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (query.length < 2) return [] as SearchHit[];
+    const words = query.split(/\s+/).filter(Boolean);
+    const scored = index
+      .map((h) => {
+        const hay = `${h.question} ${h.topicName} ${h.subjectName}`.toLowerCase();
+        const ok = words.every((w) => hay.includes(w));
+        if (!ok) return null;
+        // Rank: prefix on question wins
+        let score = 0;
+        if (h.question.toLowerCase().startsWith(query)) score += 100;
+        if (h.topicName.toLowerCase().includes(query)) score += 20;
+        if (h.subjectName.toLowerCase().includes(query)) score += 10;
+        return { h, score };
+      })
+      .filter(Boolean) as { h: SearchHit; score: number }[];
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 60).map((s) => s.h);
+  }, [q, index]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col" onClick={onClose}>
+      <div
+        className="mx-auto w-full max-w-2xl h-full flex flex-col p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            onClick={onClose}
+            aria-label="Close search"
+            className="h-10 w-10 rounded-full bg-card border border-border/60 flex items-center justify-center"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              autoFocus
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search questions here"
+              className="w-full pl-10 pr-3 py-3 rounded-full bg-card border border-border/60 text-sm focus:outline-none focus:border-primary/60"
+            />
+          </div>
+        </div>
+        <div className="flex-1 mt-4 overflow-y-auto space-y-2 pb-6">
+          {q.trim().length < 2 && (
+            <div className="text-center text-sm text-muted-foreground mt-10">
+              Type at least 2 letters — a question, chapter, or subject.
+            </div>
+          )}
+          {q.trim().length >= 2 && results.length === 0 && (
+            <div className="text-center text-sm text-muted-foreground mt-10">
+              No matches found.
+            </div>
+          )}
+          {results.map((h, i) => {
+            const Icon = h.type === "essay" ? BookOpen : FileText;
+            return (
+              <button
+                key={i}
+                onClick={() =>
+                  onPick({
+                    year: h.year,
+                    subject: h.subject,
+                    paper: h.paper ?? undefined,
+                    topic: h.topic,
+                    tab: h.type,
+                  })
+                }
+                className="w-full text-left rounded-xl border border-border/60 bg-card hover:border-primary/50 p-3 transition"
+              >
+                <p className="text-sm font-medium line-clamp-2">{h.question}</p>
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-primary">
+                    <Icon className="h-3 w-3" />
+                    {h.type === "essay" ? "Essay" : "Short Note"}
+                  </span>
+                  <span>·</span>
+                  <span className="truncate">{h.yearLabel} → {h.subjectName}{h.paper ? ` → ${h.paper === "paper-1" ? "Paper 1" : "Paper 2"}` : ""} → {h.topicName}</span>
+                </div>
+                <div className="mt-2 text-[11px] text-primary font-semibold inline-flex items-center gap-1">
+                  Switch to this chapter <ChevronRight className="h-3 w-3" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

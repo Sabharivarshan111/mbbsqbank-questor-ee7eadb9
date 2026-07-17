@@ -1,13 +1,7 @@
-import { useEffect } from "react";
 import { Timer as TimerIcon, Play } from "lucide-react";
 import { usePomodoroStats, formatFocusTime } from "@/hooks/use-pomodoro-stats";
 
 export default function TimerTab() {
-  useEffect(() => {
-    // Ensure the floating Pomodoro widget is visible when this tab opens.
-    window.dispatchEvent(new CustomEvent("orbit:show-pomodoro"));
-  }, []);
-
   const { todayMinutes } = usePomodoroStats();
 
   return (

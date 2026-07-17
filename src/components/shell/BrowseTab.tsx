@@ -40,7 +40,7 @@ const YEAR_LABEL: Record<string, string> = {
   "final-year": "Final Year",
 };
 
-type BrowseMeta = { subject?: string; year?: string; focus?: "search" };
+type BrowseMeta = { subject?: string; year?: string; paper?: string; topic?: string; tab?: "essay" | "short-notes"; focus?: "search" };
 
 /** Locate essay/short-notes question arrays under a node (topic or paper node) */
 function findTypeQuestions(node: any, type: "essay" | "short-notes"): string[] {
@@ -87,9 +87,10 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
 
   // React to Home navigation meta
   useEffect(() => {
-    if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(null); setTopicKey(null); }
+    if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
     if (meta?.year) setYearKey(meta.year);
-  }, [meta?.subject, meta?.year]);
+    if (meta?.tab) setActiveTab(meta.tab);
+  }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab]);
 
   useEffect(() => {
     const h = () => setTick((t) => t + 1);
@@ -146,9 +147,14 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
             <p className="text-[10px] uppercase tracking-widest text-primary">Topic</p>
             <h1 className="text-lg font-extrabold truncate">{topicName}</h1>
           </div>
-          <div className="h-10 w-10 rounded-full border border-border/60 flex items-center justify-center opacity-60">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("orbit:show-pomodoro"))}
+            aria-label="Show Pomodoro timer"
+            className="h-10 w-10 rounded-full border border-border/60 bg-card flex items-center justify-center text-primary hover:border-primary/60 active:scale-95 transition"
+          >
             <TimerIcon className="h-4 w-4" />
-          </div>
+          </button>
         </header>
 
         <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-border/60 bg-card">

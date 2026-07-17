@@ -23,13 +23,8 @@ const Index = () => {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
-  // Hide the floating global Pomodoro widget unless we're on the Timer tab.
-  // (The bottom-nav center button already exposes the Timer, so the old
-  // floating pill/mini-circle was showing up as a duplicate.)
-  useEffect(() => {
-    const evt = tab === "timer" ? "orbit:pomodoro-walkthrough-clear" : "orbit:pomodoro-walkthrough-hide";
-    window.dispatchEvent(new CustomEvent(evt));
-  }, [tab]);
+  // Floating Pomodoro pill is hidden by default; user opens it via the
+  // topic detail top-right timer icon, or from the Timer tab's Show button.
 
   // Route triple-tap / double-tap AI events to the Ask AI tab.
   useEffect(() => {

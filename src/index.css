@@ -883,7 +883,7 @@ html.liquid-glass button:not(.bg-primary):not([data-state="checked"]):not(.bg-de
   -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
-html.liquid-glass .bg-background:not(body) {
+html.liquid-glass .bg-background:not(body):not(.min-h-screen):not(nav) {
   background-color: hsl(0 0% 100% / 0.7) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
