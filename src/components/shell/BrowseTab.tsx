@@ -40,7 +40,7 @@ const YEAR_LABEL: Record<string, string> = {
   "final-year": "Final Year",
 };
 
-type BrowseMeta = { subject?: string; year?: string; focus?: "search" };
+type BrowseMeta = { subject?: string; year?: string; paper?: string; topic?: string; tab?: "essay" | "short-notes"; focus?: "search" };
 
 /** Locate essay/short-notes question arrays under a node (topic or paper node) */
 function findTypeQuestions(node: any, type: "essay" | "short-notes"): string[] {
