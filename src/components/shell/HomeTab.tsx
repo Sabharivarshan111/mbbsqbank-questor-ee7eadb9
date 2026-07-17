@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X } from "lucide-react";
+import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowRight, Flag, Menu, ChevronRight, Check, X, BookOpen, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
