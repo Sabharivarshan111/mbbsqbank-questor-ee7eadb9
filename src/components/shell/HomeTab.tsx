@@ -116,16 +116,9 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
           <button aria-label="Menu" className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-muted transition">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="relative h-9 w-9">
-              <div className="absolute inset-0 rounded-full border-2 border-primary/70" />
-              <div className="absolute inset-1 rounded-full bg-gradient-to-br from-primary/40 to-primary/10" />
-              <div className="absolute -right-0 top-1 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
-            </div>
-            <div>
-              <h1 className="text-lg font-extrabold tracking-tight leading-none">ORBIT</h1>
-              <p className="text-[10px] text-muted-foreground">Learn. Retain. Master.</p>
-            </div>
+          <div>
+            <h1 className="text-lg font-extrabold tracking-tight leading-none">ORBIT</h1>
+            <p className="text-[10px] text-muted-foreground">Learn. Retain. Master.</p>
           </div>
         </div>
         <ThemeToggle />
@@ -134,20 +127,12 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
       {/* Hero card */}
       <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-5">
         <div className="absolute -right-6 -top-6 h-40 w-40 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-        <div className="absolute -right-2 top-2 opacity-90 pointer-events-none">
-          <div className="text-6xl">🧠</div>
-        </div>
         <div className="relative">
-          <div className="flex items-start gap-3">
-            <div className="text-3xl">⚗️</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Welcome to</p>
-              <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
-                {HERO_SLIDES[slide].title}
-              </h2>
-            </div>
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-[85%]">
+          <p className="text-sm text-muted-foreground">Welcome to</p>
+          <h2 className="text-2xl font-extrabold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent">
+            {HERO_SLIDES[slide].title}
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             {HERO_SLIDES[slide].body}
           </p>
           <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2">
@@ -171,7 +156,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
       {/* Quick actions */}
       <section className="grid grid-cols-4 gap-2">
         <QuickAction icon={TrendingUp} label="Progress" sub="Track your learning" color="text-primary" onClick={() => onNavigate("progress")} />
-        <QuickAction icon={Search} label="Search" sub="Find topics instantly" color="text-cyan-400" onClick={() => onNavigate("browse", { focus: "search" })} />
+        <QuickAction icon={Search} label="Search" sub="Find topics instantly" color="text-cyan-400" onClick={() => setSearchOpen(true)} />
         <QuickAction icon={TimerIcon} label="Timer" sub="Focus with Pomodoro" color="text-emerald-400" onClick={() => onNavigate("timer")} />
         <QuickAction icon={Sparkles} label="Ask AI" sub="Get instant help" color="text-fuchsia-400" onClick={() => onNavigate("askai")} />
       </section>
