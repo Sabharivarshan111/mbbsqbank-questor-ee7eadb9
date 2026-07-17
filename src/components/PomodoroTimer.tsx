@@ -163,8 +163,8 @@ const PomodoroTimer = () => {
 
   useEffect(() => {
     const savedVisibility = localStorage.getItem('pomodoroVisible');
-    if (savedVisibility !== null) {
-      setIsVisible(savedVisibility === 'true');
+    if (savedVisibility === 'true') {
+      setIsVisible(true);
     }
   }, []);
 
