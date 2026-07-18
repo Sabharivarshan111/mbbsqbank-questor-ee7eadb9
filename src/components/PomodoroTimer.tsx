@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Timer, X, Settings2 } from 'lucide-react';
-import { usePomodoroTimer, type PomodoroMode } from '@/hooks/use-pomodoro-timer';
-import { usePomodoroSettings, defaultPomodoroSettings } from '@/hooks/use-pomodoro-settings';
-import { usePomodoroStats, formatFocusTime } from '@/hooks/use-pomodoro-stats';
-import { playSound, vibrate, primeAudio } from '@/lib/timer-sounds';
+import { type PomodoroMode } from '@/hooks/use-pomodoro-timer';
+import { formatFocusTime } from '@/hooks/use-pomodoro-stats';
+import { primeAudio } from '@/lib/timer-sounds';
 import { TimerControls } from './pomodoro/TimerControls';
 import { TimerDisplay } from './pomodoro/TimerDisplay';
 import { TimerProgress } from './pomodoro/TimerProgress';
@@ -13,15 +12,14 @@ import { useTheme } from './theme/ThemeProvider';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useOnlinePresence } from '@/hooks/use-online-presence';
-import { toast } from '@/components/ui/use-toast';
 import { useLongPressDrag } from '@/hooks/use-long-press-drag';
 import { useProfile } from '@/hooks/use-profile';
 import { useCalendarEvents } from '@/hooks/use-calendar-events';
-import { useExamTarget, deriveDailyTarget } from '@/hooks/use-exam-target';
-import { getYearNode } from '@/lib/year-subjects';
-import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
+import { useExamTarget } from '@/hooks/use-exam-target';
+import { QUESTION_PROGRESS_EVENT } from '@/lib/question-progress';
 import { format } from 'date-fns';
 import { scheduleOne, cancel, NOTIF_IDS } from '@/lib/notifications';
+import { usePomodoroCtx } from '@/hooks/pomodoro-context';
 
 const MODE_LABEL: Record<PomodoroMode, string> = {
   focus: 'Focus',
@@ -41,13 +39,13 @@ const PomodoroTimer = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const { settings, update: updateSettings } = usePomodoroSettings();
-  const { todayMinutes, addFocusMinutes } = usePomodoroStats();
+  const ctx = usePomodoroCtx();
+  const { settings, updateSettings, todayMinutes, factoryReset } = ctx;
   const { onlineCount } = useOnlinePresence();
   const { userId, local } = useProfile();
   const year = local?.year ?? 'first';
   const { events: calendarEvents } = useCalendarEvents(userId);
-  const { target, doneToday } = useExamTarget(userId, year);
+  const { target } = useExamTarget(userId, year);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const todayEvents = calendarEvents.filter((e) => e.event_date === todayKey);
   const reminderText = todayEvents.length === 0
@@ -57,7 +55,6 @@ const PomodoroTimer = () => {
       : todayEvents.slice(0, 2).map((e) => e.title).join(' • ') +
         (todayEvents.length > 2 ? ` +${todayEvents.length - 2} more` : '');
 
-  // Daily-target line — recompute on tick events
   const [, setQTick] = useState(0);
   useEffect(() => {
     const h = () => setQTick((t) => t + 1);
@@ -74,30 +71,6 @@ const PomodoroTimer = () => {
     if (days === 1) return `🎯 ${name} · 1 day left`;
     return `🎯 ${name} · ${days} days left`;
   })();
-
-  const handleComplete = useCallback(
-    (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
-      if (completed === 'focus') {
-        addFocusMinutes(completedMins);
-      }
-      if (settings.sound !== 'off') {
-        playSound(settings.sound, settings.volume);
-      }
-      if (settings.vibrate) {
-        vibrate(completed === 'focus' ? [200, 100, 200] : [120]);
-      }
-      const messages: Record<PomodoroMode, string> = {
-        focus: `Focus done! Take a ${next === 'long' ? 'long' : 'short'} break ${MODE_EMOJI[next]}`,
-        short: 'Break over — back to focus 🍅',
-        long: 'Long break over — back to focus 🍅',
-      };
-      toast({
-        title: "Time's up!",
-        description: messages[completed],
-      });
-    },
-    [addFocusMinutes, settings.sound, settings.volume, settings.vibrate],
-  );
 
   const {
     mode,
@@ -122,19 +95,13 @@ const PomodoroTimer = () => {
     handleSubmit,
     startEditing,
     handleKeyDown,
-  } = usePomodoroTimer({
-    focusMinutes: settings.focus,
-    shortMinutes: settings.short,
-    longMinutes: settings.long,
-    longEvery: settings.longEvery,
-    onComplete: handleComplete,
-  });
+  } = ctx;
 
-  // Wrap toggleTimer so the first user gesture unlocks audio on mobile
   const handleToggle = useCallback(() => {
     primeAudio();
     toggleTimer();
   }, [toggleTimer]);
+
 
   // Schedule a local OS notification for when the current session ends (Capacitor only)
   useEffect(() => {
@@ -365,10 +332,7 @@ const PomodoroTimer = () => {
   };
 
 
-  const handleFactoryReset = useCallback(() => {
-    updateSettings(defaultPomodoroSettings);
-    resetCycle();
-  }, [updateSettings, resetCycle]);
+  const handleFactoryReset = factoryReset;
 
   const settingsSheet = (
     <PomodoroSettingsSheet
@@ -396,32 +360,9 @@ const PomodoroTimer = () => {
     return settingsSheet;
   }
 
+  // Hide entirely when not explicitly shown — no mini-circle protruding under the bottom nav.
   if (showAsMini) {
-    return (
-      <>
-        {createPortal(
-          <div ref={miniCircleRef} data-tour="pomodoro-pill" style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={toggleVisibility}
-                    className={`h-full w-full rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
-                    size="icon"
-                    variant="outline"
-                    aria-label="Show Pomodoro timer"
-                  >
-                    <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>,
-          floatingPortalRoot,
-        )}
-      </>
-    );
+    return null;
   }
 
 
