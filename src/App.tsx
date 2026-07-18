@@ -45,35 +45,37 @@ const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <GlobalCelebrations />
-        <ExamReminderPopup />
-        <ScreenTimeTracker />
-        <NotificationSync />
-        <AdPreloader />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/study-tips" element={<StudyTips />} />
-            <Route path="/articles/anatomy-guide" element={<HowToStudyAnatomy />} />
-            <Route path="/articles/pharmacology-guide" element={<PharmacologyStudyGuide />} />
-            <Route path="/articles/pathology-basics" element={<PathologyBasics />} />
-            <Route path="/articles/exam-preparation" element={<MBBSExamPreparation />} />
-            <Route path="/articles/mcq-strategies" element={<MCQSolvingStrategies />} />
-            <Route path="/subjects/anatomy" element={<Anatomy />} />
-            <Route path="/subjects/physiology" element={<Physiology />} />
-            <Route path="/subjects/pathology" element={<Pathology />} />
-            <Route path="/subjects/pharmacology" element={<Pharmacology />} />
-            <Route path="/subjects/biochemistry" element={<Biochemistry />} />
-            <Route path="/subjects/microbiology" element={<Microbiology />} />
-          </Routes>
-        </BrowserRouter>
+        <PomodoroProvider>
+          <Toaster />
+          <Sonner />
+          <GlobalCelebrations />
+          <ExamReminderPopup />
+          <ScreenTimeTracker />
+          <NotificationSync />
+          <AdPreloader />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/study-tips" element={<StudyTips />} />
+              <Route path="/articles/anatomy-guide" element={<HowToStudyAnatomy />} />
+              <Route path="/articles/pharmacology-guide" element={<PharmacologyStudyGuide />} />
+              <Route path="/articles/pathology-basics" element={<PathologyBasics />} />
+              <Route path="/articles/exam-preparation" element={<MBBSExamPreparation />} />
+              <Route path="/articles/mcq-strategies" element={<MCQSolvingStrategies />} />
+              <Route path="/subjects/anatomy" element={<Anatomy />} />
+              <Route path="/subjects/physiology" element={<Physiology />} />
+              <Route path="/subjects/pathology" element={<Pathology />} />
+              <Route path="/subjects/pharmacology" element={<Pharmacology />} />
+              <Route path="/subjects/biochemistry" element={<Biochemistry />} />
+              <Route path="/subjects/microbiology" element={<Microbiology />} />
+            </Routes>
+          </BrowserRouter>
+        </PomodoroProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>
