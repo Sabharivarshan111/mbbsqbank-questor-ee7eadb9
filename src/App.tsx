@@ -26,6 +26,7 @@ import GlobalCelebrations from "./components/GlobalCelebrations";
 import ExamReminderPopup from "./components/ExamReminderPopup";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
+import { PomodoroProvider } from "./hooks/pomodoro-context";
 
 
 
