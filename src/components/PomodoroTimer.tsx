@@ -360,32 +360,9 @@ const PomodoroTimer = () => {
     return settingsSheet;
   }
 
+  // Hide entirely when not explicitly shown — no mini-circle protruding under the bottom nav.
   if (showAsMini) {
-    return (
-      <>
-        {createPortal(
-          <div ref={miniCircleRef} data-tour="pomodoro-pill" style={miniCircleStyle} className="pomodoro-floating-default pomodoro-floating-mini animate-fade-in">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={toggleVisibility}
-                    className={`h-full w-full rounded-full p-2 shadow-lg ${styles.background} ${styles.text}`}
-                    size="icon"
-                    variant="outline"
-                    aria-label="Show Pomodoro timer"
-                  >
-                    <Timer className={`w-5 h-5 ${styles.iconColor}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Show Pomodoro timer</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>,
-          floatingPortalRoot,
-        )}
-      </>
-    );
+    return null;
   }
 
 
