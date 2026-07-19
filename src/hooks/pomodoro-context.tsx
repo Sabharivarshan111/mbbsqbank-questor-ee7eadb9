@@ -9,6 +9,7 @@ type Ctx = ReturnType<typeof usePomodoroTimer> & {
   settings: ReturnType<typeof usePomodoroSettings>['settings'];
   updateSettings: ReturnType<typeof usePomodoroSettings>['update'];
   todayMinutes: number;
+  lifetimeMinutes: number;
   factoryReset: () => void;
 };
 
