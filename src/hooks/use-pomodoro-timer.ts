@@ -318,6 +318,18 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
   const progressPercentage =
     totalTime > 0 ? Math.max(0, Math.min(100, (remainingTime / totalTime) * 100)) : 0;
 
+  const setCustomMinutes = useCallback((mins: number) => {
+    if (isRunning) return;
+    const v = Math.min(Math.max(1, Math.round(mins)), 99);
+    runStartRef.current = null;
+    clearPersisted();
+    setMinutes(v);
+    setSeconds(0);
+    setTotalTime(v * 60);
+    setRemainingTime(v * 60);
+    setInputValue(v.toString());
+  }, [isRunning]);
+
   return {
     mode,
     pomodoroCount,
@@ -342,5 +354,6 @@ export function usePomodoroTimer(opts: UsePomodoroTimerOptions) {
     handleSubmit,
     startEditing,
     handleKeyDown,
+    setCustomMinutes,
   };
 }
