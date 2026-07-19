@@ -88,7 +88,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
     });
   }, [yearKey]);
 
-  const totalStudyMinutes = todayMinutes;
+  const totalStudyMinutes = lifetimeMinutes;
   const focusStr = formatFocusTime(totalStudyMinutes);
 
   return (
