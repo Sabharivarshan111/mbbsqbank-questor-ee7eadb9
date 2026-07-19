@@ -19,7 +19,7 @@ const MODE_EMOJI: Record<PomodoroMode, string> = { focus: '🍅', short: '☕', 
 
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   const { settings, update: updateSettings } = usePomodoroSettings();
-  const { todayMinutes, addFocusMinutes } = usePomodoroStats();
+  const { todayMinutes, lifetimeMinutes, addFocusMinutes } = usePomodoroStats();
 
   const handleComplete = useCallback(
     (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
