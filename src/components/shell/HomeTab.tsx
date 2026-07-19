@@ -34,24 +34,7 @@ const SUBJECT_GRADIENTS: Record<string, string> = {
   microbiology: "from-emerald-600/40 to-green-900/60",
 };
 
-function useStreak(): number {
-  const [streak, setStreak] = useState(0);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("orbit:streak");
-      if (raw) setStreak(parseInt(raw, 10) || 0);
-    } catch {}
-    const h = () => {
-      try {
-        const raw = localStorage.getItem("orbit:streak");
-        setStreak(raw ? parseInt(raw, 10) || 0 : 0);
-      } catch {}
-    };
-    window.addEventListener(QUESTION_PROGRESS_EVENT, h);
-    return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
-  }, []);
-  return streak;
-}
+// Streak is derived from the profile hook (cloud when signed in, else local).
 
 const HERO_SLIDES = [
   {
