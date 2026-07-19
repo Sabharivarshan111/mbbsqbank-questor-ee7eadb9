@@ -33,12 +33,18 @@ function writeStats(stats: StatsMap) {
   }
 }
 
+function sumAll(stats: StatsMap): number {
+  return Object.values(stats).reduce((a, b) => a + (b || 0), 0);
+}
+
 export function usePomodoroStats() {
   const [todayMinutes, setTodayMinutes] = useState(0);
+  const [lifetimeMinutes, setLifetimeMinutes] = useState(0);
 
   useEffect(() => {
     const stats = readStats();
     setTodayMinutes(stats[todayKey()] ?? 0);
+    setLifetimeMinutes(sumAll(stats));
   }, []);
 
   const addFocusMinutes = useCallback((mins: number) => {
@@ -47,9 +53,10 @@ export function usePomodoroStats() {
     stats[key] = (stats[key] ?? 0) + mins;
     writeStats(stats);
     setTodayMinutes(stats[key]);
+    setLifetimeMinutes(sumAll(stats));
   }, []);
 
-  return { todayMinutes, addFocusMinutes };
+  return { todayMinutes, lifetimeMinutes, addFocusMinutes };
 }
 
 export function formatFocusTime(mins: number): string {
