@@ -52,9 +52,9 @@ const HERO_SLIDES = [
 ];
 
 export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, meta?: any) => void }) {
-  const { local, saveProfile } = useProfile();
-  const { todayMinutes } = usePomodoroStats();
-  const streak = useStreak();
+  const { local, cloud, saveProfile } = useProfile();
+  const { todayMinutes, lifetimeMinutes } = usePomodoroStats();
+  const streak = cloud?.streak ?? 0;
   const [slide, setSlide] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
