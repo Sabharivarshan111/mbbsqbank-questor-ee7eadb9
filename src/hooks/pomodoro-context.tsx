@@ -49,7 +49,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     timer.resetCycle();
   }, [updateSettings, timer]);
 
-  const value: Ctx = { ...timer, settings, updateSettings, todayMinutes, factoryReset };
+  const value: Ctx = { ...timer, settings, updateSettings, todayMinutes, lifetimeMinutes, factoryReset };
   return <PomodoroCtx.Provider value={value}>{children}</PomodoroCtx.Provider>;
 }
 
