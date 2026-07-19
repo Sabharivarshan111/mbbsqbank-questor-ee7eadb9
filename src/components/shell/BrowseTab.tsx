@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronRight, BookOpen, FileText, Timer as TimerIcon, Search } from "lucide-react";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { useProfile } from "@/hooks/use-profile";
 import QuestionCard from "@/components/QuestionCard";
+import { showRewardedAd } from "@/services/AndroidAds";
+import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 const SUBJECT_ICONS: Record<string, string> = {
