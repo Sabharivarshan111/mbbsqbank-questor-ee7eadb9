@@ -115,7 +115,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   useEffect(() => {
     if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
     if (meta?.year) setYearKey(meta.year);
-    if (meta?.tab) setActiveTab(meta.tab);
+    if (meta?.tab) handleTabChange(meta.tab);
   }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab]);
 
   useEffect(() => {
