@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronRight, BookOpen, FileText, Timer as TimerIcon, Search } from "lucide-react";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { useProfile } from "@/hooks/use-profile";
 import QuestionCard from "@/components/QuestionCard";
+import { showRewardedAd } from "@/services/AndroidAds";
+import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 const SUBJECT_ICONS: Record<string, string> = {
@@ -85,11 +87,35 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   const [tick, setTick] = useState(0);
   const [search, setSearch] = useState("");
 
+  // Once-per-day rewarded ad when opening Short Notes tab.
+  const SN_AD_KEY = "orbit:ad:shortNotesShownDate";
+  const shortNotesAdFiredRef = useRef(false);
+  const triggerShortNotesAd = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (shortNotesAdFiredRef.current) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(SN_AD_KEY) === today) return;
+    shortNotesAdFiredRef.current = true;
+    localStorage.setItem(SN_AD_KEY, today);
+    toast({
+      title: "Sponsored",
+      description: "A short ad plays once per day on Short Notes to keep Orbit free. Sorry for the inconvenience!",
+    });
+    void showRewardedAd("short-notes").then((r) => {
+      console.log(`[ShortNotes] Ad: ${r.completed ? "completed" : r.reason ?? "unknown"}`);
+    });
+  }, []);
+
+  const handleTabChange = useCallback((t: "essay" | "short-notes") => {
+    setActiveTab(t);
+    if (t === "short-notes") triggerShortNotesAd();
+  }, [triggerShortNotesAd]);
+
   // React to Home navigation meta
   useEffect(() => {
     if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
     if (meta?.year) setYearKey(meta.year);
-    if (meta?.tab) setActiveTab(meta.tab);
+    if (meta?.tab) handleTabChange(meta.tab);
   }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab]);
 
   useEffect(() => {
@@ -165,7 +191,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
             return (
               <button
                 key={t}
-                onClick={() => setActiveTab(t)}
+                onClick={() => handleTabChange(t)}
                 className={cn(
                   "py-2.5 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all",
                   isActive

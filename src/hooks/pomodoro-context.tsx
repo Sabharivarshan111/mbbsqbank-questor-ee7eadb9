@@ -9,6 +9,7 @@ type Ctx = ReturnType<typeof usePomodoroTimer> & {
   settings: ReturnType<typeof usePomodoroSettings>['settings'];
   updateSettings: ReturnType<typeof usePomodoroSettings>['update'];
   todayMinutes: number;
+  lifetimeMinutes: number;
   factoryReset: () => void;
 };
 
@@ -18,7 +19,7 @@ const MODE_EMOJI: Record<PomodoroMode, string> = { focus: '🍅', short: '☕', 
 
 export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   const { settings, update: updateSettings } = usePomodoroSettings();
-  const { todayMinutes, addFocusMinutes } = usePomodoroStats();
+  const { todayMinutes, lifetimeMinutes, addFocusMinutes } = usePomodoroStats();
 
   const handleComplete = useCallback(
     (completed: PomodoroMode, next: PomodoroMode, completedMins: number) => {
@@ -48,7 +49,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     timer.resetCycle();
   }, [updateSettings, timer]);
 
-  const value: Ctx = { ...timer, settings, updateSettings, todayMinutes, factoryReset };
+  const value: Ctx = { ...timer, settings, updateSettings, todayMinutes, lifetimeMinutes, factoryReset };
   return <PomodoroCtx.Provider value={value}>{children}</PomodoroCtx.Provider>;
 }
 

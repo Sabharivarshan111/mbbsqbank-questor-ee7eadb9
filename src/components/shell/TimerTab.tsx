@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Settings2, Coffee, Timer as TimerIcon, Sparkles } from "lucide-react";
 import { usePomodoroCtx } from "@/hooks/pomodoro-context";
 import { formatFocusTime } from "@/hooks/use-pomodoro-stats";
@@ -12,6 +12,8 @@ const MODE_META: Record<PomodoroMode, { label: string; emoji: string; sub: strin
   long: { label: "Long break", emoji: "🌿", sub: "Rest and reset" },
 };
 
+const MAX_MIN = 90; // full ring = 90 minutes when in edit mode
+
 export default function TimerTab() {
   const {
     mode,
@@ -22,26 +24,72 @@ export default function TimerTab() {
     pomodoroCount,
     settings,
     todayMinutes,
+    lifetimeMinutes,
     toggleTimer,
     resetTimer,
     switchMode,
+    setCustomMinutes,
   } = usePomodoroCtx();
 
-  // Ensure the floating pill is hidden while the full-screen tab is open.
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
   }, []);
 
   const meta = MODE_META[mode];
-  const size = 260;
+  const size = 280;
   const stroke = 14;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const dash = circumference * (1 - progressPercentage / 100);
+
+  const [dragMin, setDragMin] = useState<number | null>(null);
+  const draggingRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const displayMin = dragMin ?? minutes;
+  const displaySec = dragMin != null ? 0 : seconds;
+  const editing = dragMin != null;
+  const editPct = editing ? Math.min(100, (displayMin / MAX_MIN) * 100) : progressPercentage;
+  const dash = circumference * (1 - editPct / 100);
 
   const handleToggle = () => {
     primeAudio();
     toggleTimer();
+  };
+
+  const angleToMinutes = (clientX: number, clientY: number): number | null => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    // angle from 12 o'clock, clockwise, 0..2π
+    let a = Math.atan2(dx, -dy);
+    if (a < 0) a += Math.PI * 2;
+    const frac = a / (Math.PI * 2);
+    return Math.max(1, Math.min(MAX_MIN, Math.round(frac * MAX_MIN)));
+  };
+
+  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (isRunning) return;
+    draggingRef.current = true;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const m = angleToMinutes(e.clientX, e.clientY);
+    if (m != null) setDragMin(m);
+  };
+  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!draggingRef.current) return;
+    const m = angleToMinutes(e.clientX, e.clientY);
+    if (m != null) setDragMin(m);
+  };
+  const onPointerUp = () => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    if (dragMin != null) {
+      setCustomMinutes(dragMin);
+    }
+    setDragMin(null);
   };
 
   return (
@@ -78,10 +126,19 @@ export default function TimerTab() {
         ))}
       </div>
 
-      {/* Big timer ring */}
-      <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-primary/5 p-6 flex flex-col items-center">
+      {/* Big timer ring (no square container) */}
+      <div className="flex flex-col items-center py-4 select-none">
         <div className="relative" style={{ width: size, height: size }}>
-          <svg width={size} height={size} className="-rotate-90">
+          <svg
+            ref={svgRef}
+            width={size}
+            height={size}
+            className="-rotate-90 touch-none"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
             <circle
               cx={size / 2}
               cy={size / 2}
@@ -97,19 +154,36 @@ export default function TimerTab() {
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dash}
-              className="stroke-primary fill-none transition-all duration-500"
+              className="stroke-primary fill-none transition-all duration-300"
               style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary)/0.55))" }}
             />
+            {/* Draggable handle */}
+            {!isRunning && (() => {
+              const angle = (editPct / 100) * Math.PI * 2 - Math.PI / 2;
+              const hx = size / 2 + radius * Math.cos(angle);
+              const hy = size / 2 + radius * Math.sin(angle);
+              return (
+                <circle
+                  cx={hx}
+                  cy={hy}
+                  r={10}
+                  className="fill-primary"
+                  style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary)/0.7))" }}
+                />
+              );
+            })()}
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-xs uppercase tracking-widest text-muted-foreground">
-              {meta.emoji} {meta.label}
+              {meta.emoji} {editing ? "Set duration" : meta.label}
             </span>
-            <span className="mt-1 font-mono text-5xl font-extrabold tabular-nums">
-              {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+            <span className="mt-1 font-mono text-5xl font-extrabold tabular-nums text-foreground">
+              {String(displayMin).padStart(2, "0")}:{String(displaySec).padStart(2, "0")}
             </span>
             <span className="mt-1 text-[11px] text-muted-foreground">
-              🍅 {pomodoroCount % settings.longEvery}/{settings.longEvery} to long break
+              {isRunning
+                ? `🍅 ${pomodoroCount % settings.longEvery}/${settings.longEvery} to long break`
+                : "Drag the ring to set time"}
             </span>
           </div>
         </div>
@@ -149,6 +223,7 @@ export default function TimerTab() {
             <TimerIcon className="h-3 w-3" /> Today
           </p>
           <p className="text-2xl font-extrabold text-primary">{formatFocusTime(todayMinutes)}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Total: {formatFocusTime(lifetimeMinutes)}</p>
         </div>
         <div className="rounded-2xl border border-border/60 bg-card p-4">
           <p className="text-xs text-muted-foreground flex items-center gap-1">
