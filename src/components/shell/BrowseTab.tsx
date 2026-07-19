@@ -191,7 +191,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
             return (
               <button
                 key={t}
-                onClick={() => setActiveTab(t)}
+                onClick={() => handleTabChange(t)}
                 className={cn(
                   "py-2.5 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all",
                   isActive
