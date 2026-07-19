@@ -3,7 +3,7 @@ import { TrendingUp, Search, Timer as TimerIcon, Sparkles, Flame, Trophy, ArrowR
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
-import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import { collectQuestions, countDone } from "@/lib/question-progress";
 import { usePomodoroStats, formatFocusTime } from "@/hooks/use-pomodoro-stats";
 import { useProfile } from "@/hooks/use-profile";
 import type { ShellTab } from "./BottomNav";
