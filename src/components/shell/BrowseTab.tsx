@@ -87,6 +87,30 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   const [tick, setTick] = useState(0);
   const [search, setSearch] = useState("");
 
+  // Once-per-day rewarded ad when opening Short Notes tab.
+  const SN_AD_KEY = "orbit:ad:shortNotesShownDate";
+  const shortNotesAdFiredRef = useRef(false);
+  const triggerShortNotesAd = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (shortNotesAdFiredRef.current) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(SN_AD_KEY) === today) return;
+    shortNotesAdFiredRef.current = true;
+    localStorage.setItem(SN_AD_KEY, today);
+    toast({
+      title: "Sponsored",
+      description: "A short ad plays once per day on Short Notes to keep Orbit free. Sorry for the inconvenience!",
+    });
+    void showRewardedAd("short-notes").then((r) => {
+      console.log(`[ShortNotes] Ad: ${r.completed ? "completed" : r.reason ?? "unknown"}`);
+    });
+  }, []);
+
+  const handleTabChange = useCallback((t: "essay" | "short-notes") => {
+    setActiveTab(t);
+    if (t === "short-notes") triggerShortNotesAd();
+  }, [triggerShortNotesAd]);
+
   // React to Home navigation meta
   useEffect(() => {
     if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
