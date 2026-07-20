@@ -4,7 +4,8 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type { Year } from "@/lib/year-subjects";
 import { QUESTION_BANK_DATA } from "@/data/questionBankData";
 import { collectQuestions, countDone } from "@/lib/question-progress";
-import { usePomodoroStats, formatFocusTime } from "@/hooks/use-pomodoro-stats";
+import { formatFocusTime } from "@/hooks/use-pomodoro-stats";
+import { usePomodoroCtx } from "@/hooks/pomodoro-context";
 import { useProfile } from "@/hooks/use-profile";
 import type { ShellTab } from "./BottomNav";
 
@@ -53,7 +54,7 @@ const HERO_SLIDES = [
 
 export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, meta?: any) => void }) {
   const { local, cloud, saveProfile } = useProfile();
-  const { todayMinutes, lifetimeMinutes } = usePomodoroStats();
+  const { todayMinutes, lifetimeMinutes } = usePomodoroCtx();
   const streak = cloud?.streak ?? 0;
   const [slide, setSlide] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);

@@ -14,7 +14,7 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { useTheme, DEFAULT_CUSTOM_COLORS, CustomColors } from "./ThemeProvider";
-import { showRewardedAd } from "@/services/AndroidAds";
+import { requestDailyAd } from "@/lib/daily-ad";
 
 interface Props {
   open: boolean;
@@ -43,7 +43,7 @@ export function CustomThemeDialog({ open, onOpenChange }: Props) {
     setCustomColors(draft);
     setTheme("custom");
     onOpenChange(false);
-    void showRewardedAd("custom-theme");
+    requestDailyAd("custom-theme");
   };
 
   const reset = () => setDraft(DEFAULT_CUSTOM_COLORS);

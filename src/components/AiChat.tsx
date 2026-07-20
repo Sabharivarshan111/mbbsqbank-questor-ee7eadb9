@@ -146,34 +146,34 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
     };
   }, [handleSubmitQuestion]);
 
-  const baseHeight = isFullscreen ? 'h-full' : 'h-[390px]';
+  const baseHeight = isFullscreen ? 'h-full' : 'h-[420px]';
   const isLiquid = theme === "liquid-glass";
   const cardClassName = theme === "blackpink"
-    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl`
+    ? `backdrop-blur-sm bg-black/90 border-pink-500/30 flex flex-col ${baseHeight} shadow-xl rounded-2xl overflow-hidden`
     : isLiquid
-      ? `backdrop-blur-2xl bg-white/60 border-white/60 flex flex-col ${baseHeight} shadow-[0_8px_32px_rgba(31,38,135,0.15)]`
-      : `backdrop-blur-sm bg-gray-950/70 border-gray-800 flex flex-col ${baseHeight} shadow-xl`;
+      ? `backdrop-blur-2xl bg-white/60 border-white/60 flex flex-col ${baseHeight} shadow-[0_8px_32px_rgba(31,38,135,0.15)] rounded-2xl overflow-hidden`
+      : `relative flex flex-col ${baseHeight} rounded-2xl overflow-hidden border border-primary/25 bg-gradient-to-b from-[hsl(var(--card))] to-[hsl(var(--background))] shadow-[0_10px_40px_-15px_hsl(var(--primary)/0.35)]`;
 
   const headerClassName = theme === "blackpink"
-    ? "px-4 py-2 border-b border-pink-500/30"
+    ? "px-4 py-3 border-b border-pink-500/30"
     : isLiquid
-      ? "px-4 py-2 border-b border-white/50"
-      : "px-4 py-2 border-b border-gray-800";
+      ? "px-4 py-3 border-b border-white/50"
+      : "px-4 py-3 border-b border-primary/15 bg-gradient-to-r from-primary/10 via-fuchsia-500/5 to-transparent";
 
   const titleClassName = theme === "blackpink"
-    ? "text-lg flex items-center justify-between text-pink-400"
+    ? "text-base flex items-center justify-between text-pink-400 gap-2"
     : isLiquid
-      ? "text-lg flex items-center justify-between text-slate-900"
-      : "text-lg flex items-center justify-between text-white";
+      ? "text-base flex items-center justify-between text-slate-900 gap-2"
+      : "text-base flex items-center justify-between gap-2";
 
   const clearButtonClassName = theme === "blackpink"
-    ? "h-8 px-2 text-pink-400 hover:text-pink-300 border-pink-500/50"
+    ? "h-8 px-3 rounded-full text-xs text-pink-400 hover:text-pink-300 border border-pink-500/50"
     : isLiquid
-      ? "h-8 px-2 text-slate-700 hover:text-slate-900"
-      : "h-8 px-2 text-gray-400 hover:text-white";
+      ? "h-8 px-3 rounded-full text-xs text-slate-700 hover:text-slate-900 border border-slate-900/20"
+      : "h-8 px-3 rounded-full text-xs text-muted-foreground hover:text-foreground border border-primary/25 bg-background/60";
 
   const content = (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
@@ -182,17 +182,28 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
       <Card className={cardClassName}>
         <CardHeader className={headerClassName}>
           <CardTitle className={titleClassName}>
-            <span>Medical Assistant</span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary/30 to-fuchsia-500/30 border border-primary/30 flex items-center justify-center text-lg shrink-0">
+                🧠
+              </span>
+              <span className="font-bold bg-gradient-to-r from-primary to-fuchsia-400 bg-clip-text text-transparent truncate">
+                Medical Assistant
+              </span>
+              <span className="relative flex h-2 w-2 shrink-0" aria-label="Online">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
               {messages.length > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleClearChat}
                   className={clearButtonClassName}
                 >
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  Clear
+                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                  Clear Chat
                 </Button>
               )}
               <TooltipProvider delayDuration={200}>
@@ -203,10 +214,10 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
                       size="icon"
                       data-tour="ai-chat-expand"
                       onClick={() => setIsFullscreen(v => !v)}
-                      className={`h-8 w-8 ${theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : isLiquid ? "text-slate-700 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                      className={`h-8 w-8 rounded-full ${theme === "blackpink" ? "text-pink-400 hover:text-pink-300" : isLiquid ? "text-slate-700 hover:text-slate-900" : "text-muted-foreground hover:text-primary border border-primary/25 bg-background/60"}`}
                       aria-label={isFullscreen ? "Exit fullscreen" : "Open fullscreen"}
                     >
-                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                      {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">{isFullscreen ? "Exit fullscreen" : "Open fullscreen"}</TooltipContent>
@@ -215,6 +226,7 @@ export const AiChat = ({ initialQuestion }: AiChatProps = {}) => {
             </div>
           </CardTitle>
         </CardHeader>
+
         
         
         <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">

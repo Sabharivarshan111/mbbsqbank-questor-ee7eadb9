@@ -24,8 +24,10 @@ import Biochemistry from "./pages/subjects/Biochemistry";
 import Microbiology from "./pages/subjects/Microbiology";
 import GlobalCelebrations from "./components/GlobalCelebrations";
 import ExamReminderPopup from "./components/ExamReminderPopup";
+import DailyAdConsent from "./components/DailyAdConsent";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
+import { useCapacitorBack } from "./hooks/use-capacitor-back";
 import { PomodoroProvider } from "./hooks/pomodoro-context";
 
 
@@ -34,6 +36,7 @@ const queryClient = new QueryClient();
 
 const ScreenTimeTracker = () => { useScreenTime(); return null; };
 const NotificationSync = () => { useNotificationSync(); return null; };
+const CapacitorBack = () => { useCapacitorBack(); return null; };
 const AdPreloader = () => {
   // Native wrapper handles rewarded-ad preloading internally; nothing to do here.
   return null;
@@ -50,8 +53,10 @@ const App = () => (
           <Sonner />
           <GlobalCelebrations />
           <ExamReminderPopup />
+          <DailyAdConsent />
           <ScreenTimeTracker />
           <NotificationSync />
+          <CapacitorBack />
           <AdPreloader />
           <BrowserRouter>
             <Routes>

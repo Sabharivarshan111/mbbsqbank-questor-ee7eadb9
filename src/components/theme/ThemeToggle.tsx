@@ -5,7 +5,7 @@ import { useTheme, Theme } from "@/components/theme/ThemeProvider";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { CustomThemeDialog } from "./CustomThemeDialog";
 import { CircleLabel } from "./CircleLabel";
-import { showRewardedAd } from "@/services/AndroidAds";
+import { requestDailyAd } from "@/lib/daily-ad";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +62,7 @@ export function ThemeToggle() {
   const handleApply = () => {
     setPendingTheme(null);
     setMenuOpen(false);
-    void showRewardedAd("theme-apply");
+    requestDailyAd("theme");
   };
 
   const handleRevert = () => {

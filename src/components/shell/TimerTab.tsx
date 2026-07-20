@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, Settings2, Coffee, Timer as TimerIcon, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Pause, RotateCcw, Settings2, Coffee, Timer as TimerIcon, Sparkles, Users, Pencil, Check } from "lucide-react";
 import { usePomodoroCtx } from "@/hooks/pomodoro-context";
 import { formatFocusTime } from "@/hooks/use-pomodoro-stats";
+import { useOnlinePresence } from "@/hooks/use-online-presence";
 import { primeAudio } from "@/lib/timer-sounds";
 import { cn } from "@/lib/utils";
 import type { PomodoroMode } from "@/hooks/use-pomodoro-timer";
@@ -11,8 +12,6 @@ const MODE_META: Record<PomodoroMode, { label: string; emoji: string; sub: strin
   short: { label: "Short break", emoji: "☕", sub: "Stretch & breathe" },
   long: { label: "Long break", emoji: "🌿", sub: "Rest and reset" },
 };
-
-const MAX_MIN = 90; // full ring = 90 minutes when in edit mode
 
 export default function TimerTab() {
   const {
@@ -30,6 +29,7 @@ export default function TimerTab() {
     switchMode,
     setCustomMinutes,
   } = usePomodoroCtx();
+  const { onlineCount } = useOnlinePresence();
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("orbit:hide-pomodoro"));
@@ -40,56 +40,26 @@ export default function TimerTab() {
   const stroke = 14;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
+  const dash = circumference * (1 - progressPercentage / 100);
 
-  const [dragMin, setDragMin] = useState<number | null>(null);
-  const draggingRef = useRef(false);
-  const svgRef = useRef<SVGSVGElement>(null);
+  // Tap-to-edit custom minutes
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
 
-  const displayMin = dragMin ?? minutes;
-  const displaySec = dragMin != null ? 0 : seconds;
-  const editing = dragMin != null;
-  const editPct = editing ? Math.min(100, (displayMin / MAX_MIN) * 100) : progressPercentage;
-  const dash = circumference * (1 - editPct / 100);
+  const openEdit = () => {
+    if (isRunning) return;
+    setDraft(String(minutes));
+    setEditing(true);
+  };
+  const commitEdit = () => {
+    const n = parseInt(draft, 10);
+    if (!isNaN(n)) setCustomMinutes(n);
+    setEditing(false);
+  };
 
   const handleToggle = () => {
     primeAudio();
     toggleTimer();
-  };
-
-  const angleToMinutes = (clientX: number, clientY: number): number | null => {
-    const svg = svgRef.current;
-    if (!svg) return null;
-    const rect = svg.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = clientX - cx;
-    const dy = clientY - cy;
-    // angle from 12 o'clock, clockwise, 0..2π
-    let a = Math.atan2(dx, -dy);
-    if (a < 0) a += Math.PI * 2;
-    const frac = a / (Math.PI * 2);
-    return Math.max(1, Math.min(MAX_MIN, Math.round(frac * MAX_MIN)));
-  };
-
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (isRunning) return;
-    draggingRef.current = true;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    const m = angleToMinutes(e.clientX, e.clientY);
-    if (m != null) setDragMin(m);
-  };
-  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!draggingRef.current) return;
-    const m = angleToMinutes(e.clientX, e.clientY);
-    if (m != null) setDragMin(m);
-  };
-  const onPointerUp = () => {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    if (dragMin != null) {
-      setCustomMinutes(dragMin);
-    }
-    setDragMin(null);
   };
 
   return (
@@ -126,18 +96,22 @@ export default function TimerTab() {
         ))}
       </div>
 
-      {/* Big timer ring (no square container) */}
+      {/* Big timer ring — perfectly round, no square container */}
       <div className="flex flex-col items-center py-4 select-none">
-        <div className="relative" style={{ width: size, height: size }}>
+        <div
+          className="relative rounded-full"
+          style={{
+            width: size,
+            height: size,
+            boxShadow: "0 0 60px hsl(var(--primary) / 0.18)",
+          }}
+        >
           <svg
-            ref={svgRef}
             width={size}
             height={size}
-            className="-rotate-90 touch-none"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
+            viewBox={`0 0 ${size} ${size}`}
+            className="-rotate-90 block"
+            style={{ overflow: "visible" }}
           >
             <circle
               cx={size / 2}
@@ -154,36 +128,51 @@ export default function TimerTab() {
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dash}
-              className="stroke-primary fill-none transition-all duration-300"
-              style={{ filter: "drop-shadow(0 0 12px hsl(var(--primary)/0.55))" }}
+              className="stroke-primary fill-none transition-all duration-500"
             />
-            {/* Draggable handle */}
-            {!isRunning && (() => {
-              const angle = (editPct / 100) * Math.PI * 2 - Math.PI / 2;
-              const hx = size / 2 + radius * Math.cos(angle);
-              const hy = size / 2 + radius * Math.sin(angle);
-              return (
-                <circle
-                  cx={hx}
-                  cy={hy}
-                  r={10}
-                  className="fill-primary"
-                  style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary)/0.7))" }}
-                />
-              );
-            })()}
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
             <span className="text-xs uppercase tracking-widest text-muted-foreground">
-              {meta.emoji} {editing ? "Set duration" : meta.label}
+              {meta.emoji} {meta.label}
             </span>
-            <span className="mt-1 font-mono text-5xl font-extrabold tabular-nums text-foreground">
-              {String(displayMin).padStart(2, "0")}:{String(displaySec).padStart(2, "0")}
-            </span>
+
+            {editing ? (
+              <form
+                onSubmit={(e) => { e.preventDefault(); commitEdit(); }}
+                className="mt-1 flex items-center gap-2"
+              >
+                <input
+                  autoFocus
+                  inputMode="numeric"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                  onBlur={commitEdit}
+                  className="w-24 bg-transparent border-b-2 border-primary text-center font-mono text-5xl font-extrabold tabular-nums text-foreground focus:outline-none"
+                />
+                <button type="submit" aria-label="Save" className="text-primary">
+                  <Check className="h-5 w-5" />
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={openEdit}
+                disabled={isRunning}
+                className="mt-1 font-mono text-5xl font-extrabold tabular-nums text-foreground disabled:cursor-default group"
+                aria-label="Tap to set custom minutes"
+              >
+                {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+                {!isRunning && (
+                  <Pencil className="inline-block h-3 w-3 ml-2 text-muted-foreground opacity-60 group-hover:opacity-100" />
+                )}
+              </button>
+            )}
+
             <span className="mt-1 text-[11px] text-muted-foreground">
               {isRunning
                 ? `🍅 ${pomodoroCount % settings.longEvery}/${settings.longEvery} to long break`
-                : "Drag the ring to set time"}
+                : "Tap the number to set custom time"}
             </span>
           </div>
         </div>
@@ -215,6 +204,23 @@ export default function TimerTab() {
             <Coffee className="h-5 w-5" />
           </button>
         </div>
+      </div>
+
+      {/* People studying with you */}
+      <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-fuchsia-500/10 to-primary/10 p-3 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+          <Users className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-muted-foreground">Studying with you right now</p>
+          <p className="font-bold text-primary text-sm">
+            {onlineCount == null ? "—" : `${onlineCount.toLocaleString()} ${onlineCount === 1 ? "person" : "people"} online`}
+          </p>
+        </div>
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
