@@ -10,6 +10,7 @@ import TimerTab from "@/components/shell/TimerTab";
 import AskAiTab from "@/components/shell/AskAiTab";
 import ProgressTab from "@/components/shell/ProgressTab";
 import BrowseTab from "@/components/shell/BrowseTab";
+import { requestDailyAd } from "@/lib/daily-ad";
 
 const Index = () => {
   const [tab, setTab] = useState<ShellTab>("home");
@@ -19,6 +20,7 @@ const Index = () => {
 
   const goTo = useCallback((next: ShellTab, meta?: any) => {
     if (next === "browse") setBrowseMeta(meta ?? {});
+    if (next === "progress") requestDailyAd("progress");
     setTab(next);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
@@ -56,7 +58,7 @@ const Index = () => {
   useEffect(() => {
     const h = (e: Event) => {
       const sub = (e as CustomEvent<string>).detail;
-      if (sub === "progress") setTab("progress");
+      if (sub === "progress") { requestDailyAd("progress"); setTab("progress"); }
       else if (sub === "materials") setTab("notes");
       else if (sub === "essay" || sub === "short-notes") setTab("browse");
     };
