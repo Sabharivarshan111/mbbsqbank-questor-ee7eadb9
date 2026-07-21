@@ -261,7 +261,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
               return (
                 <button
                   key={t.key}
-                  onClick={() => { setTopicKey(t.key); setActiveTab("essay"); setSearch(""); }}
+                  onClick={() => { setTopicKey(t.key); setActiveTab("essay"); setSearch(""); requestDailyAd("questions"); }}
                   className="w-full text-left rounded-2xl border border-border/60 bg-card hover:border-primary/40 p-4 flex items-center gap-4 active:scale-[0.99] transition"
                 >
                   <div className="h-14 w-14 rounded-xl border border-primary/40 bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xl">

@@ -230,8 +230,8 @@ function mergeNotes(parts: NotesContent[]): NotesContent {
   return merged as NotesContent;
 }
 
-/** Delay between batch requests — respects 5 req/min (12s) + jitter. */
-const INTER_BATCH_DELAY_MS = 13_000;
+/** Delay between batch requests — Lovable Gateway handles throughput; keep small pause for backpressure. */
+const INTER_BATCH_DELAY_MS = 2_000;
 
 function NotesDetailView({
   year, subject, topic, onBack,
@@ -255,7 +255,7 @@ function NotesDetailView({
         subtopicName: topic.name,
         questions: topic.questions,
         batchIndex,
-        batchSize: 3,
+        batchSize: 6,
         regenerate: regenerate && batchIndex === 0,
       },
     });
