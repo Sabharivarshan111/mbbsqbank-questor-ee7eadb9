@@ -153,7 +153,7 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
             View all <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" data-tour="home-subjects">
           {subjects.map((s) => (
             <button
               key={s.key}
