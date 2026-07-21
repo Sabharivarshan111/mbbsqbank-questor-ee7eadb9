@@ -5,6 +5,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { walkthroughSteps } from "./walkthroughSteps";
 import WalkthroughProfileSetup from "./WalkthroughProfileSetup";
 import { Button } from "@/components/ui/button";
+import { setWalkthroughActive } from "@/lib/daily-ad";
 
 const STORAGE_KEY = "orbit-walkthrough-completed-v2";
 const PADDING = 8;
@@ -33,60 +34,28 @@ export const Walkthrough = () => {
 
   const step = walkthroughSteps[stepIndex];
 
-  // Fire enter/exit actions for the active step
+  // Mark walkthrough as active for the whole tour so daily-ad triggers are
+  // suppressed. Cleared when finished or unmounted.
   useEffect(() => {
     if (!mounted || completed) return;
-    const prevId = lastActionStepRef.current;
-    const prevStep = prevId ? walkthroughSteps.find((s) => s.id === prevId) : null;
+    setWalkthroughActive(true);
+    return () => setWalkthroughActive(false);
+  }, [mounted, completed]);
 
-    // Exit actions for previous step
-    if (prevStep && prevStep.id !== step.id) {
-      if (prevStep.action === 'open-custom-theme' && step.action !== 'open-custom-theme') {
-        window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
-      }
-      if (prevStep.action === 'open-theme-menu' && step.action !== 'open-theme-menu') {
-        window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
-      }
-      if (prevStep.action === 'open-pomodoro-settings' && step.action !== 'open-pomodoro-settings') {
-        window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
-      }
-    }
-
-    // Enter actions
-    if (step.action === 'open-custom-theme') {
-      window.dispatchEvent(new CustomEvent('orbit:open-custom-theme'));
-    }
-    if (step.action === 'open-theme-menu') {
-      window.dispatchEvent(new CustomEvent('orbit:open-theme-menu'));
-    }
-    if (step.action === 'open-pomodoro-settings') {
-      window.dispatchEvent(new CustomEvent('orbit:open-pomodoro-settings'));
-    }
-    if (step.action === 'open-progress-tab') {
-      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'progress' }));
-    }
-    if (step.action === 'open-qbank-tab') {
-      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'essay' }));
-    }
-    if (step.action === 'open-materials-tab') {
-      window.dispatchEvent(new CustomEvent('orbit:set-tab', { detail: 'materials' }));
-    }
-
-    // Pomodoro visibility override (default: hide if not specified)
-    const pomo = step.pomodoro ?? 'hide';
-    window.dispatchEvent(new CustomEvent(`orbit:pomodoro-walkthrough-${pomo}`));
-
+  // Fire enter actions for the active step (map to bottom-nav tab switches)
+  useEffect(() => {
+    if (!mounted || completed) return;
+    if (step.action === 'tab-home')     window.dispatchEvent(new CustomEvent('orbit:set-shell-tab', { detail: 'home' }));
+    if (step.action === 'tab-notes')    window.dispatchEvent(new CustomEvent('orbit:set-shell-tab', { detail: 'notes' }));
+    if (step.action === 'tab-timer')    window.dispatchEvent(new CustomEvent('orbit:set-shell-tab', { detail: 'timer' }));
+    if (step.action === 'tab-askai')    window.dispatchEvent(new CustomEvent('orbit:set-shell-tab', { detail: 'askai' }));
+    if (step.action === 'tab-progress') window.dispatchEvent(new CustomEvent('orbit:set-shell-tab', { detail: 'progress' }));
     lastActionStepRef.current = step.id;
   }, [mounted, completed, step]);
 
   // Cleanup on unmount / completion
   useEffect(() => {
-    return () => {
-      window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
-      window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
-      window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
-      window.dispatchEvent(new CustomEvent('orbit:pomodoro-walkthrough-clear'));
-    };
+    return () => { setWalkthroughActive(false); };
   }, []);
 
   const recompute = useCallback(() => {
@@ -128,10 +97,7 @@ export const Walkthrough = () => {
   }, [mounted, completed, recompute]);
 
   const finish = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('orbit:close-custom-theme'));
-    window.dispatchEvent(new CustomEvent('orbit:close-theme-menu'));
-    window.dispatchEvent(new CustomEvent('orbit:close-pomodoro-settings'));
-    window.dispatchEvent(new CustomEvent('orbit:pomodoro-walkthrough-clear'));
+    setWalkthroughActive(false);
     setCompleted(true);
   }, [setCompleted]);
 

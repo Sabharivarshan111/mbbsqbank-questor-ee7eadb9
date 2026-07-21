@@ -86,15 +86,11 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   const [tick, setTick] = useState(0);
   const [search, setSearch] = useState("");
 
-  // Once-per-day rewarded ad when opening Short Notes tab (unified daily cap).
-  const triggerShortNotesAd = useCallback(() => {
-    requestDailyAd("short-notes");
-  }, []);
-
+  // Ad now triggers ONCE when the user enters a topic (essay OR short-notes
+  // share the same daily cap). Tab switching itself does not trigger it.
   const handleTabChange = useCallback((t: "essay" | "short-notes") => {
     setActiveTab(t);
-    if (t === "short-notes") triggerShortNotesAd();
-  }, [triggerShortNotesAd]);
+  }, []);
 
   // React to Home navigation meta
   useEffect(() => {
@@ -265,7 +261,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
               return (
                 <button
                   key={t.key}
-                  onClick={() => { setTopicKey(t.key); setActiveTab("essay"); setSearch(""); }}
+                  onClick={() => { setTopicKey(t.key); setActiveTab("essay"); setSearch(""); requestDailyAd("questions"); }}
                   className="w-full text-left rounded-2xl border border-border/60 bg-card hover:border-primary/40 p-4 flex items-center gap-4 active:scale-[0.99] transition"
                 >
                   <div className="h-14 w-14 rounded-xl border border-primary/40 bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xl">

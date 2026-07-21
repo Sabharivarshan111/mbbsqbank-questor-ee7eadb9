@@ -1,14 +1,15 @@
 // Unified once-per-calendar-day rewarded ad across placements
-// (short-notes tab, theme change, progress tab, custom theme...).
+// (essays/short-notes, theme change, progress tab, custom theme...).
 //
 // Public API:
 //   requestDailyAd(reason) -> shows a blocking "sorry for the inconvenience"
-//     confirmation modal, and after user taps OK plays the rewarded ad.
-//     If today's ad was already shown, resolves immediately (silent no-op).
+//     confirmation modal, then plays the rewarded ad on OK.
+//     Silent no-op if today's ad was already shown or the walkthrough is active.
 
 import { showRewardedAd } from "@/services/AndroidAds";
 
 const KEY = "orbit:daily-ad:date";
+const WALKTHROUGH_FLAG = "orbit:walkthrough-active";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -30,7 +31,22 @@ export function markDailyAdShown() {
   }
 }
 
-export type DailyAdReason = "short-notes" | "theme" | "progress" | "custom-theme";
+export function setWalkthroughActive(active: boolean) {
+  try {
+    if (active) sessionStorage.setItem(WALKTHROUGH_FLAG, "1");
+    else sessionStorage.removeItem(WALKTHROUGH_FLAG);
+  } catch { /* ignore */ }
+}
+
+function isWalkthroughActive(): boolean {
+  try {
+    return sessionStorage.getItem(WALKTHROUGH_FLAG) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export type DailyAdReason = "short-notes" | "theme" | "progress" | "custom-theme" | "questions";
 
 export type DailyAdConsentPayload = {
   reason: DailyAdReason;
@@ -45,7 +61,12 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
   "short-notes": {
     title: "Sorry for the inconvenience",
     message:
-      "A short sponsored ad will play once — this happens only ONE time per day when you open Short Notes and helps keep Orbit free. Tap OK to continue.",
+      "A short sponsored ad will play once — this happens only ONE time per day and helps keep Orbit free. Tap OK to continue.",
+  },
+  questions: {
+    title: "Sorry for the inconvenience",
+    message:
+      "A short sponsored ad will play once — this happens only ONE time per day when you open essays or short notes and helps keep Orbit free. Tap OK to continue.",
   },
   theme: {
     title: "Sorry for the inconvenience",
@@ -64,9 +85,10 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
   },
 };
 
-/** Show the consent modal, then play the rewarded ad. No-op if already shown today. */
+/** Show the consent modal, then play the rewarded ad. No-op if already shown today or walkthrough active. */
 export function requestDailyAd(reason: DailyAdReason): void {
   if (typeof window === "undefined") return;
+  if (isWalkthroughActive()) return;
   if (hasShownDailyAd()) return;
 
   const { title, message } = REASON_TEXT[reason];

@@ -9,18 +9,17 @@ const corsHeaders = {
 };
 
 /**
- * Two modes, one endpoint:
+ * Handwritten Notes generator.
  *
- * 1) GENERATE ONE BATCH — client sends batchIndex (0-based) and batchSize.
- *    Server slices questions[batchIndex*size .. +size] and calls Gemini ONCE.
- *    Returns { content, batchIndex, totalBatches, hasMore, estSecondsPerBatch }.
- *    Client is responsible for spacing calls (>=12s) and merging.
+ * Root cause of previous "Gemini rate limit" errors: the direct Gemini free
+ * tier caps at ~5 RPM per key, and each subtopic fires several sequential
+ * calls. The AI Chat feature doesn't hit the same wall because it uses the
+ * Lovable AI Gateway (google/gemini-2.5-flash-lite) which has a much higher
+ * effective throughput.
  *
- * 2) SAVE MERGED — client sends saveContent=true + content (already merged).
- *    Server upserts into handwritten_notes cache. No Gemini call.
- *
- * The server also serves cache: if batchIndex=0 and !regenerate and a cached
- * row exists, we return the full cached notes with totalBatches=0/hasMore=false.
+ * Fix: PRIMARY = Lovable AI Gateway (google/gemini-2.5-flash-lite via the
+ * OpenAI-compatible endpoint). FALLBACK = direct Gemini 2.5 Flash. This is
+ * the same reliability model the chat uses.
  */
 const BodySchema = z.object({
   subtopicKey: z.string().min(1).max(300),
@@ -29,14 +28,14 @@ const BodySchema = z.object({
   subtopicName: z.string().min(1).max(200),
   questions: z.array(z.string().max(1000)).min(1).max(400),
   batchIndex: z.number().int().min(0).max(200).optional(),
-  batchSize: z.number().int().min(1).max(10).optional(),
+  batchSize: z.number().int().min(1).max(20).optional(),
   regenerate: z.boolean().optional(),
   saveContent: z.boolean().optional(),
   content: z.any().optional(),
 });
 
-const DEFAULT_BATCH_SIZE = 3;
-const EST_SECONDS_PER_BATCH = 15; // Gemini call typically 8-15s; padded for client countdown UX
+const DEFAULT_BATCH_SIZE = 6;
+const EST_SECONDS_PER_BATCH = 12;
 
 const SYSTEM_PROMPT = `You are an expert MBBS professor generating exam-ready HANDWRITTEN-STYLE study notes.
 Given a SUBTOPIC and its previous-year essay + short-note questions, synthesise ONE unified study page.
@@ -74,7 +73,7 @@ Strict rules:
 - Keep language crisp, exam-ready. No markdown asterisks.
 - Response MUST be JSON only, starting with { and ending with }.`;
 
-class GeminiError extends Error {
+class UpstreamError extends Error {
   status: number;
   constructor(status: number, msg: string) {
     super(msg);
@@ -82,7 +81,36 @@ class GeminiError extends Error {
   }
 }
 
-async function callGemini(apiKey: string, userPrompt: string): Promise<string> {
+/** PRIMARY: Lovable AI Gateway (OpenAI-compatible). */
+async function callLovableGateway(apiKey: string, userPrompt: string): Promise<string> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.55,
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new UpstreamError(res.status, `Lovable ${res.status}: ${t.slice(0, 400)}`);
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content ?? "";
+  if (!text) throw new UpstreamError(500, "Empty response from Lovable Gateway");
+  return text;
+}
+
+/** FALLBACK: direct Gemini. */
+async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   const res = await fetch(url, {
     method: "POST",
@@ -100,32 +128,53 @@ async function callGemini(apiKey: string, userPrompt: string): Promise<string> {
   });
   if (!res.ok) {
     const t = await res.text();
-    throw new GeminiError(res.status, `Gemini ${res.status}: ${t.slice(0, 400)}`);
+    throw new UpstreamError(res.status, `Gemini ${res.status}: ${t.slice(0, 400)}`);
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  const finishReason = data?.candidates?.[0]?.finishReason;
-  if (!text) throw new GeminiError(500, `Empty response from Gemini (finishReason=${finishReason ?? "?"})`);
+  if (!text) throw new UpstreamError(500, "Empty response from Gemini");
   return text;
 }
 
-async function callGeminiWithRetry(apiKey: string, prompt: string): Promise<string> {
+async function callModel(prompt: string): Promise<string> {
+  const lovable = Deno.env.get("LOVABLE_API_KEY");
+  const gemini = Deno.env.get("GEMINI_API_KEY");
   const delays = [1500, 4000];
   let lastErr: unknown = null;
-  for (let attempt = 0; attempt <= delays.length; attempt++) {
-    try {
-      return await callGemini(apiKey, prompt);
-    } catch (e) {
-      lastErr = e;
-      const status = e instanceof GeminiError ? e.status : 0;
-      // retry only on transient
-      if (![429, 500, 502, 503, 504].includes(status)) throw e;
-      if (attempt < delays.length) {
-        await new Promise((r) => setTimeout(r, delays[attempt]));
+
+  // Try Lovable Gateway first with 2 retries on transient
+  if (lovable) {
+    for (let attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        return await callLovableGateway(lovable, prompt);
+      } catch (e) {
+        lastErr = e;
+        const status = e instanceof UpstreamError ? e.status : 0;
+        // 429 / 402 / 5xx — retry or fall through to direct Gemini
+        if (![429, 500, 502, 503, 504].includes(status)) break;
+        if (attempt < delays.length) await new Promise((r) => setTimeout(r, delays[attempt]));
       }
     }
   }
-  throw lastErr ?? new Error("Gemini call failed");
+
+  // Fallback: direct Gemini
+  if (gemini) {
+    for (let attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        return await callGeminiDirect(gemini, prompt);
+      } catch (e) {
+        lastErr = e;
+        const status = e instanceof UpstreamError ? e.status : 0;
+        if (![429, 500, 502, 503, 504].includes(status)) throw e;
+        if (attempt < delays.length) await new Promise((r) => setTimeout(r, delays[attempt]));
+      }
+    }
+  }
+
+  if (!lovable && !gemini) {
+    throw new Error("Neither LOVABLE_API_KEY nor GEMINI_API_KEY configured");
+  }
+  throw lastErr ?? new Error("Model call failed");
 }
 
 function parseJson(raw: string): any {
@@ -148,12 +197,6 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiKey) {
-      return new Response(JSON.stringify({ error: "GEMINI_API_KEY not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
     const body = await req.json().catch(() => null);
@@ -226,7 +269,7 @@ ${essayList}
 
 Generate the handwritten-style study page JSON now. Ensure every listed question is answered inside the sections.`;
 
-    const raw = await callGeminiWithRetry(geminiKey, userPrompt);
+    const raw = await callModel(userPrompt);
     const batchContent = parseJson(raw);
     if (!batchContent || !Array.isArray(batchContent.sections)) {
       throw new Error("Model returned invalid structure");
@@ -245,15 +288,17 @@ Generate the handwritten-style study page JSON now. Ensure every listed question
   } catch (err) {
     const msg = (err as Error).message ?? "Unknown error";
     console.error("generate-handwritten-notes error:", err);
-    const isQuota = /429/.test(msg) || /quota/i.test(msg);
-    const isRate = /rate/i.test(msg);
+    const isQuota = /429/.test(msg) || /quota/i.test(msg) || /rate/i.test(msg);
+    const isCredits = /402/.test(msg);
     return new Response(
       JSON.stringify({
-        error: isQuota || isRate
-          ? "Gemini is rate-limited right now. Please wait ~60 seconds and retry."
-          : msg,
+        error: isCredits
+          ? "AI service credits exhausted. Please add credits or try again later."
+          : isQuota
+            ? "AI service is temporarily busy. Please wait ~30 seconds and retry."
+            : msg,
       }),
-      { status: isQuota ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: isQuota ? 429 : isCredits ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
