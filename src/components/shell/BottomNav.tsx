@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 
 export type ShellTab = "home" | "notes" | "timer" | "askai" | "progress" | "browse";
 
-const ITEMS: { key: Exclude<ShellTab, "browse">; label: string; icon: any }[] = [
-  { key: "home", label: "Home", icon: Home },
-  { key: "notes", label: "Notes", icon: FileText },
-  { key: "timer", label: "Timer", icon: Timer },
-  { key: "askai", label: "Ask AI", icon: Sparkles },
-  { key: "progress", label: "My Progress", icon: User },
+const ITEMS: { key: Exclude<ShellTab, "browse">; label: string; icon: any; tour: string }[] = [
+  { key: "home", label: "Home", icon: Home, tour: "nav-home" },
+  { key: "notes", label: "Notes", icon: FileText, tour: "nav-notes" },
+  { key: "timer", label: "Timer", icon: Timer, tour: "nav-timer" },
+  { key: "askai", label: "Ask AI", icon: Sparkles, tour: "nav-askai" },
+  { key: "progress", label: "My Progress", icon: User, tour: "nav-progress" },
 ];
 
 export default function BottomNav({
@@ -34,6 +34,7 @@ export default function BottomNav({
               <button
                 key={it.key}
                 onClick={() => onChange("timer")}
+                data-tour={it.tour}
                 className="relative -mt-6 mx-auto flex flex-col items-center justify-center"
                 aria-label="Timer"
               >
@@ -55,6 +56,7 @@ export default function BottomNav({
             <button
               key={it.key}
               onClick={() => onChange(it.key)}
+              data-tour={it.tour}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-md transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
