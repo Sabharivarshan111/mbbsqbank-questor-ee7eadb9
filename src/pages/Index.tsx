@@ -66,6 +66,16 @@ const Index = () => {
     return () => window.removeEventListener("orbit:set-tab", h);
   }, []);
 
+  // Walkthrough → jump directly to a shell tab (no daily-ad trigger)
+  useEffect(() => {
+    const h = (e: Event) => {
+      const t = (e as CustomEvent<ShellTab>).detail;
+      if (t) setTab(t);
+    };
+    window.addEventListener("orbit:set-shell-tab", h);
+    return () => window.removeEventListener("orbit:set-shell-tab", h);
+  }, []);
+
   return (
     <div className="bg-background min-h-screen overflow-x-hidden relative">
       <SEOHead
