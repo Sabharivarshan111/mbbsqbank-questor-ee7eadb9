@@ -313,7 +313,7 @@ function QuestionSearchOverlay({
   onPick,
 }: {
   onClose: () => void;
-  onPick: (meta: { year: string; subject: string; paper?: string; topic: string; tab: "essay" | "short-notes" }) => void;
+  onPick: (meta: { year: string; subject: string; paper?: string; topic: string; tab: "essay" | "short-notes"; highlightQuestion: string }) => void;
 }) {
   const [q, setQ] = useState("");
   const index = useMemo(() => buildSearchIndex(), []);
