@@ -80,14 +80,13 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
 
   const [yearKey, setYearKey] = useState<string>(meta?.year ?? profileYearKey);
   const [subjectKey, setSubjectKey] = useState<string | null>(meta?.subject ?? null);
-  const [paperKey, setPaperKey] = useState<string | null>(null);
-  const [topicKey, setTopicKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"essay" | "short-notes">("essay");
+  const [paperKey, setPaperKey] = useState<string | null>(meta?.paper ?? null);
+  const [topicKey, setTopicKey] = useState<string | null>(meta?.topic ?? null);
+  const [activeTab, setActiveTab] = useState<"essay" | "short-notes">(meta?.tab ?? "essay");
   const [tick, setTick] = useState(0);
   const [search, setSearch] = useState("");
+  const [highlightQuestion, setHighlightQuestion] = useState<string | null>(meta?.highlightQuestion ?? null);
 
-  // Ad now triggers ONCE when the user enters a topic (essay OR short-notes
-  // share the same daily cap). Tab switching itself does not trigger it.
   const handleTabChange = useCallback((t: "essay" | "short-notes") => {
     setActiveTab(t);
   }, []);
@@ -97,7 +96,13 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
     if (meta?.subject) { setSubjectKey(meta.subject); setPaperKey(meta.paper ?? null); setTopicKey(meta.topic ?? null); }
     if (meta?.year) setYearKey(meta.year);
     if (meta?.tab) handleTabChange(meta.tab);
-  }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab]);
+    if (meta?.highlightQuestion) {
+      setHighlightQuestion(meta.highlightQuestion);
+      // auto-clear after a few seconds so the glow doesn't stay forever
+      const t = window.setTimeout(() => setHighlightQuestion(null), 6000);
+      return () => window.clearTimeout(t);
+    }
+  }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab, meta?.highlightQuestion]);
 
   useEffect(() => {
     const h = () => setTick((t) => t + 1);
