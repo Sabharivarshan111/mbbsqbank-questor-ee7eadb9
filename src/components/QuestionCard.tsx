@@ -9,9 +9,16 @@ interface QuestionCardProps {
   question: string;
   index: number;
   isFirstYear?: boolean;
+  highlight?: boolean;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear, highlight }) => {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (highlight && rootRef.current) {
+      rootRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlight]);
   const questionId = `question-${question.slice(0, 50).replace(/\s+/g, '-')}`;
   const [isCompleted, setIsCompleted] = useState(() => {
     try {
