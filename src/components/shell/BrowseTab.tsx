@@ -215,6 +215,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
                 question={question}
                 index={i}
                 isFirstYear={yearKey === "first-year"}
+                highlight={!!highlightQuestion && question === highlightQuestion}
               />
             ))}
           </div>
