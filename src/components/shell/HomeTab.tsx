@@ -386,6 +386,7 @@ function QuestionSearchOverlay({
                     paper: h.paper ?? undefined,
                     topic: h.topic,
                     tab: h.type,
+                    highlightQuestion: h.question,
                   })
                 }
                 className="w-full text-left rounded-xl border border-border/60 bg-card hover:border-primary/50 p-3 transition"
