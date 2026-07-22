@@ -191,9 +191,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   };
 
   return (
-    <div id={`question-${index}`}>
-      <Card 
-        className={`mb-2 ${getCardBgClass()} transition-colors cursor-pointer question-card relative`}
+    <div id={`question-${index}`} ref={rootRef}>
+      <Card
+        className={`mb-2 ${getCardBgClass()} transition-all cursor-pointer question-card relative ${
+          highlight
+            ? "ring-2 ring-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.25),0_0_24px_hsl(var(--primary)/0.55)] animate-pulse"
+            : ""
+        }`}
         onClick={handleTap}
       >
         <CardContent className="p-3 text-left text-sm flex items-start justify-between">
