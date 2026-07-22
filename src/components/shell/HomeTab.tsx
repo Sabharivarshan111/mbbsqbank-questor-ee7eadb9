@@ -313,7 +313,7 @@ function QuestionSearchOverlay({
   onPick,
 }: {
   onClose: () => void;
-  onPick: (meta: { year: string; subject: string; paper?: string; topic: string; tab: "essay" | "short-notes" }) => void;
+  onPick: (meta: { year: string; subject: string; paper?: string; topic: string; tab: "essay" | "short-notes"; highlightQuestion: string }) => void;
 }) {
   const [q, setQ] = useState("");
   const index = useMemo(() => buildSearchIndex(), []);
@@ -386,6 +386,7 @@ function QuestionSearchOverlay({
                     paper: h.paper ?? undefined,
                     topic: h.topic,
                     tab: h.type,
+                    highlightQuestion: h.question,
                   })
                 }
                 className="w-full text-left rounded-xl border border-border/60 bg-card hover:border-primary/50 p-3 transition"
