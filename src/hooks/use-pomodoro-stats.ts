@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const KEY = 'pomodoro:stats';
+const LIFETIME_KEY = 'pomodoro:lifetime-minutes';
 
 type StatsMap = Record<string, number>; // ISO date -> minutes focused
 
@@ -13,7 +14,8 @@ function readStats(): StatsMap {
     const raw = localStorage.getItem(KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as StatsMap;
-    // prune entries older than 30 days
+    // prune entries older than 30 days from the *daily map* only;
+    // the total lifetime counter is stored separately so it never shrinks.
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const out: StatsMap = {};
     for (const [date, mins] of Object.entries(parsed)) {
@@ -33,8 +35,27 @@ function writeStats(stats: StatsMap) {
   }
 }
 
-function sumAll(stats: StatsMap): number {
-  return Object.values(stats).reduce((a, b) => a + (b || 0), 0);
+function readLifetime(): number {
+  try {
+    const raw = localStorage.getItem(LIFETIME_KEY);
+    const n = raw ? parseInt(raw, 10) : NaN;
+    if (Number.isFinite(n) && n >= 0) return n;
+  } catch { /* ignore */ }
+  // Migration: seed lifetime from existing (still-visible) daily stats.
+  try {
+    const stats = readStats();
+    const seed = Object.values(stats).reduce((a, b) => a + (b || 0), 0);
+    localStorage.setItem(LIFETIME_KEY, String(seed));
+    return seed;
+  } catch {
+    return 0;
+  }
+}
+
+function writeLifetime(mins: number) {
+  try {
+    localStorage.setItem(LIFETIME_KEY, String(Math.max(0, Math.floor(mins))));
+  } catch { /* ignore */ }
 }
 
 export function usePomodoroStats() {
@@ -44,16 +65,19 @@ export function usePomodoroStats() {
   useEffect(() => {
     const stats = readStats();
     setTodayMinutes(stats[todayKey()] ?? 0);
-    setLifetimeMinutes(sumAll(stats));
+    setLifetimeMinutes(readLifetime());
   }, []);
 
   const addFocusMinutes = useCallback((mins: number) => {
+    if (!Number.isFinite(mins) || mins <= 0) return;
     const stats = readStats();
     const key = todayKey();
     stats[key] = (stats[key] ?? 0) + mins;
     writeStats(stats);
     setTodayMinutes(stats[key]);
-    setLifetimeMinutes(sumAll(stats));
+    const nextLifetime = readLifetime() + mins;
+    writeLifetime(nextLifetime);
+    setLifetimeMinutes(nextLifetime);
   }, []);
 
   return { todayMinutes, lifetimeMinutes, addFocusMinutes };
