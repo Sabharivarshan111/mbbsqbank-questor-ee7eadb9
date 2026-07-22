@@ -1,31 +1,40 @@
-// Unified once-per-calendar-day rewarded ad across placements
-// (essays/short-notes, theme change, progress tab, custom theme...).
+// Per-placement daily rewarded ad system.
+// Three INDEPENDENT daily buckets — user can see up to 3 rewarded ads/day total:
+//   • "progress"       → opening My Progress
+//   • "theme"          → theme changes (preset + custom)
+//   • "questions"      → opening an essay/short-notes topic (essay+short share one bucket)
 //
-// Public API:
-//   requestDailyAd(reason) -> shows a blocking "sorry for the inconvenience"
-//     confirmation modal, then plays the rewarded ad on OK.
-//     Silent no-op if today's ad was already shown or the walkthrough is active.
+// Each bucket tracks its own "last shown date" in localStorage, so the ad shows
+// at most once per calendar day per bucket, but the buckets do NOT share a cap.
 
 import { showRewardedAd } from "@/services/AndroidAds";
 
-const KEY = "orbit:daily-ad:date";
 const WALKTHROUGH_FLAG = "orbit:walkthrough-active";
+
+/** Bucket key = independent daily cap. */
+type Bucket = "progress" | "theme" | "questions";
+
+const BUCKET_STORAGE_KEY: Record<Bucket, string> = {
+  progress: "orbit:daily-ad:progress",
+  theme: "orbit:daily-ad:theme",
+  questions: "orbit:daily-ad:questions",
+};
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function hasShownDailyAd(): boolean {
+function hasShownFor(bucket: Bucket): boolean {
   try {
-    return localStorage.getItem(KEY) === today();
+    return localStorage.getItem(BUCKET_STORAGE_KEY[bucket]) === today();
   } catch {
     return false;
   }
 }
 
-export function markDailyAdShown() {
+function markShownFor(bucket: Bucket) {
   try {
-    localStorage.setItem(KEY, today());
+    localStorage.setItem(BUCKET_STORAGE_KEY[bucket], today());
   } catch {
     /* ignore */
   }
@@ -46,7 +55,16 @@ function isWalkthroughActive(): boolean {
   }
 }
 
+// Public reason strings kept broad so existing call sites don't need to change.
 export type DailyAdReason = "short-notes" | "theme" | "progress" | "custom-theme" | "questions";
+
+const REASON_TO_BUCKET: Record<DailyAdReason, Bucket> = {
+  progress: "progress",
+  theme: "theme",
+  "custom-theme": "theme",
+  questions: "questions",
+  "short-notes": "questions",
+};
 
 export type DailyAdConsentPayload = {
   reason: DailyAdReason;
@@ -61,7 +79,7 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
   "short-notes": {
     title: "Sorry for the inconvenience",
     message:
-      "A short sponsored ad will play once — this happens only ONE time per day and helps keep Orbit free. Tap OK to continue.",
+      "A short sponsored ad will play once — this happens only ONE time per day when you open essays or short notes and helps keep Orbit free. Tap OK to continue.",
   },
   questions: {
     title: "Sorry for the inconvenience",
@@ -85,11 +103,16 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
   },
 };
 
-/** Show the consent modal, then play the rewarded ad. No-op if already shown today or walkthrough active. */
+/**
+ * Show the consent modal, then play the rewarded ad.
+ * No-op if this bucket's ad was already shown today or the walkthrough is active.
+ */
 export function requestDailyAd(reason: DailyAdReason): void {
   if (typeof window === "undefined") return;
   if (isWalkthroughActive()) return;
-  if (hasShownDailyAd()) return;
+
+  const bucket = REASON_TO_BUCKET[reason];
+  if (hasShownFor(bucket)) return;
 
   const { title, message } = REASON_TEXT[reason];
   const payload: DailyAdConsentPayload = {
@@ -97,9 +120,17 @@ export function requestDailyAd(reason: DailyAdReason): void {
     title,
     message,
     onConfirm: () => {
-      markDailyAdShown();
+      markShownFor(bucket);
       void showRewardedAd(reason).catch(() => {});
     },
   };
   window.dispatchEvent(new CustomEvent<DailyAdConsentPayload>(DAILY_AD_EVENT, { detail: payload }));
+}
+
+/** Back-compat helpers (unused by new call sites, kept in case any code still imports them). */
+export function hasShownDailyAd(): boolean {
+  return hasShownFor("progress") && hasShownFor("theme") && hasShownFor("questions");
+}
+export function markDailyAdShown() {
+  markShownFor("progress"); markShownFor("theme"); markShownFor("questions");
 }
