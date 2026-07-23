@@ -439,6 +439,13 @@ function NotesDetailView({
         </div>
       )}
 
+      {error && content && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
+          <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">AI update notice</p>
+          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">{error}</p>
+        </div>
+      )}
+
       {content && (
         <>
           {totalBatches > 1 && (
@@ -470,7 +477,7 @@ function NotesDetailView({
           {failedBatches.length > 0 && phase === "done" && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
-                {failedBatches.length} section(s) failed — showing what we have. Tap Regenerate to retry.
+                {failedBatches.length} section(s) failed — showing the completed notes we have. Tap Regenerate to retry the full topic.
               </p>
             </div>
           )}
