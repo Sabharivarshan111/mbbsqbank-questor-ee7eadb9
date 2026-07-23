@@ -166,6 +166,51 @@ function parseJson(raw: string): any {
   }
 }
 
+function sectionPayloadFromTopLevel(section: any): any {
+  const type = section?.type;
+  const existing = section?.payload && typeof section.payload === "object" ? section.payload : {};
+  if (Object.keys(existing).length > 0) return existing;
+  switch (type) {
+    case "definition": return { text: section?.text ?? "" };
+    case "text": return { paragraph: section?.paragraph ?? section?.text ?? "" };
+    case "bullets": return { items: Array.isArray(section?.items) ? section.items : [] };
+    case "steps": return { items: Array.isArray(section?.items) ? section.items : [] };
+    case "morphology": return { subtitle: section?.subtitle, items: Array.isArray(section?.items) ? section.items : [] };
+    case "comparison": return { left: section?.left ?? "", right: section?.right ?? "", rows: Array.isArray(section?.rows) ? section.rows : [] };
+    case "table": return { columns: Array.isArray(section?.columns) ? section.columns : [], rows: Array.isArray(section?.rows) ? section.rows : [] };
+    case "flowchart": return { steps: Array.isArray(section?.steps) ? section.steps : [] };
+    case "outcome": return { text: section?.text ?? "" };
+    default: return existing;
+  }
+}
+
+function normalizeNotesContent(content: any): any {
+  if (!content || typeof content !== "object") return content;
+  const fallbackIcon: Record<string, string> = {
+    definition: "📌",
+    text: "🧠",
+    bullets: "📋",
+    steps: "🪜",
+    morphology: "🧬",
+    comparison: "⚖️",
+    table: "📊",
+    flowchart: "🔁",
+    outcome: "💡",
+  };
+  const sections = Array.isArray(content.sections)
+    ? content.sections.map((section: any) => ({
+        ...section,
+        icon: section?.icon || fallbackIcon[section?.type] || "📌",
+        payload: sectionPayloadFromTopLevel(section),
+      }))
+    : [];
+  return {
+    highYieldTip: content.highYieldTip ?? "",
+    pyqYears: Array.isArray(content.pyqYears) ? content.pyqYears : [],
+    sections,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -205,7 +250,7 @@ ${editInstruction}
 
 Modify ONLY the relevant part(s) requested by the user. Preserve everything else. If icons are missing or blank, add suitable emoji icons. Return the complete updated notes JSON using the same schema. JSON only.`;
       const raw = await callModel(editPrompt);
-      const edited = parseJson(raw);
+      const edited = normalizeNotesContent(parseJson(raw));
       if (!edited || !Array.isArray(edited.sections)) {
         throw new UpstreamError(500, "Gemini returned an invalid edited notes structure", "invalid");
       }
@@ -230,7 +275,7 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
       await admin.from("handwritten_notes").upsert({
         subtopic_key: subtopicKey,
         year, subject, subtopic_name: subtopicName,
-        content,
+          content: normalizeNotesContent(content),
         updated_at: new Date().toISOString(),
       });
       return new Response(JSON.stringify({ saved: true }), {
@@ -279,7 +324,7 @@ ${essayList}
 Generate the handwritten-style study page JSON now. Ensure every listed question is answered inside the sections.`;
 
     const raw = await callModel(userPrompt);
-    const batchContent = parseJson(raw);
+      const batchContent = normalizeNotesContent(parseJson(raw));
     if (!batchContent || !Array.isArray(batchContent.sections)) {
       throw new Error("Model returned invalid structure");
     }

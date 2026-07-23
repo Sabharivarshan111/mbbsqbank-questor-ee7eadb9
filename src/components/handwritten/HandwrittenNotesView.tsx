@@ -258,7 +258,7 @@ export default function HandwrittenNotesView({
 }
 
 function renderPayload(s: Section) {
-  const p = s.payload ?? {};
+  const p = s.payload ?? s ?? {};
   switch (s.type) {
     case "definition": return <DefinitionSection text={p.text ?? ""} />;
     case "text":       return <TextSection paragraph={p.paragraph ?? ""} />;
