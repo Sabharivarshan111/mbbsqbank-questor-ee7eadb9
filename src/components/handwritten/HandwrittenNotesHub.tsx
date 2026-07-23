@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Loader2, RefreshCw, Sparkles, GraduationCap, Layers } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, RefreshCw, Sparkles, GraduationCap, Layers, Send, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { YEAR_LABELS, getYearSubjects, type Year } from "@/lib/year-subjects";
 import { collectQuestions } from "@/lib/question-progress";
@@ -230,8 +231,9 @@ function mergeNotes(parts: NotesContent[]): NotesContent {
   return merged as NotesContent;
 }
 
-/** Delay between batch requests — Lovable Gateway handles throughput; keep small pause for backpressure. */
-const INTER_BATCH_DELAY_MS = 2_000;
+/** Delay between Gemini batch requests — keeps direct Google AI Studio keys under safer throughput. */
+const INTER_BATCH_DELAY_MS = 25_000;
+const NOTES_BATCH_SIZE = 10;
 
 function NotesDetailView({
   year, subject, topic, onBack,
@@ -245,6 +247,8 @@ function NotesDetailView({
   const [phase, setPhase] = useState<"idle" | "loading" | "waiting" | "done">("idle");
   const [waitSecs, setWaitSecs] = useState<number>(0);
   const [failedBatches, setFailedBatches] = useState<number[]>([]);
+  const [editInstruction, setEditInstruction] = useState("");
+  const [editingNotes, setEditingNotes] = useState(false);
 
   async function callBatch(batchIndex: number, regenerate: boolean) {
     const { data, error: fnErr } = await supabase.functions.invoke("generate-handwritten-notes", {
@@ -255,7 +259,7 @@ function NotesDetailView({
         subtopicName: topic.name,
         questions: topic.questions,
         batchIndex,
-        batchSize: 6,
+        batchSize: NOTES_BATCH_SIZE,
         regenerate: regenerate && batchIndex === 0,
       },
     });
@@ -295,6 +299,50 @@ function NotesDetailView({
         },
       });
     } catch { /* non-fatal */ }
+  }
+
+  async function applyAiEdit() {
+    const instruction = editInstruction.trim();
+    if (!instruction || !content) return;
+    setEditingNotes(true);
+    setError(null);
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke("generate-handwritten-notes", {
+        body: {
+          subtopicKey: topic.key,
+          year: YEAR_LABELS[year],
+          subject,
+          subtopicName: topic.name,
+          questions: topic.questions,
+          content,
+          editInstruction: instruction,
+        },
+      });
+      if (fnErr) {
+        let realMsg = fnErr.message ?? "Failed";
+        try {
+          const ctx = (fnErr as any).context;
+          if (ctx?.json) {
+            const j = await ctx.json();
+            if (j?.error) realMsg = typeof j.error === "string" ? j.error : JSON.stringify(j.error);
+          } else if (ctx?.text) {
+            const t = await ctx.text();
+            if (t) realMsg = t.slice(0, 300);
+          }
+        } catch {}
+        throw new Error(realMsg);
+      }
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const updated = (data as any)?.content as NotesContent | undefined;
+      if (!updated?.sections) throw new Error("AI edit returned invalid notes.");
+      setContent(updated);
+      setEditInstruction("");
+      setPhase("done");
+    } catch (e: any) {
+      setError(e?.message ?? "Couldn't update notes");
+    } finally {
+      setEditingNotes(false);
+    }
   }
 
   async function load(regenerate = false) {
@@ -434,6 +482,35 @@ function NotesDetailView({
               <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
                 {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                 Regenerate
+              </Button>
+            </div>
+          )}
+
+          {phase === "done" && (
+            <div className="rounded-2xl border bg-card p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                  <Wand2 className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm">Fix these notes with AI</p>
+                  <p className="text-xs text-muted-foreground">Ask for a specific change; only the relevant part will be updated.</p>
+                </div>
+              </div>
+              <Textarea
+                value={editInstruction}
+                onChange={(e) => setEditInstruction(e.target.value)}
+                placeholder="Example: Add the typhoid agent factors and make the transmission part a flowchart."
+                rows={3}
+                disabled={editingNotes}
+              />
+              <Button
+                className="w-full"
+                onClick={applyAiEdit}
+                disabled={editingNotes || !editInstruction.trim()}
+              >
+                {editingNotes ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                Update notes
               </Button>
             </div>
           )}
