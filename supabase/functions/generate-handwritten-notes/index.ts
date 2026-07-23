@@ -11,15 +11,11 @@ const corsHeaders = {
 /**
  * Handwritten Notes generator.
  *
- * Root cause of previous "Gemini rate limit" errors: the direct Gemini free
- * tier caps at ~5 RPM per key, and each subtopic fires several sequential
- * calls. The AI Chat feature doesn't hit the same wall because it uses the
- * Lovable AI Gateway (google/gemini-2.5-flash-lite) which has a much higher
- * effective throughput.
- *
- * Fix: PRIMARY = Lovable AI Gateway (google/gemini-2.5-flash-lite via the
- * OpenAI-compatible endpoint). FALLBACK = direct Gemini 2.5 Flash. This is
- * the same reliability model the chat uses.
+ * Current root cause from production logs: notes can create several sequential
+ * Gemini calls for one topic. With a free-tier Google AI Studio key, that can
+ * hit `generate_content_free_tier_requests` and return 429. This function now
+ * uses the user's direct GEMINI_API_KEY only (no Lovable AI Gateway) and targets
+ * Gemini 3.1 Flash-Lite for lower latency/cost.
  */
 const BodySchema = z.object({
   subtopicKey: z.string().min(1).max(300),
@@ -32,10 +28,13 @@ const BodySchema = z.object({
   regenerate: z.boolean().optional(),
   saveContent: z.boolean().optional(),
   content: z.any().optional(),
+  editInstruction: z.string().trim().min(1).max(2500).optional(),
 });
 
-const DEFAULT_BATCH_SIZE = 6;
-const EST_SECONDS_PER_BATCH = 12;
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const DEFAULT_BATCH_SIZE = 10;
+const EST_SECONDS_PER_BATCH = 25;
+const GEMINI_TIMEOUT_MS = 55_000;
 
 const SYSTEM_PROMPT = `You are an expert MBBS professor generating exam-ready HANDWRITTEN-STYLE study notes.
 Given a SUBTOPIC and its previous-year essay + short-note questions, synthesise ONE unified study page.
@@ -47,7 +46,7 @@ Output MUST be VALID JSON only (no markdown fence, no prose) matching this exact
   "pyqYears": string[],
   "sections": [
     {
-      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "outcome" | "text",
+      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "flowchart" | "outcome" | "text",
       "title": string,
       "icon": string,
       "pyqYears": string[]?,
@@ -64,117 +63,93 @@ Payload shapes by type:
 - morphology:  { "subtitle"?: string, "items": [ { "title": string, "tag"?: "CLASSIC" | "PATHOGNOMONIC" | "COMMON", "details": string[] } ] }
 - comparison:  { "left": string, "right": string, "rows": [ { "label": string, "left": string, "right": string } ] }
 - table:       { "columns": string[], "rows": string[][] }
+- flowchart:   { "steps": [ { "label": string, "detail": string } ] }
 - outcome:     { "text": string }
 
 Strict rules:
+- Every section MUST include a suitable emoji icon. Use these fallbacks if unsure: 📌 definition, 🧠 concept, 📋 bullets, 🔁 cycle/flowchart, 🧬 morphology/pathology, ⚖️ comparison, 📊 table, 💡 high yield.
 - DO NOT include page numbers or textbook citations.
 - Cover ALL the essay + short-note questions inside the sections; don't leave any question un-addressed.
 - Prefer comparison and table sections wherever two entities are contrasted or classified.
+- Add mnemonics and high-yield exam points where useful.
+- If the question asks for a cycle, pathway, steps, mechanism, life cycle, demographic cycle, disease cycle, or flow of events, include a flowchart section.
+- For Community Medicine communicable disease topics, structure each important disease with: agent factors (agent, source of infection, period of communicability), host factors (age/sex affected, immunity), environmental factors, mode of transmission, incubation period, clinical features, complications, prevention/control including immunization/vaccination/public-health measures, and treatment where relevant.
 - Keep language crisp, exam-ready. No markdown asterisks.
 - Response MUST be JSON only, starting with { and ending with }.`;
 
 class UpstreamError extends Error {
   status: number;
-  constructor(status: number, msg: string) {
+  kind: "quota" | "auth" | "timeout" | "provider" | "invalid";
+  constructor(status: number, msg: string, kind: UpstreamError["kind"] = "provider") {
     super(msg);
     this.status = status;
+    this.kind = kind;
   }
 }
 
-/** PRIMARY: Lovable AI Gateway (OpenAI-compatible). */
-async function callLovableGateway(apiKey: string, userPrompt: string): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.55,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new UpstreamError(res.status, `Lovable ${res.status}: ${t.slice(0, 400)}`);
-  }
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content ?? "";
-  if (!text) throw new UpstreamError(500, "Empty response from Lovable Gateway");
-  return text;
-}
-
-/** FALLBACK: direct Gemini. */
 async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        temperature: 0.55,
-        topP: 0.9,
-        maxOutputTokens: 8000,
-        responseMimeType: "application/json",
-      },
-    }),
-  });
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          temperature: 0.5,
+          topP: 0.9,
+          maxOutputTokens: 9000,
+          responseMimeType: "application/json",
+        },
+      }),
+    });
+  } catch (err) {
+    if ((err as Error)?.name === "AbortError") {
+      throw new UpstreamError(504, `Gemini request timed out after ${Math.round(GEMINI_TIMEOUT_MS / 1000)} seconds`, "timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) {
     const t = await res.text();
-    throw new UpstreamError(res.status, `Gemini ${res.status}: ${t.slice(0, 400)}`);
+    const kind: UpstreamError["kind"] =
+      res.status === 429 ? "quota" :
+      res.status === 400 || res.status === 401 || res.status === 403 ? "auth" :
+      "provider";
+    throw new UpstreamError(res.status, `Gemini ${res.status}: ${t.slice(0, 700)}`, kind);
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  if (!text) throw new UpstreamError(500, "Empty response from Gemini");
+  if (!text) throw new UpstreamError(500, "Empty response from Gemini", "invalid");
   return text;
 }
 
 async function callModel(prompt: string): Promise<string> {
-  const lovable = Deno.env.get("LOVABLE_API_KEY");
   const gemini = Deno.env.get("GEMINI_API_KEY");
-  const delays = [1500, 4000];
-  let lastErr: unknown = null;
-
-  // Try Lovable Gateway first with 2 retries on transient
-  if (lovable) {
-    for (let attempt = 0; attempt <= delays.length; attempt++) {
-      try {
-        return await callLovableGateway(lovable, prompt);
-      } catch (e) {
-        lastErr = e;
-        const status = e instanceof UpstreamError ? e.status : 0;
-        // 429 / 402 / 5xx — retry or fall through to direct Gemini
-        if (![429, 500, 502, 503, 504].includes(status)) break;
-        if (attempt < delays.length) await new Promise((r) => setTimeout(r, delays[attempt]));
-      }
+  if (!gemini) {
+    throw new UpstreamError(500, "GEMINI_API_KEY is not configured for handwritten notes", "auth");
+  }
+  const delays = [2500, 7000];
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
+    try {
+      return await callGeminiDirect(gemini, prompt);
+    } catch (e) {
+      const status = e instanceof UpstreamError ? e.status : 0;
+      const kind = e instanceof UpstreamError ? e.kind : "provider";
+      // 429 means the Google project/key is quota-limited. Retrying immediately
+      // burns more attempts and returns the same answer, so surface it clearly.
+      if (kind === "quota" || kind === "auth" || (status && status < 500)) throw e;
+      if (attempt < delays.length) await new Promise((r) => setTimeout(r, delays[attempt]));
+      else throw e;
     }
   }
-
-  // Fallback: direct Gemini
-  if (gemini) {
-    for (let attempt = 0; attempt <= delays.length; attempt++) {
-      try {
-        return await callGeminiDirect(gemini, prompt);
-      } catch (e) {
-        lastErr = e;
-        const status = e instanceof UpstreamError ? e.status : 0;
-        if (![429, 500, 502, 503, 504].includes(status)) throw e;
-        if (attempt < delays.length) await new Promise((r) => setTimeout(r, delays[attempt]));
-      }
-    }
-  }
-
-  if (!lovable && !gemini) {
-    throw new Error("Neither LOVABLE_API_KEY nor GEMINI_API_KEY configured");
-  }
-  throw lastErr ?? new Error("Model call failed");
+  throw new Error("Gemini model call failed");
 }
 
 function parseJson(raw: string): any {
@@ -208,8 +183,42 @@ serve(async (req) => {
     }
     const {
       subtopicKey, year, subject, subtopicName, questions,
-      batchIndex, batchSize, regenerate, saveContent, content,
+      batchIndex, batchSize, regenerate, saveContent, content, editInstruction,
     } = parsed.data;
+
+    // ---------- Mode 3: AI edit existing notes ----------
+    if (editInstruction) {
+      if (!content || typeof content !== "object") {
+        return new Response(JSON.stringify({ error: "Existing notes content is required before AI editing." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const editPrompt = `SUBJECT: ${subject}
+YEAR: ${year}
+SUBTOPIC: ${subtopicName}
+
+CURRENT NOTES JSON:
+${JSON.stringify(content)}
+
+USER EDIT REQUEST:
+${editInstruction}
+
+Modify ONLY the relevant part(s) requested by the user. Preserve everything else. If icons are missing or blank, add suitable emoji icons. Return the complete updated notes JSON using the same schema. JSON only.`;
+      const raw = await callModel(editPrompt);
+      const edited = parseJson(raw);
+      if (!edited || !Array.isArray(edited.sections)) {
+        throw new UpstreamError(500, "Gemini returned an invalid edited notes structure", "invalid");
+      }
+      await admin.from("handwritten_notes").upsert({
+        subtopic_key: subtopicKey,
+        year, subject, subtopic_name: subtopicName,
+        content: edited,
+        updated_at: new Date().toISOString(),
+      });
+      return new Response(JSON.stringify({ edited: true, content: edited }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // ---------- Mode 2: SAVE merged ----------
     if (saveContent === true) {
@@ -288,17 +297,21 @@ Generate the handwritten-style study page JSON now. Ensure every listed question
   } catch (err) {
     const msg = (err as Error).message ?? "Unknown error";
     console.error("generate-handwritten-notes error:", err);
-    const isQuota = /429/.test(msg) || /quota/i.test(msg) || /rate/i.test(msg);
-    const isCredits = /402/.test(msg);
+    const upstream = err instanceof UpstreamError ? err : null;
+    const isQuota = upstream?.kind === "quota" || /429/.test(msg) || /quota/i.test(msg) || /rate/i.test(msg);
+    const isAuth = upstream?.kind === "auth";
+    const isTimeout = upstream?.kind === "timeout" || /timed out/i.test(msg);
     return new Response(
       JSON.stringify({
-        error: isCredits
-          ? "AI service credits exhausted. Please add credits or try again later."
-          : isQuota
-            ? "AI service is temporarily busy. Please wait ~30 seconds and retry."
-            : msg,
+        error: isQuota
+          ? "Gemini quota/rate limit reached for this API key. Please wait for quota reset or enable billing in Google AI Studio, then try again."
+          : isAuth
+            ? "Gemini API key/model access issue. Please verify GEMINI_API_KEY and access to gemini-3.1-flash-lite."
+            : isTimeout
+              ? "Gemini took too long to generate this section. Please try again with fewer questions or retry later."
+              : msg,
       }),
-      { status: isQuota ? 429 : isCredits ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: isQuota ? 429 : isAuth ? 400 : isTimeout ? 504 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
