@@ -1,38 +1,64 @@
-# Fix Handwritten Notes generation (Gemini-only)
+## Root cause confirmed
 
-## Why it's failing now
-The edge function makes **one giant Gemini call** with all questions in a subtopic. Two problems:
-1. **Free-tier quota (20 req/day)** — logs show repeated `Gemini 429 ... limit: 20`. Not caused by too many calls per note, but by many notes generated across the day.
-2. **Output token limit (~6000)** — big subtopics (Medicine, OBG) return truncated JSON, so the UI shows garbled/empty content.
-
-Your idea (split into 10+10) directly fixes #2 and improves reliability. We'll keep using **your existing `GEMINI_API_KEY`** — no Lovable AI Gateway.
+- The latest deployed `generate-handwritten-notes` logs show direct Gemini failures:
+  - `Gemini 429`
+  - `generate_content_free_tier_requests, limit: 20`
+- The notes feature currently creates multiple API calls per topic because it splits questions into batches (`batchSize: 6`) and calls the edge function repeatedly with only a 2-second client pause.
+- So when one topic has many essay/short-note questions, notes can quickly consume the Gemini free-tier daily/request quota. That is why the screen shows “AI service is temporarily busy”.
+- The current function also still tries Lovable AI Gateway first, but the logs prove the fallback direct Gemini path is still being hit and exhausted.
+- Gemini 3.1 Flash-Lite model id is supported as `gemini-3.1-flash-lite`, so we can switch direct Gemini generation to that model using your existing `GEMINI_API_KEY`.
 
 ## Plan
 
-### 1. Chunked generation in `supabase/functions/generate-handwritten-notes/index.ts`
-- If `questions.length <= 10` → single Gemini call (same as today, 1 request).
-- If `questions.length > 10` → split into batches of **10** and process **sequentially** (not parallel) with a **1.2s delay between calls** to respect Gemini's per-minute rate limit.
-- Each batch gets a slightly adjusted prompt: "This is batch X of Y for subtopic Z — produce sections for THESE questions only."
-- **Merge results** after all batches finish:
-  - `highYieldTip` → keep first non-empty, append others as extra bullets
-  - `pyqYears` → union + dedupe + sort
-  - `sections` → concat, then dedupe by lowercased `title` (merge payload items when titles collide)
+### 1. Switch handwritten notes to your Gemini API as primary
+- Update `generate-handwritten-notes` so notes generation uses only `GEMINI_API_KEY` by default.
+- Change the direct Gemini model from `gemini-2.5-flash` to `gemini-3.1-flash-lite`.
+- Remove the Lovable AI Gateway primary path from this function so it does not use Lovable AI for handwritten notes.
+- Keep clear server-side error messages if `GEMINI_API_KEY` is missing, invalid, or quota-limited.
 
-### 2. Robust Gemini call
-- Retry on `429`/`503` with exponential backoff: 2s → 5s → 12s (max 3 attempts per batch).
-- On final failure of a batch, **don't fail the whole note** — return partial notes with a `warnings: [...]` field the UI can show ("2 of 4 batches failed, showing partial notes — click Regenerate later").
+### 2. Reduce Gemini 429 errors with safer batching
+- Increase the client delay between batches from 2 seconds to a safer interval.
+- Lower each batch size if needed so each response is smaller and less likely to timeout.
+- Stop retrying immediately on Gemini `429`; instead return a clear “quota/rate limit” message with a retry-after style instruction.
+- Keep the existing cache behavior: once a subtopic is generated and saved, future opens reuse cached notes and do not call Gemini again.
 
-### 3. Better error messages in `HandwrittenNotesHub.tsx`
-- Extract real error from `FunctionsHttpError` (currently shows generic "non-2xx").
-- If Gemini quota hit → show: "Daily Gemini quota reached (20/day free tier). Try again tomorrow or upgrade your Gemini plan."
-- Render `warnings` from partial results.
+### 3. Make notes generation more resilient
+- If one batch fails after some content was generated, show the completed sections instead of a full blank error whenever possible.
+- Save successful merged notes only when all batches are complete, to avoid caching incomplete notes as final.
+- Improve the error box text so it explains whether the issue is quota/rate limit, timeout, invalid JSON, or missing API key.
 
-### 4. Cache unchanged
-The `handwritten_notes` Supabase table already caches per subtopic, so users don't burn quota re-opening the same note.
+### 4. Improve the handwritten notes prompt quality
+- Add prompt rules so every section must include a valid icon, with fallback icons if the model is unsure.
+- Add medical-note formatting instructions:
+  - include mnemonics and high-yield points where useful
+  - include flowcharts/cycles where feasible for questions asking “cycle”, “pathway”, “steps”, or “mechanism”
+  - no page numbers or textbook citations
+- For Community Medicine communicable disease topics, add a structured template per disease:
+  - agent factors: agent, source of infection, period of communicability
+  - host factors: age/sex affected, immunity
+  - environmental factors
+  - mode of transmission
+  - incubation period
+  - clinical features
+  - complications
+  - prevention/control: immunization, vaccination, public health measures
+  - treatment where relevant
 
-## Quota reality check (important)
-Chunking **increases** requests per note (a 40-question subtopic = 4 requests instead of 1), so the 20/day free cap will be hit **faster**, not slower. But without chunking, big subtopics silently produce broken output. Two ways forward with Gemini-only:
-- **A) Accept fewer notes/day** on free tier (recommended for now — fixes quality).
-- **B) Upgrade your Gemini API key to a paid tier** (1000+ req/day) — no code change needed, just billing on Google AI Studio.
+### 5. Continue previous requested app fixes
+- Keep the three independent daily ad buckets:
+  - My Progress: once per calendar day
+  - Theme change: once per calendar day
+  - Essay/Short Notes together: once per calendar day
+- Ensure no ads play during walkthrough.
+- Keep the search-result glow behavior in the target chapter/question.
+- Add the note-edit AI chat box below Regenerate as a follow-up improvement after the core Gemini generation is stable.
+- Re-check home Total Study Time path after implementation.
 
-I'll implement chunking + retries + partial results. You decide on the quota upgrade separately.
+### 6. Validate after changes
+- Deploy the updated `generate-handwritten-notes` edge function.
+- Test the deployed function with a small sample request using `gemini-3.1-flash-lite`.
+- Read the edge logs after testing to confirm whether the failure is gone or whether Google is still rejecting the API key due to project quota.
+
+## Important note
+
+Switching to `gemini-3.1-flash-lite` will reduce cost/latency and may improve limits, but if the Google AI Studio project/API key is already out of free-tier quota for the day, any direct Gemini model can still return `429` until quota resets or billing is enabled.

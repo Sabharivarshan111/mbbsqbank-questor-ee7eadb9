@@ -187,6 +187,25 @@ const TableSection = ({ columns, rows }: { columns: string[]; rows: string[][] }
   </div>
 );
 
+const FlowchartSection = ({ steps }: { steps: { label: string; detail: string }[] }) => (
+  <div className="space-y-2">
+    {steps.map((step, i) => (
+      <div key={i} className="flex gap-3">
+        <div className="flex flex-col items-center flex-shrink-0">
+          <div className="h-8 w-8 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 flex items-center justify-center text-xs font-bold">
+            {i + 1}
+          </div>
+          {i < steps.length - 1 && <div className="w-0.5 h-8 bg-cyan-500/30 my-1" />}
+        </div>
+        <div className="flex-1 rounded-lg border bg-muted/30 p-3">
+          <p className="font-bold text-sm">{step.label}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed mt-0.5">{step.detail}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const OutcomeSection = ({ text }: { text: string }) => (
   <div className="inline-block px-4 py-2 rounded-full border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 text-sm">
     Outcome: {text}
@@ -239,7 +258,7 @@ export default function HandwrittenNotesView({
 }
 
 function renderPayload(s: Section) {
-  const p = s.payload ?? {};
+  const p = s.payload ?? s ?? {};
   switch (s.type) {
     case "definition": return <DefinitionSection text={p.text ?? ""} />;
     case "text":       return <TextSection paragraph={p.paragraph ?? ""} />;
@@ -248,6 +267,7 @@ function renderPayload(s: Section) {
     case "morphology": return <MorphologySection subtitle={p.subtitle} items={p.items ?? []} />;
     case "comparison": return <ComparisonSection left={p.left ?? ""} right={p.right ?? ""} rows={p.rows ?? []} />;
     case "table":      return <TableSection columns={p.columns ?? []} rows={p.rows ?? []} />;
+    case "flowchart":  return <FlowchartSection steps={p.steps ?? []} />;
     case "outcome":    return <OutcomeSection text={p.text ?? ""} />;
     default:           return <TextSection paragraph={JSON.stringify(p)} />;
   }
