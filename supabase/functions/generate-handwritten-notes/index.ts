@@ -86,6 +86,7 @@ Strict rules:
   9. Prevention & Control (personal, community, immunization/vaccination schedule)
   10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
+- If a "TEXTBOOK REFERENCE" block is provided, treat it as the primary source of truth. Prefer facts, definitions, classifications, schedules, doses and numbers from it. Reconstruct any obviously OCR-garbled or missing words silently. If the reference does not contain an answer for a listed question, fall back to standard MBBS knowledge — never say the reference is incomplete.
 - Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
 
 class UpstreamError extends Error {
