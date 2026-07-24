@@ -352,9 +352,9 @@ function NotesDetailView({
     setContent(null);
     setCompletedBatches(0);
     setFailedBatches([]);
+    collectedRef.current = [];
     if (regenerate) setRegenerating(true);
     setPhase("loading");
-    const collected: NotesContent[] = [];
     const failed: number[] = [];
 
     try {
@@ -369,7 +369,8 @@ function NotesDetailView({
         setRegenerating(false);
         return;
       }
-      collected.push(first.content);
+      collectedRef.current = new Array(first.totalBatches).fill(null);
+      collectedRef.current[0] = first.content;
       setContent(first.content);
       setTotalBatches(first.totalBatches);
       setCompletedBatches(1);
@@ -385,19 +386,20 @@ function NotesDetailView({
         setPhase("loading");
         try {
           const next = await callBatch(i, false);
-          collected.push(next.content);
-          setContent(mergeNotes(collected));
-          setCompletedBatches(i + 1);
-        } catch (e: any) {
-          failed.push(i + 1);
+          collectedRef.current[i] = next.content;
+          setContent(mergeNotes(collectedRef.current.filter(Boolean) as NotesContent[]));
+          setCompletedBatches((c) => c + 1);
+        } catch (_e: any) {
+          failed.push(i);
           setFailedBatches([...failed]);
         }
       }
 
       setPhase("done");
-      // Persist merged notes (only if at least one batch succeeded and no failures — keeps cache clean)
-      if (collected.length === first.totalBatches && failed.length === 0) {
-        const merged = collected.length === 1 ? collected[0] : mergeNotes(collected);
+      // Persist merged notes only when every batch succeeded — keeps cache clean.
+      if (failed.length === 0) {
+        const parts = collectedRef.current.filter(Boolean) as NotesContent[];
+        const merged = parts.length === 1 ? parts[0] : mergeNotes(parts);
         await saveMerged(merged);
       }
     } catch (e: any) {
@@ -406,6 +408,42 @@ function NotesDetailView({
     } finally {
       setRegenerating(false);
     }
+  }
+
+  async function retryFailed() {
+    if (failedBatches.length === 0 || retryingFailed) return;
+    setRetryingFailed(true);
+    setError(null);
+    const stillFailed: number[] = [];
+    const toRetry = [...failedBatches];
+    for (let k = 0; k < toRetry.length; k++) {
+      const i = toRetry[k];
+      if (k > 0) {
+        setPhase("waiting");
+        for (let s = Math.ceil(INTER_BATCH_DELAY_MS / 1000); s > 0; s--) {
+          setWaitSecs(s);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      }
+      setPhase("loading");
+      try {
+        const next = await callBatch(i, false);
+        collectedRef.current[i] = next.content;
+        setContent(mergeNotes(collectedRef.current.filter(Boolean) as NotesContent[]));
+        setCompletedBatches((c) => Math.min(totalBatches, c + 1));
+      } catch (e: any) {
+        stillFailed.push(i);
+        setError(e?.message ?? "Retry failed for a section");
+      }
+    }
+    setFailedBatches(stillFailed);
+    setPhase("done");
+    if (stillFailed.length === 0) {
+      const parts = collectedRef.current.filter(Boolean) as NotesContent[];
+      const merged = parts.length === 1 ? parts[0] : mergeNotes(parts);
+      await saveMerged(merged);
+    }
+    setRetryingFailed(false);
   }
 
   useEffect(() => { load(false); /* eslint-disable-next-line */ }, [topic.key]);
