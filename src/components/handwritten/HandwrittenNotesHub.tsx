@@ -246,7 +246,9 @@ function NotesDetailView({
   const [completedBatches, setCompletedBatches] = useState<number>(0);
   const [phase, setPhase] = useState<"idle" | "loading" | "waiting" | "done">("idle");
   const [waitSecs, setWaitSecs] = useState<number>(0);
-  const [failedBatches, setFailedBatches] = useState<number[]>([]);
+  const [failedBatches, setFailedBatches] = useState<number[]>([]); // 0-based indices
+  const [retryingFailed, setRetryingFailed] = useState(false);
+  const collectedRef = useRef<(NotesContent | null)[]>([]);
   const [editInstruction, setEditInstruction] = useState("");
   const [editingNotes, setEditingNotes] = useState(false);
 
