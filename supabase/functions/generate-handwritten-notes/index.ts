@@ -162,17 +162,43 @@ async function callModel(prompt: string): Promise<string> {
   throw new Error("Gemini model call failed");
 }
 
+function extractFirstJsonObject(raw: string): string {
+  // Walk the string tracking string/escape state and brace depth so we return
+  // exactly the first complete {...} object, ignoring anything Gemini may have
+  // appended after the closing brace (extra prose, a second JSON block, ``` etc.)
+  let start = -1;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (ch === "\\") { esc = true; continue; }
+      if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') { inStr = true; continue; }
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start >= 0) return raw.slice(start, i + 1);
+    }
+  }
+  throw new Error("Model did not return a complete JSON object");
+}
+
 function parseJson(raw: string): any {
   let jsonText = raw.trim();
   if (jsonText.startsWith("```")) {
-    jsonText = jsonText.replace(/^```(?:json)?/i, "").replace(/```$/g, "").trim();
+    jsonText = jsonText.replace(/^```(?:json)?/i, "").replace(/```\s*$/g, "").trim();
   }
   try {
     return JSON.parse(jsonText);
   } catch {
-    const m = jsonText.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error("Model did not return JSON");
-    return JSON.parse(m[0]);
+    return JSON.parse(extractFirstJsonObject(jsonText));
   }
 }
 
