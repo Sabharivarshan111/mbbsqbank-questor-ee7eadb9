@@ -517,7 +517,7 @@ function NotesDetailView({
           {failedBatches.length > 0 && phase === "done" && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
-                {failedBatches.length} section(s) failed — showing the completed notes we have. Tap Regenerate to retry the full topic.
+                {failedBatches.length} section(s) failed — showing the completed notes we have. Retry only the failed ones below.
               </p>
             </div>
           )}
@@ -525,11 +525,22 @@ function NotesDetailView({
           <HandwrittenNotesView subtopicName={topic.name} content={content} />
 
           {phase === "done" && (
-            <div className="flex justify-center pt-2">
-              <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
+            <div className="flex flex-wrap justify-center gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating || retryingFailed}>
                 {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                 Regenerate
               </Button>
+              {failedBatches.length > 0 && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={retryFailed}
+                  disabled={retryingFailed || regenerating}
+                >
+                  {retryingFailed ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RotateCw className="h-4 w-4 mr-2" />}
+                  Regenerate failed sections ({failedBatches.length})
+                </Button>
+              )}
             </div>
           )}
 
