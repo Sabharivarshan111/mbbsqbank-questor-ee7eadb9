@@ -73,9 +73,19 @@ Strict rules:
 - Prefer comparison and table sections wherever two entities are contrasted or classified.
 - Add mnemonics and high-yield exam points where useful.
 - If the question asks for a cycle, pathway, steps, mechanism, life cycle, demographic cycle, disease cycle, or flow of events, include a flowchart section.
-- For Community Medicine communicable disease topics, structure each important disease with: agent factors (agent, source of infection, period of communicability), host factors (age/sex affected, immunity), environmental factors, mode of transmission, incubation period, clinical features, complications, prevention/control including immunization/vaccination/public-health measures, and treatment where relevant.
+- For Community Medicine "Epidemiology of Communicable Diseases" topics, for EVERY named disease (typhoid, cholera, TB, malaria, dengue, measles, polio, hepatitis, HIV, leprosy, etc.) create a dedicated bullets section titled with the disease name and include ALL of these labelled items IN ORDER (skip an item ONLY if truly not applicable):
+  1. Agent Factors — agent (organism), source of infection, mode of transmission (short), period of communicability
+  2. Host Factors — age most affected, sex most affected, immunity
+  3. Environmental Factors
+  4. Mode of Transmission (detailed)
+  5. Incubation Period
+  6. Clinical Features (and stages, if the disease has classical stages)
+  7. Complications
+  8. Treatment
+  9. Prevention & Control (personal, community, immunization/vaccination schedule)
+  10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
-- Response MUST be JSON only, starting with { and ending with }.`;
+- Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
 
 class UpstreamError extends Error {
   status: number;
