@@ -354,9 +354,12 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
 
     const batch = questions.slice(idx * size, idx * size + size);
     const essayList = batch.map((q, i) => `${i + 1}. ${q}`).join("\n");
+    const refText = await buildTextbookContext(subject, subtopicName, batch, 12000);
+    const bookKey = pickBookKey(subject);
     const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
+${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
 ${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
 ${essayList}
 
