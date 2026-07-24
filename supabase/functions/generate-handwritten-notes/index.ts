@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { buildTextbookContext, pickBookKey } from "./textbook.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,6 +86,7 @@ Strict rules:
   9. Prevention & Control (personal, community, immunization/vaccination schedule)
   10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
+- If a "TEXTBOOK REFERENCE" block is provided, treat it as the primary source of truth. Prefer facts, definitions, classifications, schedules, doses and numbers from it. Reconstruct any obviously OCR-garbled or missing words silently. If the reference does not contain an answer for a listed question, fall back to standard MBBS knowledge — never say the reference is incomplete.
 - Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
 
 class UpstreamError extends Error {
@@ -274,10 +276,11 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const refText = await buildTextbookContext(subject, subtopicName, questions, 8000);
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
-
+${refText ? `\nTEXTBOOK REFERENCE (source of truth — prefer facts from here):\n"""\n${refText}\n"""\n` : ""}
 CURRENT NOTES JSON:
 ${JSON.stringify(content)}
 
@@ -351,9 +354,12 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
 
     const batch = questions.slice(idx * size, idx * size + size);
     const essayList = batch.map((q, i) => `${i + 1}. ${q}`).join("\n");
+    const refText = await buildTextbookContext(subject, subtopicName, batch, 12000);
+    const bookKey = pickBookKey(subject);
     const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
+${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
 ${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
 ${essayList}
 

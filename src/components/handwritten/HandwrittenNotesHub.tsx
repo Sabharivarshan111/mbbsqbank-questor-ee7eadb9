@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Loader2, RefreshCw, Sparkles, GraduationCap, Layers, Send, Wand2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, BookOpen, Loader2, RefreshCw, Sparkles, GraduationCap, Layers, Send, Wand2, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -246,7 +246,9 @@ function NotesDetailView({
   const [completedBatches, setCompletedBatches] = useState<number>(0);
   const [phase, setPhase] = useState<"idle" | "loading" | "waiting" | "done">("idle");
   const [waitSecs, setWaitSecs] = useState<number>(0);
-  const [failedBatches, setFailedBatches] = useState<number[]>([]);
+  const [failedBatches, setFailedBatches] = useState<number[]>([]); // 0-based indices
+  const [retryingFailed, setRetryingFailed] = useState(false);
+  const collectedRef = useRef<(NotesContent | null)[]>([]);
   const [editInstruction, setEditInstruction] = useState("");
   const [editingNotes, setEditingNotes] = useState(false);
 
@@ -350,9 +352,9 @@ function NotesDetailView({
     setContent(null);
     setCompletedBatches(0);
     setFailedBatches([]);
+    collectedRef.current = [];
     if (regenerate) setRegenerating(true);
     setPhase("loading");
-    const collected: NotesContent[] = [];
     const failed: number[] = [];
 
     try {
@@ -367,7 +369,8 @@ function NotesDetailView({
         setRegenerating(false);
         return;
       }
-      collected.push(first.content);
+      collectedRef.current = new Array(first.totalBatches).fill(null);
+      collectedRef.current[0] = first.content;
       setContent(first.content);
       setTotalBatches(first.totalBatches);
       setCompletedBatches(1);
@@ -383,19 +386,20 @@ function NotesDetailView({
         setPhase("loading");
         try {
           const next = await callBatch(i, false);
-          collected.push(next.content);
-          setContent(mergeNotes(collected));
-          setCompletedBatches(i + 1);
-        } catch (e: any) {
-          failed.push(i + 1);
+          collectedRef.current[i] = next.content;
+          setContent(mergeNotes(collectedRef.current.filter(Boolean) as NotesContent[]));
+          setCompletedBatches((c) => c + 1);
+        } catch (_e: any) {
+          failed.push(i);
           setFailedBatches([...failed]);
         }
       }
 
       setPhase("done");
-      // Persist merged notes (only if at least one batch succeeded and no failures — keeps cache clean)
-      if (collected.length === first.totalBatches && failed.length === 0) {
-        const merged = collected.length === 1 ? collected[0] : mergeNotes(collected);
+      // Persist merged notes only when every batch succeeded — keeps cache clean.
+      if (failed.length === 0) {
+        const parts = collectedRef.current.filter(Boolean) as NotesContent[];
+        const merged = parts.length === 1 ? parts[0] : mergeNotes(parts);
         await saveMerged(merged);
       }
     } catch (e: any) {
@@ -404,6 +408,42 @@ function NotesDetailView({
     } finally {
       setRegenerating(false);
     }
+  }
+
+  async function retryFailed() {
+    if (failedBatches.length === 0 || retryingFailed) return;
+    setRetryingFailed(true);
+    setError(null);
+    const stillFailed: number[] = [];
+    const toRetry = [...failedBatches];
+    for (let k = 0; k < toRetry.length; k++) {
+      const i = toRetry[k];
+      if (k > 0) {
+        setPhase("waiting");
+        for (let s = Math.ceil(INTER_BATCH_DELAY_MS / 1000); s > 0; s--) {
+          setWaitSecs(s);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      }
+      setPhase("loading");
+      try {
+        const next = await callBatch(i, false);
+        collectedRef.current[i] = next.content;
+        setContent(mergeNotes(collectedRef.current.filter(Boolean) as NotesContent[]));
+        setCompletedBatches((c) => Math.min(totalBatches, c + 1));
+      } catch (e: any) {
+        stillFailed.push(i);
+        setError(e?.message ?? "Retry failed for a section");
+      }
+    }
+    setFailedBatches(stillFailed);
+    setPhase("done");
+    if (stillFailed.length === 0) {
+      const parts = collectedRef.current.filter(Boolean) as NotesContent[];
+      const merged = parts.length === 1 ? parts[0] : mergeNotes(parts);
+      await saveMerged(merged);
+    }
+    setRetryingFailed(false);
   }
 
   useEffect(() => { load(false); /* eslint-disable-next-line */ }, [topic.key]);
@@ -477,7 +517,7 @@ function NotesDetailView({
           {failedBatches.length > 0 && phase === "done" && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
-                {failedBatches.length} section(s) failed — showing the completed notes we have. Tap Regenerate to retry the full topic.
+                {failedBatches.length} section(s) failed — showing the completed notes we have. Retry only the failed ones below.
               </p>
             </div>
           )}
@@ -485,11 +525,22 @@ function NotesDetailView({
           <HandwrittenNotesView subtopicName={topic.name} content={content} />
 
           {phase === "done" && (
-            <div className="flex justify-center pt-2">
-              <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating}>
+            <div className="flex flex-wrap justify-center gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => load(true)} disabled={regenerating || retryingFailed}>
                 {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                 Regenerate
               </Button>
+              {failedBatches.length > 0 && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={retryFailed}
+                  disabled={retryingFailed || regenerating}
+                >
+                  {retryingFailed ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RotateCw className="h-4 w-4 mr-2" />}
+                  Regenerate failed sections ({failedBatches.length})
+                </Button>
+              )}
             </div>
           )}
 
