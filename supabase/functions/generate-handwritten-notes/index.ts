@@ -276,10 +276,11 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const refText = await buildTextbookContext(subject, subtopicName, questions, 8000);
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
-
+${refText ? `\nTEXTBOOK REFERENCE (source of truth — prefer facts from here):\n"""\n${refText}\n"""\n` : ""}
 CURRENT NOTES JSON:
 ${JSON.stringify(content)}
 
