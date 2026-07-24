@@ -73,9 +73,19 @@ Strict rules:
 - Prefer comparison and table sections wherever two entities are contrasted or classified.
 - Add mnemonics and high-yield exam points where useful.
 - If the question asks for a cycle, pathway, steps, mechanism, life cycle, demographic cycle, disease cycle, or flow of events, include a flowchart section.
-- For Community Medicine communicable disease topics, structure each important disease with: agent factors (agent, source of infection, period of communicability), host factors (age/sex affected, immunity), environmental factors, mode of transmission, incubation period, clinical features, complications, prevention/control including immunization/vaccination/public-health measures, and treatment where relevant.
+- For Community Medicine "Epidemiology of Communicable Diseases" topics, for EVERY named disease (typhoid, cholera, TB, malaria, dengue, measles, polio, hepatitis, HIV, leprosy, etc.) create a dedicated bullets section titled with the disease name and include ALL of these labelled items IN ORDER (skip an item ONLY if truly not applicable):
+  1. Agent Factors — agent (organism), source of infection, mode of transmission (short), period of communicability
+  2. Host Factors — age most affected, sex most affected, immunity
+  3. Environmental Factors
+  4. Mode of Transmission (detailed)
+  5. Incubation Period
+  6. Clinical Features (and stages, if the disease has classical stages)
+  7. Complications
+  8. Treatment
+  9. Prevention & Control (personal, community, immunization/vaccination schedule)
+  10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
-- Response MUST be JSON only, starting with { and ending with }.`;
+- Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
 
 class UpstreamError extends Error {
   status: number;
@@ -152,17 +162,43 @@ async function callModel(prompt: string): Promise<string> {
   throw new Error("Gemini model call failed");
 }
 
+function extractFirstJsonObject(raw: string): string {
+  // Walk the string tracking string/escape state and brace depth so we return
+  // exactly the first complete {...} object, ignoring anything Gemini may have
+  // appended after the closing brace (extra prose, a second JSON block, ``` etc.)
+  let start = -1;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (ch === "\\") { esc = true; continue; }
+      if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') { inStr = true; continue; }
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start >= 0) return raw.slice(start, i + 1);
+    }
+  }
+  throw new Error("Model did not return a complete JSON object");
+}
+
 function parseJson(raw: string): any {
   let jsonText = raw.trim();
   if (jsonText.startsWith("```")) {
-    jsonText = jsonText.replace(/^```(?:json)?/i, "").replace(/```$/g, "").trim();
+    jsonText = jsonText.replace(/^```(?:json)?/i, "").replace(/```\s*$/g, "").trim();
   }
   try {
     return JSON.parse(jsonText);
   } catch {
-    const m = jsonText.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error("Model did not return JSON");
-    return JSON.parse(m[0]);
+    return JSON.parse(extractFirstJsonObject(jsonText));
   }
 }
 
