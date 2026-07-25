@@ -366,17 +366,19 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
     }
 
     const batch = questions.slice(idx * size, idx * size + size);
-    const essayList = batch.map((q, i) => `${i + 1}. ${q}`).join("\n");
-    const refText = await buildTextbookContext(subject, subtopicName, batch, 12000);
+    const tagged = batch.map((q) => ({ q, kind: classifyQuestion(q) }));
+    const essayList = tagged.map((t, i) => `${i + 1}. [${t.kind === "short" ? "SHORT NOTE" : t.kind === "essay" ? "ESSAY" : "STANDARD"}] ${t.q}`).join("\n");
+    const refText = await buildTextbookContext(subject, subtopicName, batch, 18000);
     const bookKey = pickBookKey(subject);
+    console.log(`[notes] subject=${subject} subtopic="${subtopicName}" batch=${idx + 1}/${totalBatches} questions=${batch.length} refChars=${refText.length}`);
     const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
-${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
-${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
+${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as PRIMARY source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
+${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions (each tagged with depth):` : "\nPREVIOUS YEAR QUESTIONS (each tagged with required depth):"}
 ${essayList}
 
-Generate the handwritten-style study page JSON now. Ensure every listed question is answered inside the sections.`;
+Follow the DEPTH rules from the system prompt strictly. Essays get multi-section deep coverage; short notes stay tight (4–6 bullets). Ensure every listed question is answered.`;
 
     const raw = await callModel(userPrompt);
       const batchContent = normalizeNotesContent(parseJson(raw));
