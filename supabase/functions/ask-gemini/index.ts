@@ -392,11 +392,11 @@ serve(async (req) => {
       );
     }
 
-    // Create a client instance for direct Gemini fallback (only if key available)
+    // Create a client instance for direct Gemini (only if key available)
     const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
-    // Direct Gemini API fallback model (used only if Lovable Gateway fails)
-    const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) : null;
-    // Primary model via Lovable AI Gateway - cheapest/highest free quota
+    // Direct Gemini API — use the same 3.1 flash-lite model as handwritten notes
+    const model = genAI ? genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" }) : null;
+    // Legacy Lovable Gateway fallback model (only used if direct Gemini has no key)
     const LOVABLE_MODEL = "google/gemini-2.5-flash-lite";
 
     // Extract the actual question content without any prefix
