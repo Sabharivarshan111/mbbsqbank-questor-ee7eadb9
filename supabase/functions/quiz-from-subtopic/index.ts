@@ -8,7 +8,7 @@ const Body = z.object({
 
 interface Mcq { question: string; options: string[]; correctIndex: number; explanation: string; }
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const QUIZ_COUNT = 5;
 
 const json = (body: Record<string, unknown>, status = 200) =>
