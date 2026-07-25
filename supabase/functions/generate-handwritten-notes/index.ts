@@ -128,9 +128,9 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
-          temperature: 0.5,
+          temperature: 0.55,
           topP: 0.9,
-          maxOutputTokens: 9000,
+          maxOutputTokens: 16000,
           responseMimeType: "application/json",
         },
       }),
