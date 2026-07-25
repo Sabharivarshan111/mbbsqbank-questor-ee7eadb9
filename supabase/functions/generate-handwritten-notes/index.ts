@@ -289,7 +289,7 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const refText = await buildTextbookContext(subject, subtopicName, questions, 8000);
+      const refText = await buildTextbookContext(subject, subtopicName, questions, 12000);
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
