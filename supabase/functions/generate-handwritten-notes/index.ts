@@ -86,8 +86,21 @@ Strict rules:
   9. Prevention & Control (personal, community, immunization/vaccination schedule)
   10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
-- If a "TEXTBOOK REFERENCE" block is provided, treat it as the primary source of truth. Prefer facts, definitions, classifications, schedules, doses and numbers from it. Reconstruct any obviously OCR-garbled or missing words silently. If the reference does not contain an answer for a listed question, fall back to standard MBBS knowledge — never say the reference is incomplete.
+- If a "TEXTBOOK REFERENCE" block is provided, treat it as the PRIMARY source of truth. Prefer facts, definitions, classifications, schedules, doses, national-programme names, section numbers and numbers from it verbatim. Reconstruct obviously OCR-garbled words silently. Never say the reference is incomplete — if a listed question is not covered by the reference, fall back to standard MBBS knowledge and answer it fully.
+- DEFINITIONS: keep canonical wording. Do not paraphrase textbook definitions. You may modify surrounding explanation, mnemonics and structure.
+- DEPTH by question type (each question is tagged [ESSAY], [SHORT NOTE] or [STANDARD]):
+  • [ESSAY] → generate a full essay-grade answer: definition + classification/types + etiology/pathogenesis or epidemiology + clinical features + investigations/diagnosis + management/treatment + complications + prevention/programme; use multiple sections (bullets + comparison/table + flowchart where relevant). Aim for 3–5 sections per essay question.
+  • [SHORT NOTE] → 1 tight section per question: 4–6 crisp bullets OR a small comparison/table. No long paragraphs. No repetition of essay-length blocks.
+  • [STANDARD] → 1 section, 6–8 focused bullets.
 - Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
+
+function classifyQuestion(q: string): "essay" | "short" | "standard" {
+  const s = q.toLowerCase();
+  if (/\bshort\s+note|write\s+short\s+notes?|brief\s+note|short\s+account\b/.test(s)) return "short";
+  if (/\bdiscuss\b|\bclassify\b|\bwrite\s+an?\s+essay\b|\bexplain\s+in\s+detail\b|\bdefine\s+.+\band\s+describe\b|\bdescribe\s+.+\band\s+/i.test(s)) return "essay";
+  if (q.length > 90 && /(?:^|[\s(])(?:a\)|b\)|c\)|1\.|2\.)/.test(q)) return "essay";
+  return "standard";
+}
 
 class UpstreamError extends Error {
   status: number;
