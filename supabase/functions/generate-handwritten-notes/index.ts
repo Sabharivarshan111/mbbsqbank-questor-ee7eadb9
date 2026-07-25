@@ -86,8 +86,21 @@ Strict rules:
   9. Prevention & Control (personal, community, immunization/vaccination schedule)
   10. National Health Programme (if any — e.g. RNTCP/NTEP, NVBDCP, Pulse Polio, NLEP, NACP, Anaemia Mukt Bharat, etc.)
 - Keep language crisp, exam-ready. No markdown asterisks.
-- If a "TEXTBOOK REFERENCE" block is provided, treat it as the primary source of truth. Prefer facts, definitions, classifications, schedules, doses and numbers from it. Reconstruct any obviously OCR-garbled or missing words silently. If the reference does not contain an answer for a listed question, fall back to standard MBBS knowledge — never say the reference is incomplete.
+- If a "TEXTBOOK REFERENCE" block is provided, treat it as the PRIMARY source of truth. Prefer facts, definitions, classifications, schedules, doses, national-programme names, section numbers and numbers from it verbatim. Reconstruct obviously OCR-garbled words silently. Never say the reference is incomplete — if a listed question is not covered by the reference, fall back to standard MBBS knowledge and answer it fully.
+- DEFINITIONS: keep canonical wording. Do not paraphrase textbook definitions. You may modify surrounding explanation, mnemonics and structure.
+- DEPTH by question type (each question is tagged [ESSAY], [SHORT NOTE] or [STANDARD]):
+  • [ESSAY] → generate a full essay-grade answer: definition + classification/types + etiology/pathogenesis or epidemiology + clinical features + investigations/diagnosis + management/treatment + complications + prevention/programme; use multiple sections (bullets + comparison/table + flowchart where relevant). Aim for 3–5 sections per essay question.
+  • [SHORT NOTE] → 1 tight section per question: 4–6 crisp bullets OR a small comparison/table. No long paragraphs. No repetition of essay-length blocks.
+  • [STANDARD] → 1 section, 6–8 focused bullets.
 - Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
+
+function classifyQuestion(q: string): "essay" | "short" | "standard" {
+  const s = q.toLowerCase();
+  if (/\bshort\s+note|write\s+short\s+notes?|brief\s+note|short\s+account\b/.test(s)) return "short";
+  if (/\bdiscuss\b|\bclassify\b|\bwrite\s+an?\s+essay\b|\bexplain\s+in\s+detail\b|\bdefine\s+.+\band\s+describe\b|\bdescribe\s+.+\band\s+/i.test(s)) return "essay";
+  if (q.length > 90 && /(?:^|[\s(])(?:a\)|b\)|c\)|1\.|2\.)/.test(q)) return "essay";
+  return "standard";
+}
 
 class UpstreamError extends Error {
   status: number;
@@ -276,7 +289,7 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const refText = await buildTextbookContext(subject, subtopicName, questions, 8000);
+      const refText = await buildTextbookContext(subject, subtopicName, questions, 12000);
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
@@ -353,17 +366,19 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
     }
 
     const batch = questions.slice(idx * size, idx * size + size);
-    const essayList = batch.map((q, i) => `${i + 1}. ${q}`).join("\n");
-    const refText = await buildTextbookContext(subject, subtopicName, batch, 12000);
+    const tagged = batch.map((q) => ({ q, kind: classifyQuestion(q) }));
+    const essayList = tagged.map((t, i) => `${i + 1}. [${t.kind === "short" ? "SHORT NOTE" : t.kind === "essay" ? "ESSAY" : "STANDARD"}] ${t.q}`).join("\n");
+    const refText = await buildTextbookContext(subject, subtopicName, batch, 18000);
     const bookKey = pickBookKey(subject);
+    console.log(`[notes] subject=${subject} subtopic="${subtopicName}" batch=${idx + 1}/${totalBatches} questions=${batch.length} refChars=${refText.length}`);
     const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
-${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
-${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions:` : "\nPREVIOUS YEAR ESSAY & SHORT-NOTE QUESTIONS:"}
+${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as PRIMARY source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
+${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions (each tagged with depth):` : "\nPREVIOUS YEAR QUESTIONS (each tagged with required depth):"}
 ${essayList}
 
-Generate the handwritten-style study page JSON now. Ensure every listed question is answered inside the sections.`;
+Follow the DEPTH rules from the system prompt strictly. Essays get multi-section deep coverage; short notes stay tight (4–6 bullets). Ensure every listed question is answered.`;
 
     const raw = await callModel(userPrompt);
       const batchContent = normalizeNotesContent(parseJson(raw));

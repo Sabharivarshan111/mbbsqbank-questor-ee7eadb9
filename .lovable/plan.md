@@ -1,64 +1,67 @@
-## Root cause confirmed
 
-- The latest deployed `generate-handwritten-notes` logs show direct Gemini failures:
-  - `Gemini 429`
-  - `generate_content_free_tier_requests, limit: 20`
-- The notes feature currently creates multiple API calls per topic because it splits questions into batches (`batchSize: 6`) and calls the edge function repeatedly with only a 2-second client pause.
-- So when one topic has many essay/short-note questions, notes can quickly consume the Gemini free-tier daily/request quota. That is why the screen shows “AI service is temporarily busy”.
-- The current function also still tries Lovable AI Gateway first, but the logs prove the fallback direct Gemini path is still being hit and exhausted.
-- Gemini 3.1 Flash-Lite model id is supported as `gemini-3.1-flash-lite`, so we can switch direct Gemini generation to that model using your existing `GEMINI_API_KEY`.
+## Root cause
 
-## Plan
+The textbooks are present in `supabase/functions/generate-handwritten-notes/textbooks/` (sia_1.txt, sia_2.txt, vision.txt) and `textbook.ts` tries to read them via `Deno.readTextFile(new URL('./textbooks/...', import.meta.url))`.
 
-### 1. Switch handwritten notes to your Gemini API as primary
-- Update `generate-handwritten-notes` so notes generation uses only `GEMINI_API_KEY` by default.
-- Change the direct Gemini model from `gemini-2.5-flash` to `gemini-3.1-flash-lite`.
-- Remove the Lovable AI Gateway primary path from this function so it does not use Lovable AI for handwritten notes.
-- Keep clear server-side error messages if `GEMINI_API_KEY` is missing, invalid, or quota-limited.
+But Supabase Edge Functions only bundle files that are **imported** by TypeScript. Sibling `.txt` files are NOT deployed unless declared under `[functions.<name>] static_files` in `supabase/config.toml`. Our `config.toml` currently has only `project_id` — nothing else.
 
-### 2. Reduce Gemini 429 errors with safer batching
-- Increase the client delay between batches from 2 seconds to a safer interval.
-- Lower each batch size if needed so each response is smaller and less likely to timeout.
-- Stop retrying immediately on Gemini `429`; instead return a clear “quota/rate limit” message with a retry-after style instruction.
-- Keep the existing cache behavior: once a subtopic is generated and saved, future opens reuse cached notes and do not call Gemini again.
+Result: at runtime `Deno.readTextFile` throws, `readBundled` catches it and returns `""`, `buildTextbookContext` returns `""`, and Gemini generates purely from its own memory. That is exactly why you don't see anything from the Sia / Vision books in the notes.
 
-### 3. Make notes generation more resilient
-- If one batch fails after some content was generated, show the completed sections instead of a full blank error whenever possible.
-- Save successful merged notes only when all batches are complete, to avoid caching incomplete notes as final.
-- Improve the error box text so it explains whether the issue is quota/rate limit, timeout, invalid JSON, or missing API key.
+A second issue: the prompt treats every question the same, so short-notes get essay-length blocks and essays sometimes get thin ones.
 
-### 4. Improve the handwritten notes prompt quality
-- Add prompt rules so every section must include a valid icon, with fallback icons if the model is unsure.
-- Add medical-note formatting instructions:
-  - include mnemonics and high-yield points where useful
-  - include flowcharts/cycles where feasible for questions asking “cycle”, “pathway”, “steps”, or “mechanism”
-  - no page numbers or textbook citations
-- For Community Medicine communicable disease topics, add a structured template per disease:
-  - agent factors: agent, source of infection, period of communicability
-  - host factors: age/sex affected, immunity
-  - environmental factors
-  - mode of transmission
-  - incubation period
-  - clinical features
-  - complications
-  - prevention/control: immunization, vaccination, public health measures
-  - treatment where relevant
+## Fix
 
-### 5. Continue previous requested app fixes
-- Keep the three independent daily ad buckets:
-  - My Progress: once per calendar day
-  - Theme change: once per calendar day
-  - Essay/Short Notes together: once per calendar day
-- Ensure no ads play during walkthrough.
-- Keep the search-result glow behavior in the target chapter/question.
-- Add the note-edit AI chat box below Regenerate as a follow-up improvement after the core Gemini generation is stable.
-- Re-check home Total Study Time path after implementation.
+### 1. Actually ship the textbooks with the function
+Convert the OCR files into TypeScript string modules so they are bundled deterministically (no `config.toml` static-file guesswork, no cold-start file I/O):
 
-### 6. Validate after changes
-- Deploy the updated `generate-handwritten-notes` edge function.
-- Test the deployed function with a small sample request using `gemini-3.1-flash-lite`.
-- Read the edge logs after testing to confirm whether the failure is gone or whether Google is still rejecting the API key due to project quota.
+```
+supabase/functions/generate-handwritten-notes/textbooks/
+  sia_1.text.ts    → export default "<full OCR string>"
+  sia_2.text.ts    → export default "..."
+  vision.text.ts   → export default "..."
+```
 
-## Important note
+Rewrite `textbook.ts` to `import` these strings directly instead of `Deno.readTextFile`. Delete the `.txt` files after conversion (they were dead weight anyway).
 
-Switching to `gemini-3.1-flash-lite` will reduce cost/latency and may improve limits, but if the Google AI Studio project/API key is already out of free-tier quota for the day, any direct Gemini model can still return `429` until quota resets or billing is enabled.
+### 2. Re-ingest the fresh uploads
+Use the newly uploaded `Sia_spm_merged.txt` and `Vision_4th_Edition-3.txt` from `/mnt/user-uploads/` as the source for the three string modules (split Sia in half so each chunk stays under Deno's module-size sweet spot).
+
+### 3. Add a runtime log line
+On first hit per cold start, log `textbook: sia paragraphs=<n>, vision paragraphs=<n>` and, per request, log `context chars for <subtopic> = <n>`. This makes it trivial to confirm grounding is live from the edge-function logs — no more silent fallbacks.
+
+### 4. Prompt: classify each question, then size the answer
+In `index.ts`, when building `essayList`, detect per-question type by regex on the question text:
+- **Short note** if it starts with / contains "short note", "write short notes on", "brief note", "short account".
+- **Essay** if it contains "define ... and describe", "discuss", "classify", "explain in detail", "write an essay", or is long (>90 chars) with multiple sub-parts (a/b/c or numbered).
+- Otherwise **standard**.
+
+Pass a per-question tag to the model and update the system prompt with explicit depth targets:
+- **essay** → definition + classification + full pathogenesis/clinical/management + complications + high-yield table where feasible; aim ~10–14 sections' worth of content across the batch.
+- **short note** → 4–6 crisp bullets or a small table, no long paragraphs.
+- **standard** → 6–8 bullets.
+
+Also tell it: "If the textbook reference contains an answer, prefer its facts, numbers, schedules and classifications verbatim. Definitions must stay canonical — do not paraphrase textbook definitions. Modify only surrounding explanation, mnemonics, and structure."
+
+### 5. Grow the grounding budget
+- Raise `maxChars` from 12000 → 18000 for batch generation and from 8000 → 12000 for AI edits.
+- Raise the paragraph cap from 40 → 80 and add a second-pass score that boosts paragraphs containing any question's first three medically-meaningful tokens (so we don't lose relevant text when many questions share generic words).
+
+### 6. No other behavior changes
+- Still `gemini-3.1-flash-lite` via direct `GEMINI_API_KEY` — no Lovable AI Gateway.
+- 25 s inter-batch delay, batch size 10, "regenerate failed sections" flow: unchanged.
+- Client UI unchanged.
+
+## Files touched
+
+- `supabase/functions/generate-handwritten-notes/textbooks/sia_1.text.ts` (new)
+- `supabase/functions/generate-handwritten-notes/textbooks/sia_2.text.ts` (new)
+- `supabase/functions/generate-handwritten-notes/textbooks/vision.text.ts` (new)
+- Delete `textbooks/sia_1.txt`, `sia_2.txt`, `vision.txt`
+- `supabase/functions/generate-handwritten-notes/textbook.ts` — import strings, remove `Deno.readTextFile`, bigger budget, logging
+- `supabase/functions/generate-handwritten-notes/index.ts` — per-question typing, updated system-prompt depth rules, logging
+
+## Verification
+
+1. Deploy function, open logs, generate notes for **Community Medicine → Epidemiology of Communicable Diseases → Typhoid** and confirm log line `textbook context chars = <large number>` and that output contains Sia-specific phrasing (e.g. exact incubation-period ranges, national-programme names).
+2. Same for **Forensic Medicine → Legal Procedures → Inquest** against Vision (e.g. "4 U's — Unnatural, Unexpected, Unexplained, Unclaimed", Section 174 CrPC / Cl 194 BNSS).
+3. Confirm a short-note question produces ≤6 bullets while an essay question produces multi-section deep output in the same batch.

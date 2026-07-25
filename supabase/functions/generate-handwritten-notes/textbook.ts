@@ -1,9 +1,13 @@
 // Textbook grounding for handwritten notes.
-// Loads bundled OCR text files (Sia — Community Medicine, Vision — Forensic Medicine)
-// once per cold start and returns the most relevant paragraphs for a given topic +
-// list of questions using simple keyword scoring.
+// Imports OCR text bundles as TS string modules so Supabase Edge Functions
+// deploy them deterministically (sibling .txt files are NOT bundled).
 
-type Book = { key: string; text: string; paragraphs: string[] };
+import sia1 from "./textbooks/sia_1.text.ts";
+import sia2 from "./textbooks/sia_2.text.ts";
+import vision0 from "./textbooks/vision_0.text.ts";
+import vision1 from "./textbooks/vision_1.text.ts";
+
+type Book = { key: string; paragraphs: string[] };
 
 const STOPWORDS = new Set([
   "the","and","for","with","from","that","this","into","which","what","when",
@@ -20,59 +24,34 @@ const STOPWORDS = new Set([
   "notes","only","various","how","why",
 ]);
 
-let cache: Record<string, Book> | null = null;
-
-async function readBundled(rel: string): Promise<string> {
-  try {
-    // import.meta.url points at this file inside the deployed function.
-    const url = new URL(`./textbooks/${rel}`, import.meta.url);
-    return await Deno.readTextFile(url);
-  } catch (_e) {
-    return "";
-  }
-}
-
 function splitParagraphs(text: string): string[] {
   if (!text) return [];
-  // Remove page markers so they don't split too aggressively.
-  const cleaned = text.replace(/===== PAGE \d+ ?\/ ?\d+ =====/g, "\n\n");
+  const cleaned = text.replace(/===== PAGE \d+ ?\/? ?\d* =====/g, "\n\n");
   const rawParas = cleaned.split(/\n\s*\n+/);
   const out: string[] = [];
   for (const p of rawParas) {
     const t = p.replace(/\s+/g, " ").trim();
     if (t.length < 60) continue;
-    // Break very long paragraphs into ~800-char windows so relevance scoring is meaningful.
     if (t.length <= 900) {
       out.push(t);
     } else {
-      for (let i = 0; i < t.length; i += 800) {
-        out.push(t.slice(i, i + 900));
-      }
+      for (let i = 0; i < t.length; i += 800) out.push(t.slice(i, i + 900));
     }
   }
   return out;
 }
 
-async function loadBooks(): Promise<Record<string, Book>> {
+let cache: Record<string, Book> | null = null;
+function loadBooks(): Record<string, Book> {
   if (cache) return cache;
-  const files: Array<{ key: string; file: string }> = [
-    { key: "community", file: "sia_1.txt" },
-    { key: "community", file: "sia_2.txt" },
-    { key: "forensic",  file: "vision.txt" },
-  ];
-  const grouped: Record<string, string[]> = {};
-  for (const f of files) {
-    const txt = await readBundled(f.file);
-    if (!txt) continue;
-    (grouped[f.key] ||= []).push(txt);
-  }
-  const books: Record<string, Book> = {};
-  for (const [key, parts] of Object.entries(grouped)) {
-    const text = parts.join("\n\n");
-    books[key] = { key, text, paragraphs: splitParagraphs(text) };
-  }
-  cache = books;
-  return books;
+  const community = splitParagraphs(sia1 + "\n\n" + sia2);
+  const forensic = splitParagraphs(vision0 + "\n\n" + vision1);
+  cache = {
+    community: { key: "community", paragraphs: community },
+    forensic: { key: "forensic", paragraphs: forensic },
+  };
+  console.log(`[textbook] loaded — community paragraphs=${community.length}, forensic paragraphs=${forensic.length}`);
+  return cache;
 }
 
 export function pickBookKey(subject: string): "community" | "forensic" | null {
@@ -91,35 +70,43 @@ export async function buildTextbookContext(
   subject: string,
   subtopicName: string,
   questions: string[],
-  maxChars = 12000,
+  maxChars = 18000,
 ): Promise<string> {
   const key = pickBookKey(subject);
   if (!key) return "";
-  const books = await loadBooks();
+  const books = loadBooks();
   const book = books[key];
   if (!book || book.paragraphs.length === 0) return "";
 
+  const subtopicTokens = tokenize(subtopicName);
+  const questionTokens = questions.map((q) => tokenize(q));
   const queryTokens = new Set<string>([
-    ...tokenize(subtopicName),
-    ...questions.flatMap((q) => tokenize(q)),
+    ...subtopicTokens,
+    ...questionTokens.flat(),
   ]);
   if (queryTokens.size === 0) return "";
 
-  // Score paragraphs: sum of unique token hits + a small boost when the exact
-  // subtopic name appears.
+  // Boost tokens = subtopic tokens + first 3 meaningful tokens of each question
+  const boostTokens = new Set<string>([
+    ...subtopicTokens,
+    ...questionTokens.flatMap((toks) => toks.slice(0, 3)),
+  ]);
+
   const nameLower = subtopicName.toLowerCase();
   const scored: Array<{ idx: number; score: number }> = [];
   for (let i = 0; i < book.paragraphs.length; i++) {
     const p = book.paragraphs[i].toLowerCase();
     let score = 0;
-    for (const tok of queryTokens) {
-      if (p.includes(tok)) score += 1;
-    }
+    for (const tok of queryTokens) if (p.includes(tok)) score += 1;
     if (score === 0) continue;
-    if (nameLower.length >= 5 && p.includes(nameLower)) score += 4;
+    for (const tok of boostTokens) if (p.includes(tok)) score += 1; // second-pass boost
+    if (nameLower.length >= 5 && p.includes(nameLower)) score += 6;
     scored.push({ idx: i, score });
   }
-  if (scored.length === 0) return "";
+  if (scored.length === 0) {
+    console.log(`[textbook] no matches for subject=${subject} subtopic=${subtopicName}`);
+    return "";
+  }
   scored.sort((a, b) => b.score - a.score || a.idx - b.idx);
 
   const picked: string[] = [];
@@ -132,7 +119,8 @@ export async function buildTextbookContext(
     picked.push(para);
     seen.add(s.idx);
     used += para.length + 4;
-    if (picked.length >= 40) break;
+    if (picked.length >= 80) break;
   }
+  console.log(`[textbook] subject=${subject} subtopic="${subtopicName}" matched=${scored.length} picked=${picked.length} chars=${used}`);
   return picked.join("\n\n");
 }
