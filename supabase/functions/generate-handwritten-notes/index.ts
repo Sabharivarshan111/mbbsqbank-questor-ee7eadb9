@@ -74,6 +74,8 @@ Strict rules:
 - Prefer comparison and table sections wherever two entities are contrasted or classified.
 - Add mnemonics and high-yield exam points where useful.
 - If the question asks for a cycle, pathway, steps, mechanism, life cycle, demographic cycle, disease cycle, or flow of events, include a flowchart section.
+- NATIONAL HEALTH PROGRAMMES — whenever a programme is named or implied (NTEP/RNTCP, DOTS, NVBDCP, NLEP, NACP, RMNCH+A, ICDS, IMNCI/F-IMNCI, Pulse Polio, UIP, Anaemia Mukt Bharat, Mission Indradhanush, NPCDCS, RBSK, RKSK, NMHP, NPCB, etc.) create a dedicated bullets section that FULLY explains it with these labelled items (skip only if truly not applicable): Objective / Goals; Year of launch & implementing agency; Target population; Strategy / Pillars (list each pillar in one line); Diagnostic tools / Case definitions; Treatment regimen with drug doses and duration (e.g. HRZE 2 months + HRE 4 months for TB Cat-I); Monitoring & Reporting (e.g. Ni-kshay portal for NTEP); Newer initiatives (e.g. Ni-kshay Poshan Yojana, active case finding, private-sector engagement, TB-Mukt Bharat 2025). For DOTS specifically ALWAYS include: full form (Directly Observed Treatment, Short-course), 5 components (political commitment, sputum microscopy/CBNAAT, standardised SCC under direct observation, uninterrupted drug supply, recording & reporting), category-wise regimens, DOT provider role, thrice-weekly vs daily regimen shift.
+- IMNCI CLASSIFICATION — whenever IMNCI, "assess and classify", ARI/pneumonia, diarrhoea, fever, ear problem, malnutrition, or "sick young infant" appears, produce a table section titled with the condition (e.g. "IMNCI — Cough or Difficult Breathing"). Use columns EXACTLY: ["Severity", "Signs", "Classify As", "Treatment"]. The FIRST cell of every row MUST be one of the words PINK, YELLOW or GREEN (uppercase, single word) — the app color-codes rows from this cell. Include ALL THREE rows in this order: PINK (severe — refer urgently, pre-referral treatment in bold-like wording), YELLOW (moderate — treat at home/OPD with a specific antibiotic/ORS/antimalarial + follow-up date), GREEN (mild — home care advice, when to return immediately). Fill signs and treatment fully as per IMNCI chartbook (general danger signs, chest indrawing, fast breathing cutoffs by age, dehydration signs, etc.).
 - For Community Medicine "Epidemiology of Communicable Diseases" topics, for EVERY named disease (typhoid, cholera, TB, malaria, dengue, measles, polio, hepatitis, HIV, leprosy, etc.) create a dedicated bullets section titled with the disease name and include ALL of these labelled items IN ORDER (skip an item ONLY if truly not applicable):
   1. Agent Factors — agent (organism), source of infection, mode of transmission (short), period of communicability
   2. Host Factors — age most affected, sex most affected, immunity
@@ -88,10 +90,10 @@ Strict rules:
 - Keep language crisp, exam-ready. No markdown asterisks.
 - If a "TEXTBOOK REFERENCE" block is provided, treat it as the PRIMARY source of truth. Prefer facts, definitions, classifications, schedules, doses, national-programme names, section numbers and numbers from it verbatim. Reconstruct obviously OCR-garbled words silently. Never say the reference is incomplete — if a listed question is not covered by the reference, fall back to standard MBBS knowledge and answer it fully.
 - DEFINITIONS: keep canonical wording. Do not paraphrase textbook definitions. You may modify surrounding explanation, mnemonics and structure.
-- DEPTH by question type (each question is tagged [ESSAY], [SHORT NOTE] or [STANDARD]):
-  • [ESSAY] → generate a full essay-grade answer: definition + classification/types + etiology/pathogenesis or epidemiology + clinical features + investigations/diagnosis + management/treatment + complications + prevention/programme; use multiple sections (bullets + comparison/table + flowchart where relevant). Aim for 3–5 sections per essay question.
-  • [SHORT NOTE] → 1 tight section per question: 4–6 crisp bullets OR a small comparison/table. No long paragraphs. No repetition of essay-length blocks.
-  • [STANDARD] → 1 section, 6–8 focused bullets.
+- DEPTH by question type (each question is tagged [ESSAY], [SHORT NOTE] or [STANDARD]) — depth is NON-NEGOTIABLE, an essay MUST be pass-worthy for a 10–15 mark question:
+  • [ESSAY] → 6–9 sections minimum. Cover: (1) Definition (canonical, from textbook if given), (2) Classification/Types (as a table or comparison), (3) Etiology / Epidemiology (agent, host, environment triad where relevant), (4) Pathogenesis / Mechanism (flowchart), (5) Clinical Features / Stages (bullets or steps, list every stage), (6) Investigations / Diagnosis (bullets — specific tests, cut-offs, gold standard), (7) Management / Treatment (bullets — drug names, doses, duration, category-wise regimen for TB/malaria/leprosy), (8) Complications, (9) Prevention / Programme (full expansion as per the NATIONAL HEALTH PROGRAMMES rule above). Every bullet should carry a concrete fact (a number, drug, duration, agency, year) — no vague sentences. Aim for total content long enough to fill a 2-page handwritten answer.
+  • [SHORT NOTE] → 2–3 sections per question (definition + 5–7 bullets + optional small table/flowchart). Must include the disease/programme's key numbers (incubation period, drug doses, launch year).
+  • [STANDARD] → 1 section, 8–10 focused bullets with numbers/drugs where relevant.
 - Response MUST be a SINGLE JSON object only, starting with { and ending with }. Do NOT append any text, code fence, or a second JSON object after the closing brace.`;
 
 function classifyQuestion(q: string): "essay" | "short" | "standard" {
@@ -126,9 +128,9 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
-          temperature: 0.5,
+          temperature: 0.55,
           topP: 0.9,
-          maxOutputTokens: 9000,
+          maxOutputTokens: 16000,
           responseMimeType: "application/json",
         },
       }),

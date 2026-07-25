@@ -162,6 +162,19 @@ const ComparisonSection = ({ left, right, rows }: { left: string; right: string;
   </div>
 );
 
+const IMNCI_ROW_STYLES: Record<string, string> = {
+  PINK: "bg-rose-100 dark:bg-rose-950/40 border-l-4 border-rose-500",
+  RED: "bg-rose-100 dark:bg-rose-950/40 border-l-4 border-rose-500",
+  YELLOW: "bg-amber-100 dark:bg-amber-950/40 border-l-4 border-amber-500",
+  GREEN: "bg-emerald-100 dark:bg-emerald-950/40 border-l-4 border-emerald-500",
+};
+
+function imnciRowStyle(cell?: string): string {
+  if (!cell) return "";
+  const key = cell.trim().toUpperCase().split(/\s|\//)[0];
+  return IMNCI_ROW_STYLES[key] ?? "";
+}
+
 const TableSection = ({ columns, rows }: { columns: string[]; rows: string[][] }) => (
   <div className="overflow-x-auto rounded-lg border">
     <table className="w-full text-sm">
@@ -175,13 +188,16 @@ const TableSection = ({ columns, rows }: { columns: string[]; rows: string[][] }
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, i) => (
-          <tr key={i} className={i % 2 ? "bg-muted/20" : ""}>
-            {row.map((cell, j) => (
-              <td key={j} className="p-3 align-top border-t">{cell}</td>
-            ))}
-          </tr>
-        ))}
+        {rows.map((row, i) => {
+          const tint = imnciRowStyle(row[0]);
+          return (
+            <tr key={i} className={tint || (i % 2 ? "bg-muted/20" : "")}>
+              {row.map((cell, j) => (
+                <td key={j} className={`p-3 align-top border-t ${j === 0 && tint ? "font-bold" : ""}`}>{cell}</td>
+              ))}
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   </div>
