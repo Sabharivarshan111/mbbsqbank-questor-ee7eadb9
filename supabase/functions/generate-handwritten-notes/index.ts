@@ -252,6 +252,7 @@ function normalizeNotesContent(content: any): any {
     table: "📊",
     flowchart: "🔁",
     outcome: "💡",
+    revision: "🏆",
   };
   const sections = Array.isArray(content.sections)
     ? content.sections.map((section: any) => ({
