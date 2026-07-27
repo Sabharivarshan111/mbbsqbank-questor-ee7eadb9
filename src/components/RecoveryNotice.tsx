@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 const FLAG_KEY = "orbit-recovery-notice-v1";
 const WALKTHROUGH_KEY = "orbit-walkthrough-completed-v2";
-const PROFILE_KEY = "orbit-profile-local-v1";
+const PROFILE_KEY = "orbit-profile-v1";
 
 function hasSkippedWalkthroughWithoutProfile(): boolean {
   try {
