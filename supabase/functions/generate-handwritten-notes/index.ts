@@ -235,6 +235,7 @@ function sectionPayloadFromTopLevel(section: any): any {
     case "table": return { columns: Array.isArray(section?.columns) ? section.columns : [], rows: Array.isArray(section?.rows) ? section.rows : [] };
     case "flowchart": return { steps: Array.isArray(section?.steps) ? section.steps : [] };
     case "outcome": return { text: section?.text ?? "" };
+    case "revision": return { items: Array.isArray(section?.items) ? section.items : [] };
     default: return existing;
   }
 }
