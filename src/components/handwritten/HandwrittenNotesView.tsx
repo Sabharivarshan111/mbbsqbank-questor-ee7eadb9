@@ -304,6 +304,7 @@ function renderPayload(s: Section) {
     case "table":      return <TableSection columns={p.columns ?? []} rows={p.rows ?? []} />;
     case "flowchart":  return <FlowchartSection steps={p.steps ?? []} />;
     case "outcome":    return <OutcomeSection text={p.text ?? ""} />;
+    case "revision":   return <RevisionSection items={Array.isArray(p.items) ? p.items : []} />;
     default:           return <TextSection paragraph={JSON.stringify(p)} />;
   }
 }
