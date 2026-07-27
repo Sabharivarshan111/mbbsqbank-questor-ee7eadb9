@@ -48,7 +48,7 @@ Output MUST be VALID JSON only (no markdown fence, no prose) matching this exact
   "pyqYears": string[],
   "sections": [
     {
-      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "flowchart" | "outcome" | "text",
+      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "flowchart" | "outcome" | "text" | "revision",
       "title": string,
       "icon": string,
       "pyqYears": string[]?,
@@ -67,6 +67,7 @@ Payload shapes by type:
 - table:       { "columns": string[], "rows": string[][] }
 - flowchart:   { "steps": [ { "label": string, "detail": string } ] }
 - outcome:     { "text": string }
+- revision:    { "items": string[] }  // 3–4 short bullet points the student MUST write on paper
 
 Strict rules:
 - Every section MUST include a suitable emoji icon. Use these fallbacks if unsure: 📌 definition, 🧠 concept, 📋 bullets, 🔁 cycle/flowchart, 🧬 morphology/pathology, ⚖️ comparison, 📊 table, 💡 high yield.
