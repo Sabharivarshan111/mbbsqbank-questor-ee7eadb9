@@ -286,6 +286,7 @@ serve(async (req) => {
     const {
       subtopicKey, year, subject, subtopicName, questions,
       batchIndex, batchSize, regenerate, saveContent, content, editInstruction,
+      singleMode,
     } = parsed.data;
 
     // ---------- Mode 3: AI edit existing notes ----------
