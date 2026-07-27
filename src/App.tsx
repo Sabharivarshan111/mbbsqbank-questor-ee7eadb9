@@ -56,6 +56,8 @@ const App = () => (
           <GlobalCelebrations />
           <ExamReminderPopup />
           <DailyAdConsent />
+          <RecoveryNotice />
+          <SingleQuestionNoteOverlay />
           <ScreenTimeTracker />
           <NotificationSync />
           <CapacitorBack />
