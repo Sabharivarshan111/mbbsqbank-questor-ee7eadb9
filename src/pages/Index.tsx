@@ -24,7 +24,7 @@ const Index = () => {
 
   const goTo = useCallback((next: ShellTab, meta?: any) => {
     if (next === "browse") setBrowseMeta(meta ?? {});
-    if (next === "progress") requestDailyAd("progress");
+    if (next === "progress" && hasLocalProfile()) requestDailyAd("progress");
     setTab(next);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
