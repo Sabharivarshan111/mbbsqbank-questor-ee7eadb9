@@ -62,7 +62,7 @@ const Index = () => {
   useEffect(() => {
     const h = (e: Event) => {
       const sub = (e as CustomEvent<string>).detail;
-      if (sub === "progress") { requestDailyAd("progress"); setTab("progress"); }
+      if (sub === "progress") { if (hasLocalProfile()) requestDailyAd("progress"); setTab("progress"); }
       else if (sub === "materials") setTab("notes");
       else if (sub === "essay" || sub === "short-notes") setTab("browse");
     };
