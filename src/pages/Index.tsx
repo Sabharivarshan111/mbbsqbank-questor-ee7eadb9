@@ -12,6 +12,10 @@ import ProgressTab from "@/components/shell/ProgressTab";
 import BrowseTab from "@/components/shell/BrowseTab";
 import { requestDailyAd } from "@/lib/daily-ad";
 
+function hasLocalProfile(): boolean {
+  try { return !!localStorage.getItem("orbit-profile-v1"); } catch { return false; }
+}
+
 const Index = () => {
   const [tab, setTab] = useState<ShellTab>("home");
   const [aiInitialQuestion, setAiInitialQuestion] = useState<string | undefined>(undefined);
