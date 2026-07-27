@@ -61,6 +61,7 @@ const QuestionSection = ({ subtopics, activeTab, isSearching = false, isFirstYea
                   questions={typedQuestionType.questions}
                   isSearching={isSearching}
                   isFirstYear={isFirstYear}
+                  yearKey={yearKey}
                 />
               </div>
             </div>
