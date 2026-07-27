@@ -124,6 +124,7 @@ const SearchResults = ({ data, activeTab }: Props) => {
                 question={it.question}
                 index={it.localIndex}
                 isFirstYear={block.group.yearKey === "first-year"}
+                yearKey={block.group.yearKey}
               />
             ))}
           </div>
