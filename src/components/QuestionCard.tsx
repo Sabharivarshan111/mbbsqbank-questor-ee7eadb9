@@ -103,6 +103,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   // The action to perform on triple tap
   const handleTripleTapAction = () => {
     const cleanedQuestion = getCleanQuestionText(question);
+    // Third-year subjects → open handwritten-note overlay instead of Ask AI
+    if (yearKey === "third-year") {
+      setTapStatus('processing-answer');
+      window.dispatchEvent(new CustomEvent('orbit:single-note', {
+        detail: {
+          question: cleanedQuestion,
+          subject: subjectName || subjectKey || "Community Medicine",
+          subjectKey: subjectKey || "",
+          year: "3rd Year",
+        },
+      }));
+      setTimeout(() => setTapStatus('idle'), 800);
+      return;
+    }
     setTapStatus('processing-answer');
     const event = new CustomEvent('ai-triple-tap-answer', {
       detail: { question: cleanedQuestion }
