@@ -235,7 +235,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
                 <span className={`text-[10px] ${theme === "blackpink" ? "text-[#FFDEE2]" : "text-blue-500"}`}>
                   {tapStatus === 'idle' && (
                     <span className="flex items-center">
-                      Triple tap to ask AI
+                      {yearKey === "third-year" ? "Triple tap → handwritten note" : "Triple tap to ask AI"}
                       {pageNumber && (
                         <span className={getPageNumberClass()}>
                           Pg. {pageNumber}
@@ -244,7 +244,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
                     </span>
                   )}
                   {tapStatus === 'processing-answer' && (
-                    <span className="animate-pulse">Getting answer...</span>
+                    <span className="animate-pulse">
+                      {yearKey === "third-year" ? "Opening handwritten note..." : "Getting answer..."}
+                    </span>
                   )}
                   {tapStatus === 'processing-mcq' && (
                     <span className="animate-pulse">Generating MCQs...</span>
