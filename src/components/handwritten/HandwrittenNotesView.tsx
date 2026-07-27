@@ -228,6 +228,25 @@ const OutcomeSection = ({ text }: { text: string }) => (
   </div>
 );
 
+const RevisionSection = ({ items }: { items: string[] }) => (
+  <div className="rounded-xl border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/30 p-4">
+    <div className="flex items-center gap-2 mb-3">
+      <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-300" />
+      <p className="font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-200 text-sm">Must-Write Points</p>
+    </div>
+    <ul className="space-y-2">
+      {items.map((it, i) => (
+        <li key={i} className="flex items-start gap-2">
+          <span className="mt-0.5 h-5 w-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-extrabold flex-shrink-0">
+            {i + 1}
+          </span>
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-100 leading-relaxed">{it}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
 /** ---------- Main view ---------- */
 export default function HandwrittenNotesView({
   subtopicName, content,
@@ -285,6 +304,7 @@ function renderPayload(s: Section) {
     case "table":      return <TableSection columns={p.columns ?? []} rows={p.rows ?? []} />;
     case "flowchart":  return <FlowchartSection steps={p.steps ?? []} />;
     case "outcome":    return <OutcomeSection text={p.text ?? ""} />;
+    case "revision":   return <RevisionSection items={Array.isArray(p.items) ? p.items : []} />;
     default:           return <TextSection paragraph={JSON.stringify(p)} />;
   }
 }

@@ -25,6 +25,8 @@ import Microbiology from "./pages/subjects/Microbiology";
 import GlobalCelebrations from "./components/GlobalCelebrations";
 import ExamReminderPopup from "./components/ExamReminderPopup";
 import DailyAdConsent from "./components/DailyAdConsent";
+import RecoveryNotice from "./components/RecoveryNotice";
+import SingleQuestionNoteOverlay from "./components/handwritten/SingleQuestionNoteOverlay";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
 import { useCapacitorBack } from "./hooks/use-capacitor-back";
@@ -54,6 +56,8 @@ const App = () => (
           <GlobalCelebrations />
           <ExamReminderPopup />
           <DailyAdConsent />
+          <RecoveryNotice />
+          <SingleQuestionNoteOverlay />
           <ScreenTimeTracker />
           <NotificationSync />
           <CapacitorBack />

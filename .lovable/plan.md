@@ -1,67 +1,88 @@
+# Plan
 
-## Root cause
+## 1. Third-year triple-tap → handwritten note for that ONE question
 
-The textbooks are present in `supabase/functions/generate-handwritten-notes/textbooks/` (sia_1.txt, sia_2.txt, vision.txt) and `textbook.ts` tries to read them via `Deno.readTextFile(new URL('./textbooks/...', import.meta.url))`.
+**Only** 3rd-year subjects (`forensic-medicine`, `community-medicine`) change behaviour. All other years keep triple-tap = Ask AI.
 
-But Supabase Edge Functions only bundle files that are **imported** by TypeScript. Sibling `.txt` files are NOT deployed unless declared under `[functions.<name>] static_files` in `supabase/config.toml`. Our `config.toml` currently has only `project_id` — nothing else.
+- Thread `yearKey` down to `QuestionCard`:
+  - `src/components/QuestionSection.tsx` → pass `yearKey` into `QuestionList` and then `QuestionCard`.
+  - `src/components/question-bank/SearchResults.tsx` → same.
+  - `BrowseTab` already knows `yearKey`; pass it into `QuestionCard`.
+- `QuestionCard.tsx` / `QuestionCardEnhanced.tsx`:
+  - Accept `yearKey` prop.
+  - If `yearKey === "third-year"`:
+    - Change hint label "Triple tap to ask AI" → **"Triple tap → handwritten note"**.
+    - On triple-tap dispatch new event `orbit:single-note` with `{ question, subjectKey, subjectName, year: "third" }` instead of `ai-triple-tap-answer`.
+    - Detect subjectKey from `question-*` DOM ancestry OR pass a `subjectKey`/`subjectName` prop through Section/BrowseTab.
+  - Double-tap MCQ behaviour unchanged.
 
-Result: at runtime `Deno.readTextFile` throws, `readBundled` catches it and returns `""`, `buildTextbookContext` returns `""`, and Gemini generates purely from its own memory. That is exactly why you don't see anything from the Sia / Vision books in the notes.
+## 2. Single-question note overlay
 
-A second issue: the prompt treats every question the same, so short-notes get essay-length blocks and essays sometimes get thin ones.
+New component `src/components/handwritten/SingleQuestionNoteOverlay.tsx` mounted globally (in `App.tsx` alongside `DailyAdConsent`).
 
-## Fix
+- Listens for `orbit:single-note`.
+- Full-screen sheet with blurred backdrop, close button.
+- Calls `generate-handwritten-notes` edge function with new payload flag `singleMode: true`, `questions: [question]`, `subject`, `subtopicName = <first 80 chars>`, `year = "3rd Year"`, no caching (subtopicKey = `single::<hash>`).
+- Renders result through existing `HandwrittenNotesView` for the same colored/handwritten JSON UI.
 
-### 1. Actually ship the textbooks with the function
-Convert the OCR files into TypeScript string modules so they are bundled deterministically (no `config.toml` static-file guesswork, no cold-start file I/O):
+## 3. Edge function: full-depth answer + revision tail
 
-```
-supabase/functions/generate-handwritten-notes/textbooks/
-  sia_1.text.ts    → export default "<full OCR string>"
-  sia_2.text.ts    → export default "..."
-  vision.text.ts   → export default "..."
-```
+`supabase/functions/generate-handwritten-notes/index.ts`:
 
-Rewrite `textbook.ts` to `import` these strings directly instead of `Deno.readTextFile`. Delete the `.txt` files after conversion (they were dead weight anyway).
+- Add `singleMode: z.boolean().optional()` to schema.
+- When `singleMode`:
+  - Skip cache lookup and DB write.
+  - Force `[ESSAY]`-depth for "essay/discuss/describe/classify/explain/write on" questions and `[SHORT NOTE]`-depth for "short note/brief" questions — regardless of length.
+  - Extra system-prompt block: **"Because this is a single-question note, produce the DEEPEST possible answer. For essays: 8–10 sections and >= 2 handwritten pages worth of content. For short notes: match textbook depth (5–8 bullets minimum, more if the textbook has more). ALWAYS end with a section of type `revision` listing 3–4 must-write-on-paper points."**
+- Add new section type `revision` to the schema (payload `{ items: string[] }`); update `sectionPayloadFromTopLevel` / `normalizeNotesContent` to handle it.
+- Textbook grounding stays: retrieval budget already 18k chars; for singleMode reuse the same `buildTextbookContext` on the one question.
 
-### 2. Re-ingest the fresh uploads
-Use the newly uploaded `Sia_spm_merged.txt` and `Vision_4th_Edition-3.txt` from `/mnt/user-uploads/` as the source for the three string modules (split Sia in half so each chunk stays under Deno's module-size sweet spot).
+## 4. HandwrittenNotesView: render `revision` type
 
-### 3. Add a runtime log line
-On first hit per cold start, log `textbook: sia paragraphs=<n>, vision paragraphs=<n>` and, per request, log `context chars for <subtopic> = <n>`. This makes it trivial to confirm grounding is live from the edge-function logs — no more silent fallbacks.
+`src/components/handwritten/HandwrittenNotesView.tsx`:
 
-### 4. Prompt: classify each question, then size the answer
-In `index.ts`, when building `essayList`, detect per-question type by regex on the question text:
-- **Short note** if it starts with / contains "short note", "write short notes on", "brief note", "short account".
-- **Essay** if it contains "define ... and describe", "discuss", "classify", "explain in detail", "write an essay", or is long (>90 chars) with multiple sub-parts (a/b/c or numbered).
-- Otherwise **standard**.
+- Add `RevisionSection` — amber/gold highlighted card with `Trophy` icon and bold list of 3–4 must-write points.
+- Wire into `renderPayload` switch.
 
-Pass a per-question tag to the model and update the system prompt with explicit depth targets:
-- **essay** → definition + classification + full pathogenesis/clinical/management + complications + high-yield table where feasible; aim ~10–14 sections' worth of content across the batch.
-- **short note** → 4–6 crisp bullets or a small table, no long paragraphs.
-- **standard** → 6–8 bullets.
+## 5. Walkthrough skip recovery
 
-Also tell it: "If the textbook reference contains an answer, prefer its facts, numbers, schedules and classifications verbatim. Definitions must stay canonical — do not paraphrase textbook definitions. Modify only surrounding explanation, mnemonics, and structure."
+Root cause: users who close/skip the walkthrough without saving a profile leave `local = null` in `useProfile`; year selectors fall back to `"second-year"`, and `requestDailyAd("progress")` triggers a consent modal whose rewarded-ad call is a no-op (native SDK not initialized without any prior interaction on some devices) so nothing visible happens after OK.
 
-### 5. Grow the grounding budget
-- Raise `maxChars` from 12000 → 18000 for batch generation and from 8000 → 12000 for AI edits.
-- Raise the paragraph cap from 40 → 80 and add a second-pass score that boosts paragraphs containing any question's first three medically-meaningful tokens (so we don't lose relevant text when many questions share generic words).
+Fixes:
 
-### 6. No other behavior changes
-- Still `gemini-3.1-flash-lite` via direct `GEMINI_API_KEY` — no Lovable AI Gateway.
-- 25 s inter-batch delay, batch size 10, "regenerate failed sections" flow: unchanged.
-- Client UI unchanged.
+- `src/pages/Index.tsx`: **do not** call `requestDailyAd("progress")` when there is no local profile. Guard with `readLocal()`; fall through to normal tab switch.
+- `src/components/shell/BrowseTab.tsx` (and any place using default-year fallback): when `local?.year` is missing, show the existing `YearPickerDialog` on first mount instead of silently defaulting to 2nd year. Reuse the existing "Select This Year / Default Year" button so users can change it any time.
+- Confirm the year picker button remains reachable on the subjects list.
+
+## 6. One-time recovery notice (no ad)
+
+New component `src/components/RecoveryNotice.tsx`:
+
+- On mount, checks `localStorage["orbit-recovery-notice-v1"] !== "shown"` AND `readLocal() === null` AND `localStorage["orbit-walkthrough-completed-v2"] === "true"` (user finished/skipped walkthrough but never saved name).
+- Renders one-time full-screen dialog: **"We fixed a few issues — you can now open My Progress and change your default year from the Home screen. No ads will play for this popup."** with an "OK, got it" button.
+- Sets flag `"shown"` on dismiss. Does not play any ad.
+- Mount it in `App.tsx`.
+
+## Technical details
+
+- Event name kept namespaced: `orbit:single-note`.
+- `subjectKey`/`subjectName` are threaded through the accordion chain so the third-year card knows which OCR textbook to ground with (Sia vs Vision) — the edge function already picks the book from `subject`.
+- Revision section styling: amber card with `border-amber-400`, `bg-amber-50 dark:bg-amber-950/30`, trophy icon, list items with checkbox-style bullets, bold amber text.
+- No new tables, no migration.
+- Single-mode calls always run 1 batch (1 question), so no 25 s delay logic.
 
 ## Files touched
 
-- `supabase/functions/generate-handwritten-notes/textbooks/sia_1.text.ts` (new)
-- `supabase/functions/generate-handwritten-notes/textbooks/sia_2.text.ts` (new)
-- `supabase/functions/generate-handwritten-notes/textbooks/vision.text.ts` (new)
-- Delete `textbooks/sia_1.txt`, `sia_2.txt`, `vision.txt`
-- `supabase/functions/generate-handwritten-notes/textbook.ts` — import strings, remove `Deno.readTextFile`, bigger budget, logging
-- `supabase/functions/generate-handwritten-notes/index.ts` — per-question typing, updated system-prompt depth rules, logging
+- `supabase/functions/generate-handwritten-notes/index.ts`
+- `src/components/handwritten/HandwrittenNotesView.tsx`
+- `src/components/handwritten/SingleQuestionNoteOverlay.tsx` (new)
+- `src/components/RecoveryNotice.tsx` (new)
+- `src/components/QuestionCard.tsx`
+- `src/components/QuestionCardEnhanced.tsx`
+- `src/components/QuestionSection.tsx`
+- `src/components/question-bank/SearchResults.tsx`
+- `src/components/shell/BrowseTab.tsx`
+- `src/pages/Index.tsx`
+- `src/App.tsx`
 
-## Verification
-
-1. Deploy function, open logs, generate notes for **Community Medicine → Epidemiology of Communicable Diseases → Typhoid** and confirm log line `textbook context chars = <large number>` and that output contains Sia-specific phrasing (e.g. exact incubation-period ranges, national-programme names).
-2. Same for **Forensic Medicine → Legal Procedures → Inquest** against Vision (e.g. "4 U's — Unnatural, Unexpected, Unexplained, Unclaimed", Section 174 CrPC / Cl 194 BNSS).
-3. Confirm a short-note question produces ≤6 bullets while an essay question produces multi-section deep output in the same batch.
+Approve and I'll implement in one pass.

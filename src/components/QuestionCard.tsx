@@ -10,9 +10,12 @@ interface QuestionCardProps {
   index: number;
   isFirstYear?: boolean;
   highlight?: boolean;
+  yearKey?: string;
+  subjectKey?: string;
+  subjectName?: string;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear, highlight }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear, highlight, yearKey, subjectKey, subjectName }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (highlight && rootRef.current) {
@@ -100,6 +103,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
   // The action to perform on triple tap
   const handleTripleTapAction = () => {
     const cleanedQuestion = getCleanQuestionText(question);
+    // Third-year subjects → open handwritten-note overlay instead of Ask AI
+    if (yearKey === "third-year") {
+      setTapStatus('processing-answer');
+      window.dispatchEvent(new CustomEvent('orbit:single-note', {
+        detail: {
+          question: cleanedQuestion,
+          subject: subjectName || subjectKey || "Community Medicine",
+          subjectKey: subjectKey || "",
+          year: "3rd Year",
+        },
+      }));
+      setTimeout(() => setTapStatus('idle'), 800);
+      return;
+    }
     setTapStatus('processing-answer');
     const event = new CustomEvent('ai-triple-tap-answer', {
       detail: { question: cleanedQuestion }
@@ -218,7 +235,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
                 <span className={`text-[10px] ${theme === "blackpink" ? "text-[#FFDEE2]" : "text-blue-500"}`}>
                   {tapStatus === 'idle' && (
                     <span className="flex items-center">
-                      Triple tap to ask AI
+                      {yearKey === "third-year" ? "Triple tap → handwritten note" : "Triple tap to ask AI"}
                       {pageNumber && (
                         <span className={getPageNumberClass()}>
                           Pg. {pageNumber}
@@ -227,7 +244,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYea
                     </span>
                   )}
                   {tapStatus === 'processing-answer' && (
-                    <span className="animate-pulse">Getting answer...</span>
+                    <span className="animate-pulse">
+                      {yearKey === "third-year" ? "Opening handwritten note..." : "Getting answer..."}
+                    </span>
                   )}
                   {tapStatus === 'processing-mcq' && (
                     <span className="animate-pulse">Generating MCQs...</span>

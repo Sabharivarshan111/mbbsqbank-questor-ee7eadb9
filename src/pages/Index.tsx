@@ -12,6 +12,10 @@ import ProgressTab from "@/components/shell/ProgressTab";
 import BrowseTab from "@/components/shell/BrowseTab";
 import { requestDailyAd } from "@/lib/daily-ad";
 
+function hasLocalProfile(): boolean {
+  try { return !!localStorage.getItem("orbit-profile-v1"); } catch { return false; }
+}
+
 const Index = () => {
   const [tab, setTab] = useState<ShellTab>("home");
   const [aiInitialQuestion, setAiInitialQuestion] = useState<string | undefined>(undefined);
@@ -20,7 +24,7 @@ const Index = () => {
 
   const goTo = useCallback((next: ShellTab, meta?: any) => {
     if (next === "browse") setBrowseMeta(meta ?? {});
-    if (next === "progress") requestDailyAd("progress");
+    if (next === "progress" && hasLocalProfile()) requestDailyAd("progress");
     setTab(next);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
@@ -58,7 +62,7 @@ const Index = () => {
   useEffect(() => {
     const h = (e: Event) => {
       const sub = (e as CustomEvent<string>).detail;
-      if (sub === "progress") { requestDailyAd("progress"); setTab("progress"); }
+      if (sub === "progress") { if (hasLocalProfile()) requestDailyAd("progress"); setTab("progress"); }
       else if (sub === "materials") setTab("notes");
       else if (sub === "essay" || sub === "short-notes") setTab("browse");
     };

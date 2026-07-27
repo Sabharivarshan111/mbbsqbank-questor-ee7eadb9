@@ -30,6 +30,7 @@ const BodySchema = z.object({
   saveContent: z.boolean().optional(),
   content: z.any().optional(),
   editInstruction: z.string().trim().min(1).max(2500).optional(),
+  singleMode: z.boolean().optional(),
 });
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
@@ -47,7 +48,7 @@ Output MUST be VALID JSON only (no markdown fence, no prose) matching this exact
   "pyqYears": string[],
   "sections": [
     {
-      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "flowchart" | "outcome" | "text",
+      "type": "definition" | "bullets" | "steps" | "morphology" | "comparison" | "table" | "flowchart" | "outcome" | "text" | "revision",
       "title": string,
       "icon": string,
       "pyqYears": string[]?,
@@ -66,6 +67,7 @@ Payload shapes by type:
 - table:       { "columns": string[], "rows": string[][] }
 - flowchart:   { "steps": [ { "label": string, "detail": string } ] }
 - outcome:     { "text": string }
+- revision:    { "items": string[] }  // 3–4 short bullet points the student MUST write on paper
 
 Strict rules:
 - Every section MUST include a suitable emoji icon. Use these fallbacks if unsure: 📌 definition, 🧠 concept, 📋 bullets, 🔁 cycle/flowchart, 🧬 morphology/pathology, ⚖️ comparison, 📊 table, 💡 high yield.
@@ -233,6 +235,7 @@ function sectionPayloadFromTopLevel(section: any): any {
     case "table": return { columns: Array.isArray(section?.columns) ? section.columns : [], rows: Array.isArray(section?.rows) ? section.rows : [] };
     case "flowchart": return { steps: Array.isArray(section?.steps) ? section.steps : [] };
     case "outcome": return { text: section?.text ?? "" };
+    case "revision": return { items: Array.isArray(section?.items) ? section.items : [] };
     default: return existing;
   }
 }
@@ -249,6 +252,7 @@ function normalizeNotesContent(content: any): any {
     table: "📊",
     flowchart: "🔁",
     outcome: "💡",
+    revision: "🏆",
   };
   const sections = Array.isArray(content.sections)
     ? content.sections.map((section: any) => ({
@@ -282,6 +286,7 @@ serve(async (req) => {
     const {
       subtopicKey, year, subject, subtopicName, questions,
       batchIndex, batchSize, regenerate, saveContent, content, editInstruction,
+      singleMode,
     } = parsed.data;
 
     // ---------- Mode 3: AI edit existing notes ----------
@@ -342,8 +347,8 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
     const totalBatches = Math.max(1, Math.ceil(questions.length / size));
     const idx = batchIndex ?? 0;
 
-    // Cache hit on first batch (unless regenerate)
-    if (idx === 0 && !regenerate) {
+    // Cache hit on first batch (unless regenerate or singleMode)
+    if (idx === 0 && !regenerate && !singleMode) {
       const { data: cached } = await admin
         .from("handwritten_notes")
         .select("content")
@@ -369,21 +374,35 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
 
     const batch = questions.slice(idx * size, idx * size + size);
     const tagged = batch.map((q) => ({ q, kind: classifyQuestion(q) }));
-    const essayList = tagged.map((t, i) => `${i + 1}. [${t.kind === "short" ? "SHORT NOTE" : t.kind === "essay" ? "ESSAY" : "STANDARD"}] ${t.q}`).join("\n");
+    // In singleMode, force ESSAY depth unless the question is explicitly a "short note".
+    const essayList = tagged.map((t, i) => {
+      const kind = singleMode
+        ? (t.kind === "short" ? "SHORT NOTE" : "ESSAY")
+        : (t.kind === "short" ? "SHORT NOTE" : t.kind === "essay" ? "ESSAY" : "STANDARD");
+      return `${i + 1}. [${kind}] ${t.q}`;
+    }).join("\n");
     const refText = await buildTextbookContext(subject, subtopicName, batch, 18000);
     const bookKey = pickBookKey(subject);
-    console.log(`[notes] subject=${subject} subtopic="${subtopicName}" batch=${idx + 1}/${totalBatches} questions=${batch.length} refChars=${refText.length}`);
+    console.log(`[notes] subject=${subject} subtopic="${subtopicName}" batch=${idx + 1}/${totalBatches} questions=${batch.length} refChars=${refText.length} singleMode=${!!singleMode}`);
+    const singleModeBlock = singleMode
+      ? `\nSINGLE-QUESTION MODE — this is ONE past-year question the student triple-tapped to study in depth.
+- If the question is an ESSAY: produce 8–10 sections filling >= 2 handwritten pages of content. Follow the [ESSAY] depth rules from the system prompt without any compression.
+- If the question is a SHORT NOTE: match the textbook depth exactly (5–8 substantive bullets minimum; more if the textbook says more). Never stop early.
+- If the textbook reference is missing this topic, fall back to standard MBBS knowledge and answer fully — do not say the reference is incomplete.
+- ALWAYS end with a section of type "revision" titled "Must-Write Points" with icon "🏆" listing 3–4 short crisp bullet-point sentences the student must write on paper to score. These points should carry the highest-yield keywords, numbers, drug names, launch years, or classifications from the answer.
+`
+      : "";
     const userPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
 ${refText ? `\nTEXTBOOK REFERENCE (${bookKey === "forensic" ? "Vision Forensic Medicine 4th ed." : "Sia Community Medicine"} — OCR extract, may contain typos; treat as PRIMARY source of truth and silently repair broken words):\n"""\n${refText}\n"""\n` : ""}
-${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions (each tagged with depth):` : "\nPREVIOUS YEAR QUESTIONS (each tagged with required depth):"}
+${singleModeBlock}${totalBatches > 1 ? `\nBATCH ${idx + 1} of ${totalBatches} — produce sections covering ONLY these questions (each tagged with depth):` : "\nPREVIOUS YEAR QUESTIONS (each tagged with required depth):"}
 ${essayList}
 
 Follow the DEPTH rules from the system prompt strictly. Essays get multi-section deep coverage; short notes stay tight (4–6 bullets). Ensure every listed question is answered.`;
 
     const raw = await callModel(userPrompt);
-      const batchContent = normalizeNotesContent(parseJson(raw));
+    const batchContent = normalizeNotesContent(parseJson(raw));
     if (!batchContent || !Array.isArray(batchContent.sections)) {
       throw new Error("Model returned invalid structure");
     }
