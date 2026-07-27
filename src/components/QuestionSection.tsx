@@ -81,10 +81,12 @@ const QuestionList = ({
   questions,
   isSearching,
   isFirstYear,
+  yearKey,
 }: {
   questions: string[];
   isSearching: boolean;
   isFirstYear?: boolean;
+  yearKey?: string;
 }) => {
   const [visibleCount, setVisibleCount] = useState(() =>
     isSearching ? Math.min(SEARCH_INITIAL_RENDER_COUNT, questions.length) : questions.length
@@ -112,6 +114,7 @@ const QuestionList = ({
           question={question}
           index={index}
           isFirstYear={isFirstYear}
+          yearKey={yearKey}
         />
       ))}
     </>
