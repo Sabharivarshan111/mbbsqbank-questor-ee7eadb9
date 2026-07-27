@@ -10,9 +10,12 @@ interface QuestionCardProps {
   index: number;
   isFirstYear?: boolean;
   highlight?: boolean;
+  yearKey?: string;
+  subjectKey?: string;
+  subjectName?: string;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear, highlight }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, index, isFirstYear, highlight, yearKey, subjectKey, subjectName }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (highlight && rootRef.current) {
