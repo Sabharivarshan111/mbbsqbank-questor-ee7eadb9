@@ -30,6 +30,7 @@ const BodySchema = z.object({
   saveContent: z.boolean().optional(),
   content: z.any().optional(),
   editInstruction: z.string().trim().min(1).max(2500).optional(),
+  singleMode: z.boolean().optional(),
 });
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
