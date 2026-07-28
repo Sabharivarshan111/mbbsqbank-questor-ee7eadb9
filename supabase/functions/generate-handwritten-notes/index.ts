@@ -151,7 +151,14 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
       res.status === 429 ? "quota" :
       res.status === 400 || res.status === 401 || res.status === 403 ? "auth" :
       "provider";
-    throw new UpstreamError(res.status, `Gemini ${res.status}: ${t.slice(0, 700)}`, kind);
+    // Extract Google's retryDelay hint (e.g. "48s") for a friendlier ETA.
+    let retrySec = 0;
+    try {
+      const m = t.match(/"retryDelay"\s*:\s*"(\d+)s"/);
+      if (m) retrySec = parseInt(m[1], 10);
+    } catch { /* ignore */ }
+    const suffix = retrySec ? ` retry_in=${retrySec}s` : "";
+    throw new UpstreamError(res.status, `Gemini ${res.status}${suffix}: ${t.slice(0, 700)}`, kind);
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
