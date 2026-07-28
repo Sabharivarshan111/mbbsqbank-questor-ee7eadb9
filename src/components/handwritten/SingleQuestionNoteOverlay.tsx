@@ -92,7 +92,7 @@ export default function SingleQuestionNoteOverlay() {
           </div>
           {content && !loading && (
             <button
-              onClick={() => setRunId((r) => r + 1)}
+              onClick={() => { setForceRegen(true); setRunId((r) => r + 1); }}
               aria-label="Regenerate"
               className="h-9 w-9 rounded-full border border-border/60 flex items-center justify-center hover:border-primary/50 active:scale-95 transition"
             >
