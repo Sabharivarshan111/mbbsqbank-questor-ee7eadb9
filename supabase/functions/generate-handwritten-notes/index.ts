@@ -418,6 +418,21 @@ Follow the DEPTH rules from the system prompt strictly. Essays get multi-section
       throw new Error("Model returned invalid structure");
     }
 
+    // Persist single-question notes so every future tap on the same question is
+    // an instant cache hit and never re-hits the Gemini quota.
+    if (singleMode && totalBatches === 1) {
+      try {
+        await admin.from("handwritten_notes").upsert({
+          subtopic_key: subtopicKey,
+          year, subject, subtopic_name: subtopicName,
+          content: batchContent,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error("[notes] single-mode cache save failed:", e);
+      }
+    }
+
     const hasMore = idx + 1 < totalBatches;
     return new Response(JSON.stringify({
       cached: false,
@@ -435,15 +450,27 @@ Follow the DEPTH rules from the system prompt strictly. Essays get multi-section
     const isQuota = upstream?.kind === "quota" || /429/.test(msg) || /quota/i.test(msg) || /rate/i.test(msg);
     const isAuth = upstream?.kind === "auth";
     const isTimeout = upstream?.kind === "timeout" || /timed out/i.test(msg);
+    // Pull the retry-after hint (e.g. "retry_in=48s") from the upstream error so
+    // the client can show a real ETA instead of a vague "please try again".
+    const retryMatch = msg.match(/retry_in=(\d+)s/);
+    const retrySeconds = retryMatch ? parseInt(retryMatch[1], 10) : 0;
+    const etaText = retrySeconds
+      ? retrySeconds >= 3600
+        ? `about ${Math.round(retrySeconds / 3600)} hour(s)`
+        : retrySeconds >= 60
+          ? `about ${Math.round(retrySeconds / 60)} minute(s)`
+          : `${retrySeconds} seconds`
+      : "";
     return new Response(
       JSON.stringify({
         error: isQuota
-          ? "Gemini quota/rate limit reached for this API key. Please wait for quota reset or enable billing in Google AI Studio, then try again."
+          ? `Gemini free-tier quota reached for today. ${etaText ? `Try again in ${etaText}.` : "Try again after the daily quota resets (Pacific midnight)."} We're caching every answer so returning users don't hit this — the first tap on each question is the only one that costs a call.`
           : isAuth
             ? "Gemini API key/model access issue. Please verify GEMINI_API_KEY and access to gemini-3.1-flash-lite."
             : isTimeout
               ? "Gemini took too long to generate this section. Please try again with fewer questions or retry later."
               : msg,
+        retryAfterSeconds: retrySeconds || undefined,
       }),
       { status: isQuota ? 429 : isAuth ? 400 : isTimeout ? 504 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
