@@ -121,7 +121,7 @@ export default function SingleQuestionNoteOverlay() {
               <p className="font-semibold mb-2">Couldn't generate this note.</p>
               <p className="text-xs mb-3">{error}</p>
               <button
-                onClick={() => setRunId((r) => r + 1)}
+                onClick={() => { setForceRegen(true); setRunId((r) => r + 1); }}
                 className="text-xs font-semibold underline"
               >
                 Try again
