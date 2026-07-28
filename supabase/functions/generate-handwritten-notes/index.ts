@@ -354,8 +354,12 @@ Modify ONLY the relevant part(s) requested by the user. Preserve everything else
     const totalBatches = Math.max(1, Math.ceil(questions.length / size));
     const idx = batchIndex ?? 0;
 
-    // Cache hit on first batch (unless regenerate or singleMode)
-    if (idx === 0 && !regenerate && !singleMode) {
+    // Cache hit on first batch. In singleMode we ALSO honour cache — this is the
+    // whole point of persisting single-question notes: the first tap pays the
+    // Gemini cost, every subsequent tap on the same question is instant and
+    // never hits the free-tier quota. Only skip the cache read when the caller
+    // explicitly asked to regenerate.
+    if (idx === 0 && !regenerate) {
       const { data: cached } = await admin
         .from("handwritten_notes")
         .select("content")
