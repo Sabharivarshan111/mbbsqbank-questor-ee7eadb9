@@ -62,8 +62,10 @@ export function pickBookKey(subject: string): "community" | "forensic" | null {
 }
 
 function tokenize(s: string): string[] {
+  // Allow 3-char tokens so terms like "air", "TB", "HIV", "ORS", "DOT", "PSM"
+  // (frequent MBBS keywords) survive filtering.
   return (s.toLowerCase().match(/[a-z][a-z0-9\-]{2,}/g) || [])
-    .filter((w) => w.length >= 4 && !STOPWORDS.has(w));
+    .filter((w) => w.length >= 3 && !STOPWORDS.has(w));
 }
 
 export async function buildTextbookContext(
