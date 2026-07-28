@@ -24,6 +24,7 @@ export default function SingleQuestionNoteOverlay() {
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState<NotesContent | null>(null);
   const [runId, setRunId] = useState(0);
+  const [forceRegen, setForceRegen] = useState(false);
   const abortRef = useRef<boolean>(false);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function SingleQuestionNoteOverlay() {
       setOpen(true);
       setContent(null);
       setError(null);
+      setForceRegen(false);
       setRunId((r) => r + 1);
     };
     window.addEventListener("orbit:single-note", h);
@@ -49,6 +51,7 @@ export default function SingleQuestionNoteOverlay() {
       try {
         const subtopicName = payload.question.slice(0, 80);
         const key = `single::${payload.subjectKey}::${hashKey(payload.question)}`;
+        // IMPORTANT: do NOT force regenerate by default. Cached answers avoid Gemini quota.
         const { data, error: err } = await supabase.functions.invoke("generate-handwritten-notes", {
           body: {
             subtopicKey: key,
@@ -57,7 +60,7 @@ export default function SingleQuestionNoteOverlay() {
             subtopicName,
             questions: [payload.question],
             singleMode: true,
-            regenerate: true,
+            regenerate: forceRegen,
           },
         });
         if (abortRef.current) return;
@@ -75,7 +78,7 @@ export default function SingleQuestionNoteOverlay() {
     };
     run();
     return () => { abortRef.current = true; };
-  }, [open, payload, runId]);
+  }, [open, payload, runId, forceRegen]);
 
   if (!open) return null;
 
