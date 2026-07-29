@@ -301,7 +301,7 @@ serve(async (req) => {
     const {
       subtopicKey, year, subject, subtopicName, questions,
       batchIndex, batchSize, regenerate, saveContent, content, editInstruction,
-      singleMode,
+      singleMode, proposeOnly, useWeb,
     } = parsed.data;
 
     // ---------- Mode 3: AI edit existing notes ----------
@@ -311,7 +311,47 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const refText = await buildTextbookContext(subject, subtopicName, questions, 12000);
+      const refText = useWeb ? "" : await buildTextbookContext(subject, subtopicName, questions, 12000);
+
+      // ----- 3a: propose (chat workflow) — never persists, waits for Yes -----
+      if (proposeOnly) {
+        const proposePrompt = `SUBJECT: ${subject}
+YEAR: ${year}
+SUBTOPIC: ${subtopicName}
+${refText ? `\nTEXTBOOK REFERENCE (source of truth — prefer facts from here):\n"""\n${refText}\n"""\n` : ""}
+CURRENT NOTES JSON:
+${JSON.stringify(content)}
+
+STUDENT REQUEST:
+${editInstruction}
+
+${useWeb
+  ? "The reference textbook did not satisfy the student. Use Google Search grounding to find accurate, current medical//national-programme information, then apply the change."
+  : "FIRST search the TEXTBOOK REFERENCE above for the requested topic. If it is covered there, build the change strictly from it. If it is not covered, fall back to standard MBBS knowledge and say so."}
+
+Return ONE JSON object ONLY with this schema:
+{
+  "found": boolean,               // true if the requested content was located in the textbook reference (or, in web mode, on the web)
+  "source": "textbook" | "knowledge" | "web",
+  "summary": string[],            // 3-6 short bullet points describing EXACTLY what you will add/change, with the key facts
+  "content": { ...full updated notes JSON, same schema as CURRENT NOTES... }
+}
+Modify ONLY the relevant part(s) of the notes; preserve everything else verbatim. Add emoji icons where missing. JSON only, no prose, no code fence.`;
+        const rawProposal = await callModel(proposePrompt, !!useWeb);
+        const proposal = parseJson(rawProposal);
+        const nextContent = normalizeNotesContent(proposal?.content);
+        if (!nextContent || !Array.isArray(nextContent.sections) || nextContent.sections.length === 0) {
+          throw new UpstreamError(500, "Gemini returned an invalid proposal", "invalid");
+        }
+        return new Response(JSON.stringify({
+          proposed: true,
+          found: proposal?.found !== false,
+          source: proposal?.source ?? (useWeb ? "web" : refText ? "textbook" : "knowledge"),
+          summary: Array.isArray(proposal?.summary) ? proposal.summary.slice(0, 8) : [],
+          content: nextContent,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
@@ -323,7 +363,7 @@ USER EDIT REQUEST:
 ${editInstruction}
 
 Modify ONLY the relevant part(s) requested by the user. Preserve everything else. If icons are missing or blank, add suitable emoji icons. Return the complete updated notes JSON using the same schema. JSON only.`;
-      const raw = await callModel(editPrompt);
+      const raw = await callModel(editPrompt, !!useWeb);
       const edited = normalizeNotesContent(parseJson(raw));
       if (!edited || !Array.isArray(edited.sections)) {
         throw new UpstreamError(500, "Gemini returned an invalid edited notes structure", "invalid");
