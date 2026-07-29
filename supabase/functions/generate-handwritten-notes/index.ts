@@ -31,6 +31,11 @@ const BodySchema = z.object({
   content: z.any().optional(),
   editInstruction: z.string().trim().min(1).max(2500).optional(),
   singleMode: z.boolean().optional(),
+  // Chat-modification workflow: propose a change (with a summary) instead of
+  // applying it straight away. The client shows Yes / No before committing.
+  proposeOnly: z.boolean().optional(),
+  // Second pass after the user rejects the textbook-based proposal.
+  useWeb: z.boolean().optional(),
 });
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
