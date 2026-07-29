@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { YEAR_LABELS, getYearSubjects, type Year } from "@/lib/year-subjects";
 import { collectQuestions } from "@/lib/question-progress";
 import HandwrittenNotesView, { type NotesContent } from "./HandwrittenNotesView";
+import NotesAiEditBox from "./NotesAiEditBox";
 
 /** Walk a subject node and return every leaf topic that has at least one essay or short-note question. */
 interface LeafTopic {
