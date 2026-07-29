@@ -31,6 +31,11 @@ const BodySchema = z.object({
   content: z.any().optional(),
   editInstruction: z.string().trim().min(1).max(2500).optional(),
   singleMode: z.boolean().optional(),
+  // Chat-modification workflow: propose a change (with a summary) instead of
+  // applying it straight away. The client shows Yes / No before committing.
+  proposeOnly: z.boolean().optional(),
+  // Second pass after the user rejects the textbook-based proposal.
+  useWeb: z.boolean().optional(),
 });
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
@@ -116,7 +121,7 @@ class UpstreamError extends Error {
   }
 }
 
-async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<string> {
+async function callGeminiDirect(apiKey: string, userPrompt: string, useWeb = false): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
@@ -129,11 +134,14 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        // Google Search grounding cannot be combined with a forced JSON mime
+        // type, so in web mode we parse the JSON out of the raw text instead.
+        ...(useWeb ? { tools: [{ google_search: {} }] } : {}),
         generationConfig: {
           temperature: 0.55,
           topP: 0.9,
           maxOutputTokens: 16000,
-          responseMimeType: "application/json",
+          ...(useWeb ? {} : { responseMimeType: "application/json" }),
         },
       }),
     });
@@ -166,7 +174,7 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
   return text;
 }
 
-async function callModel(prompt: string): Promise<string> {
+async function callModel(prompt: string, useWeb = false): Promise<string> {
   const gemini = Deno.env.get("GEMINI_API_KEY");
   if (!gemini) {
     throw new UpstreamError(500, "GEMINI_API_KEY is not configured for handwritten notes", "auth");
@@ -174,7 +182,7 @@ async function callModel(prompt: string): Promise<string> {
   const delays = [2500, 7000];
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     try {
-      return await callGeminiDirect(gemini, prompt);
+      return await callGeminiDirect(gemini, prompt, useWeb);
     } catch (e) {
       const status = e instanceof UpstreamError ? e.status : 0;
       const kind = e instanceof UpstreamError ? e.kind : "provider";
@@ -293,7 +301,7 @@ serve(async (req) => {
     const {
       subtopicKey, year, subject, subtopicName, questions,
       batchIndex, batchSize, regenerate, saveContent, content, editInstruction,
-      singleMode,
+      singleMode, proposeOnly, useWeb,
     } = parsed.data;
 
     // ---------- Mode 3: AI edit existing notes ----------
@@ -303,7 +311,47 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const refText = await buildTextbookContext(subject, subtopicName, questions, 12000);
+      const refText = useWeb ? "" : await buildTextbookContext(subject, subtopicName, questions, 12000);
+
+      // ----- 3a: propose (chat workflow) — never persists, waits for Yes -----
+      if (proposeOnly) {
+        const proposePrompt = `SUBJECT: ${subject}
+YEAR: ${year}
+SUBTOPIC: ${subtopicName}
+${refText ? `\nTEXTBOOK REFERENCE (source of truth — prefer facts from here):\n"""\n${refText}\n"""\n` : ""}
+CURRENT NOTES JSON:
+${JSON.stringify(content)}
+
+STUDENT REQUEST:
+${editInstruction}
+
+${useWeb
+  ? "The reference textbook did not satisfy the student. Use Google Search grounding to find accurate, current medical//national-programme information, then apply the change."
+  : "FIRST search the TEXTBOOK REFERENCE above for the requested topic. If it is covered there, build the change strictly from it. If it is not covered, fall back to standard MBBS knowledge and say so."}
+
+Return ONE JSON object ONLY with this schema:
+{
+  "found": boolean,               // true if the requested content was located in the textbook reference (or, in web mode, on the web)
+  "source": "textbook" | "knowledge" | "web",
+  "summary": string[],            // 3-6 short bullet points describing EXACTLY what you will add/change, with the key facts
+  "content": { ...full updated notes JSON, same schema as CURRENT NOTES... }
+}
+Modify ONLY the relevant part(s) of the notes; preserve everything else verbatim. Add emoji icons where missing. JSON only, no prose, no code fence.`;
+        const rawProposal = await callModel(proposePrompt, !!useWeb);
+        const proposal = parseJson(rawProposal);
+        const nextContent = normalizeNotesContent(proposal?.content);
+        if (!nextContent || !Array.isArray(nextContent.sections) || nextContent.sections.length === 0) {
+          throw new UpstreamError(500, "Gemini returned an invalid proposal", "invalid");
+        }
+        return new Response(JSON.stringify({
+          proposed: true,
+          found: proposal?.found !== false,
+          source: proposal?.source ?? (useWeb ? "web" : refText ? "textbook" : "knowledge"),
+          summary: Array.isArray(proposal?.summary) ? proposal.summary.slice(0, 8) : [],
+          content: nextContent,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       const editPrompt = `SUBJECT: ${subject}
 YEAR: ${year}
 SUBTOPIC: ${subtopicName}
@@ -315,7 +363,7 @@ USER EDIT REQUEST:
 ${editInstruction}
 
 Modify ONLY the relevant part(s) requested by the user. Preserve everything else. If icons are missing or blank, add suitable emoji icons. Return the complete updated notes JSON using the same schema. JSON only.`;
-      const raw = await callModel(editPrompt);
+      const raw = await callModel(editPrompt, !!useWeb);
       const edited = normalizeNotesContent(parseJson(raw));
       if (!edited || !Array.isArray(edited.sections)) {
         throw new UpstreamError(500, "Gemini returned an invalid edited notes structure", "invalid");

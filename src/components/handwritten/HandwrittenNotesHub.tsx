@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { YEAR_LABELS, getYearSubjects, type Year } from "@/lib/year-subjects";
 import { collectQuestions } from "@/lib/question-progress";
 import HandwrittenNotesView, { type NotesContent } from "./HandwrittenNotesView";
+import NotesAiEditBox from "./NotesAiEditBox";
 
 /** Walk a subject node and return every leaf topic that has at least one essay or short-note question. */
 interface LeafTopic {
@@ -545,32 +546,15 @@ function NotesDetailView({
           )}
 
           {phase === "done" && (
-            <div className="rounded-2xl border bg-card p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Wand2 className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm">Fix these notes with AI</p>
-                  <p className="text-xs text-muted-foreground">Ask for a specific change; only the relevant part will be updated.</p>
-                </div>
-              </div>
-              <Textarea
-                value={editInstruction}
-                onChange={(e) => setEditInstruction(e.target.value)}
-                placeholder="Example: Add the typhoid agent factors and make the transmission part a flowchart."
-                rows={3}
-                disabled={editingNotes}
-              />
-              <Button
-                className="w-full"
-                onClick={applyAiEdit}
-                disabled={editingNotes || !editInstruction.trim()}
-              >
-                {editingNotes ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                Update notes
-              </Button>
-            </div>
+            <NotesAiEditBox
+              subtopicKey={topic.key}
+              year={YEAR_LABELS[year]}
+              subject={subject}
+              subtopicName={topic.name}
+              questions={topic.questions}
+              content={content}
+              onApply={(next) => setContent(next)}
+            />
           )}
         </>
       )}

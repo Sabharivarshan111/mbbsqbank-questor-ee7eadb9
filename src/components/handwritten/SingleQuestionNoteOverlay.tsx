@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import HandwrittenNotesView, { NotesContent } from "./HandwrittenNotesView";
+import NotesAiEditBox from "./NotesAiEditBox";
 
 interface Payload {
   question: string;
@@ -129,7 +130,19 @@ export default function SingleQuestionNoteOverlay() {
             </div>
           )}
           {content && !loading && (
-            <HandwrittenNotesView subtopicName={payload?.question || ""} content={content} />
+            <div className="space-y-4">
+              <HandwrittenNotesView subtopicName={payload?.question || ""} content={content} />
+              <NotesAiEditBox
+                compact
+                subtopicKey={`single::${payload!.subjectKey}::${hashKey(payload!.question)}`}
+                year={payload!.year}
+                subject={payload!.subject}
+                subtopicName={payload!.question.slice(0, 80)}
+                questions={[payload!.question]}
+                content={content}
+                onApply={(next) => setContent(next)}
+              />
+            </div>
           )}
         </div>
       </div>
