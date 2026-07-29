@@ -26,6 +26,7 @@ import GlobalCelebrations from "./components/GlobalCelebrations";
 import ExamReminderPopup from "./components/ExamReminderPopup";
 import DailyAdConsent from "./components/DailyAdConsent";
 import RecoveryNotice from "./components/RecoveryNotice";
+import UpdateLogNotice from "./components/UpdateLogNotice";
 import SingleQuestionNoteOverlay from "./components/handwritten/SingleQuestionNoteOverlay";
 import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
