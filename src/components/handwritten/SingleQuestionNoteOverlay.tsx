@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { X, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import HandwrittenNotesView, { NotesContent } from "./HandwrittenNotesView";
+import NotesAiEditBox from "./NotesAiEditBox";
 
 interface Payload {
   question: string;
