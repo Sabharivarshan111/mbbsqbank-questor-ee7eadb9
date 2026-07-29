@@ -121,7 +121,7 @@ class UpstreamError extends Error {
   }
 }
 
-async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<string> {
+async function callGeminiDirect(apiKey: string, userPrompt: string, useWeb = false): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
@@ -134,11 +134,14 @@ async function callGeminiDirect(apiKey: string, userPrompt: string): Promise<str
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        // Google Search grounding cannot be combined with a forced JSON mime
+        // type, so in web mode we parse the JSON out of the raw text instead.
+        ...(useWeb ? { tools: [{ google_search: {} }] } : {}),
         generationConfig: {
           temperature: 0.55,
           topP: 0.9,
           maxOutputTokens: 16000,
-          responseMimeType: "application/json",
+          ...(useWeb ? {} : { responseMimeType: "application/json" }),
         },
       }),
     });
