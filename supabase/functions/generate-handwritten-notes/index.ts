@@ -174,7 +174,7 @@ async function callGeminiDirect(apiKey: string, userPrompt: string, useWeb = fal
   return text;
 }
 
-async function callModel(prompt: string): Promise<string> {
+async function callModel(prompt: string, useWeb = false): Promise<string> {
   const gemini = Deno.env.get("GEMINI_API_KEY");
   if (!gemini) {
     throw new UpstreamError(500, "GEMINI_API_KEY is not configured for handwritten notes", "auth");
@@ -182,7 +182,7 @@ async function callModel(prompt: string): Promise<string> {
   const delays = [2500, 7000];
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     try {
-      return await callGeminiDirect(gemini, prompt);
+      return await callGeminiDirect(gemini, prompt, useWeb);
     } catch (e) {
       const status = e instanceof UpstreamError ? e.status : 0;
       const kind = e instanceof UpstreamError ? e.kind : "provider";
