@@ -50,6 +50,7 @@ export default function DailyAdConsent() {
         >
           OK, continue
         </button>
+        <RemoveAdsButton onDone={handleOk} />
       </div>
     </div>,
     document.body,
