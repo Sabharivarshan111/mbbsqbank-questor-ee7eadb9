@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { DAILY_AD_EVENT, type DailyAdConsentPayload } from "@/lib/daily-ad";
+import RemoveAdsButton from "./RemoveAdsButton";
 
 /**
  * Global full-screen blocking dialog shown once per day before a rewarded ad.
