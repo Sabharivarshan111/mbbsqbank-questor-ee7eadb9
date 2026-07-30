@@ -131,6 +131,48 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_subscriptions: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          email: string | null
+          expires_at: string
+          id: string
+          plan: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          starts_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paise?: number
+          created_at?: string
+          email?: string | null
+          expires_at: string
+          id?: string
+          plan?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          starts_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          plan?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          starts_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -413,6 +455,7 @@ export type Database = {
         Args: { _user_id: string; _year: string }
         Returns: number
       }
+      is_premium: { Args: { _user_id: string }; Returns: boolean }
       merge_into_current_user: {
         Args: { _old_user_id: string }
         Returns: undefined
