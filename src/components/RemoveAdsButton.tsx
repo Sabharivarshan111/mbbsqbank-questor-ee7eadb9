@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { ShieldOff, Loader2 } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
 import { usePremium } from "@/hooks/use-premium";
+import { useDoubleTap } from "@/hooks/use-double-tap";
 
 /**
- * "Remove ads for ₹50 / month" upsell. Shown under the daily rewarded-ad
- * consent card. Requires a Google-signed-in account so the entitlement can be
- * attributed to a real user across devices.
+ * Publicly this is a disabled "Ad-free plan — coming soon" card.
+ * Internally, a quick double tap runs the real Razorpay checkout so the
+ * payment flow can be verified end-to-end. Nothing in the UI hints at this.
  */
 export default function RemoveAdsButton({ onDone }: { onDone?: () => void }) {
   const { isPremium, signedIn, expiresAt, startCheckout } = usePremium();
@@ -22,11 +23,12 @@ export default function RemoveAdsButton({ onDone }: { onDone?: () => void }) {
     );
   }
 
-  const handle = async () => {
+  const run = async () => {
+    if (busy) return;
     setBusy(true);
     try {
       if (!signedIn) {
-        toast.info("Sign in with Google to buy the ad-free month.");
+        toast.info("Sign in with Google first.");
         if (isNative()) await nativeGoogleSignIn();
         else await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -47,14 +49,16 @@ export default function RemoveAdsButton({ onDone }: { onDone?: () => void }) {
     }
   };
 
+  const handleTap = useDoubleTap(() => { void run(); }, 400);
+
   return (
-    <button
-      onClick={handle}
-      disabled={busy}
-      className="w-full h-11 rounded-xl border border-primary/40 bg-background/60 text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-60"
+    <div
+      onClick={handleTap}
+      role="note"
+      className="w-full h-11 rounded-xl border border-border/60 bg-muted/40 text-sm font-semibold flex items-center justify-center gap-2 text-muted-foreground select-none cursor-default"
     >
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
-      Remove ads — ₹50 for 1 month
-    </button>
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+      Ad-free plan — coming soon
+    </div>
   );
 }
