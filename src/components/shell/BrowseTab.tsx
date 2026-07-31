@@ -5,6 +5,8 @@ import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/ques
 import { useProfile } from "@/hooks/use-profile";
 import QuestionCard from "@/components/QuestionCard";
 import { requestDailyAd } from "@/lib/daily-ad";
+import GoogleGateCard from "@/components/GoogleGateCard";
+
 import { cn } from "@/lib/utils";
 
 const SUBJECT_ICONS: Record<string, string> = {
