@@ -5,6 +5,8 @@ import { collectQuestions, countDone, QUESTION_PROGRESS_EVENT } from "@/lib/ques
 import { useProfile } from "@/hooks/use-profile";
 import QuestionCard from "@/components/QuestionCard";
 import { requestDailyAd } from "@/lib/daily-ad";
+import GoogleGateCard from "@/components/GoogleGateCard";
+
 import { cn } from "@/lib/utils";
 
 const SUBJECT_ICONS: Record<string, string> = {
@@ -202,6 +204,10 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
             className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-card border border-border/60 text-sm focus:outline-none focus:border-primary/60"
           />
         </div>
+
+        <GoogleGateCard />
+
+
 
         {filtered.length === 0 ? (
           <div className="text-center py-10 text-sm text-muted-foreground">
