@@ -78,8 +78,18 @@ export function usePremium() {
       body: { plan: "adfree_monthly" },
     });
     if (error || (data as any)?.error) {
-      return (data as any)?.error ?? error?.message ?? "Could not start the payment.";
+      // functions.invoke hides the body on non-2xx — read it from the response.
+      let serverMsg: string | null = null;
+      try {
+        const res = (error as any)?.context;
+        if (res && typeof res.json === "function") {
+          const body = await res.json();
+          serverMsg = typeof body?.error === "string" ? body.error : JSON.stringify(body?.error ?? null);
+        }
+      } catch { /* ignore */ }
+      return (data as any)?.error ?? serverMsg ?? error?.message ?? "Could not start the payment.";
     }
+
     const order = data as { order_id: string; amount: number; currency: string; key_id: string };
 
     return await new Promise<string | null>((resolve) => {

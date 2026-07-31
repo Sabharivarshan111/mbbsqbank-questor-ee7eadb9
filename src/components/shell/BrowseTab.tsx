@@ -203,6 +203,10 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
           />
         </div>
 
+        <GoogleGateCard />
+
+
+
         {filtered.length === 0 ? (
           <div className="text-center py-10 text-sm text-muted-foreground">
             No {activeTab === "essay" ? "essays" : "short notes"} available.
