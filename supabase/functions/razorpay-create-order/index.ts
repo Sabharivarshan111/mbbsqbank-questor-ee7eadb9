@@ -1,6 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,54 +6,39 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Ad-free plan: ₹50 for 30 days. Amount is fixed server-side — never trusted from the client. */
-const PLAN = { plan: "adfree_monthly", amountPaise: 5000, days: 30 };
+/** Test amount is fixed server-side. Razorpay minimum is 100 paise (₹1). */
+const AMOUNT_PAISE = 100;
+const CURRENCY = "INR";
 
-const BodySchema = z.object({ plan: z.literal("adfree_monthly").optional() });
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
   try {
     const keyId = Deno.env.get("RAZORPAY_KEY_ID");
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
-    if (!keyId || !keySecret) {
-      return new Response(JSON.stringify({ error: "Razorpay is not configured." }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!keyId || !keySecret) return json({ error: "Razorpay keys are not configured." }, 500);
 
-    const parsed = BodySchema.safeParse(await req.json().catch(() => ({})));
-    if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten().fieldErrors }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Must be a signed-in (Google) user — that's how we attribute the payment.
+    // Signed-in Supabase user required so the order can be attributed.
     const authHeader = req.headers.get("Authorization") ?? "";
-    const jwt = authHeader.replace(/^Bearer\s+/i, "");
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: "Please sign in with Google before paying." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      return json({ error: "Please sign in before paying." }, 401);
     }
-    const anon = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-      auth: { persistSession: false },
-    });
-    const { data: userData, error: userErr } = await anon.auth.getUser();
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    );
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
     const user = userData?.user;
-    if (userErr || !user) {
-      return new Response(JSON.stringify({ error: "Your session expired. Sign in again." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (userErr || !user) return json({ error: "Your session expired. Sign in again." }, 401);
 
-    if (PLAN.amountPaise < 100) {
-      return new Response(JSON.stringify({ error: "Invalid amount." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (AMOUNT_PAISE < 100) return json({ error: "Amount must be at least 100 paise." }, 400);
 
     const res = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
@@ -64,32 +47,32 @@ serve(async (req) => {
         Authorization: `Basic ${btoa(`${keyId}:${keySecret}`)}`,
       },
       body: JSON.stringify({
-        amount: PLAN.amountPaise,
-        currency: "INR",
-        receipt: `adfree_${user.id.slice(0, 8)}_${Date.now()}`,
-        notes: { user_id: user.id, plan: PLAN.plan, days: String(PLAN.days) },
+        amount: AMOUNT_PAISE,
+        currency: CURRENCY,
+        receipt: `test_${user.id.slice(0, 8)}_${Date.now()}`,
+        notes: { user_id: user.id, purpose: "integration_test" },
       }),
     });
+
     const text = await res.text();
     if (!res.ok) {
-      console.error("razorpay order error", res.status, text);
-      return new Response(JSON.stringify({ error: "Could not start the payment. Please try again." }), {
-        status: res.status === 401 ? 401 : 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error(`razorpay order failed [${res.status}]: ${text}`);
+      return json(
+        { error: `Razorpay rejected the order (${res.status}): ${text}` },
+        res.status === 401 ? 401 : 502,
+      );
     }
+
     const order = JSON.parse(text);
-    return new Response(JSON.stringify({
+    console.log("order created", order.id, order.amount);
+    return json({
       order_id: order.id,
       amount: order.amount,
       currency: order.currency,
       key_id: keyId,
-      plan: PLAN.plan,
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    });
   } catch (err) {
     console.error("create-order failure", err);
-    return new Response(JSON.stringify({ error: (err as Error).message ?? "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: (err as Error).message ?? "Unknown error" }, 500);
   }
 });
