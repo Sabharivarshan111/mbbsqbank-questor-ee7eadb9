@@ -7,6 +7,7 @@ import { collectQuestions, countDone } from "@/lib/question-progress";
 import { formatFocusTime } from "@/hooks/use-pomodoro-stats";
 import { usePomodoroCtx } from "@/hooks/pomodoro-context";
 import { useProfile } from "@/hooks/use-profile";
+import { WhatsAppMiniButton } from "@/components/community/CommunityCards";
 import type { ShellTab } from "./BottomNav";
 
 const SUBJECT_ICONS: Record<string, string> = {
