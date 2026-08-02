@@ -74,7 +74,7 @@ function getTopicChildren(node: any): Array<{ key: string; name: string; node: a
 }
 
 export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
-  const { local } = useProfile();
+  const { local, isAnonymous } = useProfile();
   const profileYearKey = useMemo(() => {
     const y = local?.year ?? "second";
     return ({ first: "first-year", second: "second-year", third: "third-year", final: "final-year" } as const)[y] ?? "second-year";
