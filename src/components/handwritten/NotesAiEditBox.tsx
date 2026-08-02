@@ -49,6 +49,43 @@ async function invokeNotes(body: Record<string, unknown>) {
   return data as any;
 }
 
+/**
+ * Merge an AI proposal into the existing notes instead of replacing them.
+ * Gemini frequently returns only the section(s) it touched, which used to wipe
+ * every other section when the student tapped "Yes, add to notes".
+ */
+function mergeProposal(prev: NotesContent | null, next: NotesContent): NotesContent {
+  if (!prev) return next;
+  const prevSections = Array.isArray(prev.sections) ? prev.sections : [];
+  const nextSections = Array.isArray(next.sections) ? next.sections : [];
+  const keyOf = (s: any) => String(s?.title ?? "").toLowerCase().trim();
+
+  const out = [...prevSections];
+  const indexByKey = new Map<string, number>();
+  out.forEach((s, i) => {
+    const k = keyOf(s);
+    if (k && !indexByKey.has(k)) indexByKey.set(k, i);
+  });
+
+  for (const s of nextSections) {
+    const k = keyOf(s);
+    const at = k ? indexByKey.get(k) : undefined;
+    if (at === undefined) {
+      out.push(s);
+      if (k) indexByKey.set(k, out.length - 1);
+    } else {
+      out[at] = s; // updated version of an existing section
+    }
+  }
+
+  return {
+    ...prev,
+    highYieldTip: next.highYieldTip || prev.highYieldTip,
+    pyqYears: Array.from(new Set([...(prev.pyqYears ?? []), ...(next.pyqYears ?? [])])),
+    sections: out,
+  };
+}
+
 export default function NotesAiEditBox({
   subtopicKey, year, subject, subtopicName, questions, content, onApply, compact,
 }: Props) {
@@ -108,13 +145,14 @@ export default function NotesAiEditBox({
   }
 
   async function accept(b: Extract<Bubble, { role: "proposal" }>) {
+    const merged = mergeProposal(content, b.content);
     patch(b.id, { state: "accepted" } as Partial<Bubble>);
-    onApply(b.content);
-    push({ role: "status", text: "Added to your notes ✅" } as Omit<Bubble, "id">);
+    onApply(merged);
+    push({ role: "status", text: "Added to your notes ✅ (your earlier sections are kept)" } as Omit<Bubble, "id">);
     try {
       await invokeNotes({
         subtopicKey, year, subject, subtopicName, questions,
-        saveContent: true, content: b.content,
+        saveContent: true, content: merged,
       });
     } catch { /* non-fatal: the UI already shows the update */ }
   }
