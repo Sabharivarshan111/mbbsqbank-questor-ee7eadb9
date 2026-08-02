@@ -6,16 +6,17 @@ import { Rocket } from "lucide-react";
  * One-time-per-release changelog card (no ads, ever).
  * Bump UPDATE_ID whenever a new changelog should be shown.
  */
-const UPDATE_ID = "2026-07-29";
+const UPDATE_ID = "2026-08-02";
 const FLAG_KEY = `orbit-update-log-${UPDATE_ID}`;
 
 const CHANGES: string[] = [
-  "Handwritten Notes now have a chat box — ask for a fix and we search the reference textbook first.",
-  "Every suggestion shows what was found, with green Yes to add it and red No to reject it.",
-  "Said No? We can search the internet for that point instead, then you approve it again.",
-  "Triple-tap notes get the same chat box, and every answer is cached so rate limits are far rarer.",
-  "Rate-limit messages now tell you exactly when to try again.",
+  "Fixed: the notes chat box now ADDS your approved change on top of the existing notes instead of erasing them.",
+  "Google sign-in is now required to open essays and short notes — one-time, and all your progress carries over.",
+  "New WhatsApp group for 3rd year students: study materials, notes and exam updates. Tap the WhatsApp card on Home or in Notes to join (Play Store version only).",
+  "3rd year Notes now has a Google Drive study-materials folder link.",
+  "Account security hardened — profiles and merge actions are now locked to their owner.",
 ];
+
 
 export default function UpdateLogNotice() {
   const [open, setOpen] = useState(false);
