@@ -59,6 +59,9 @@ export default function UpdateLogNotice() {
               </li>
             ))}
           </ul>
+          <div className="mt-4">
+            <WhatsAppGroupCard note="New: WhatsApp group for 3rd year students — study materials, notes and exam updates." />
+          </div>
           <p className="mt-4 text-[11px] text-center text-muted-foreground/80">
             No ads in this popup. Thanks for your support 💜
           </p>
