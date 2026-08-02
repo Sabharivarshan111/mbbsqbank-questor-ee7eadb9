@@ -145,13 +145,14 @@ export default function NotesAiEditBox({
   }
 
   async function accept(b: Extract<Bubble, { role: "proposal" }>) {
+    const merged = mergeProposal(content, b.content);
     patch(b.id, { state: "accepted" } as Partial<Bubble>);
-    onApply(b.content);
-    push({ role: "status", text: "Added to your notes ✅" } as Omit<Bubble, "id">);
+    onApply(merged);
+    push({ role: "status", text: "Added to your notes ✅ (your earlier sections are kept)" } as Omit<Bubble, "id">);
     try {
       await invokeNotes({
         subtopicKey, year, subject, subtopicName, questions,
-        saveContent: true, content: b.content,
+        saveContent: true, content: merged,
       });
     } catch { /* non-fatal: the UI already shows the update */ }
   }
