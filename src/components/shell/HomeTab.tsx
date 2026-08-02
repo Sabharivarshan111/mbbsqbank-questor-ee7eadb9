@@ -145,6 +145,10 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
         <QuickAction icon={Sparkles} label="Ask AI" sub="Get instant help" color="text-fuchsia-400" onClick={() => onNavigate("askai")} />
       </section>
 
+      {/* WhatsApp community */}
+      <WhatsAppMiniButton />
+
+
       {/* Your Subjects */}
       <section>
         <div className="flex items-center justify-between mb-3">
