@@ -25,23 +25,24 @@ export function useLeaderboard(filterYear: Year | "all", enabled: boolean) {
     const fetchRows = async () => {
       setLoading(true);
       if (filterYear === "all") {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, display_name, year, xp, streak")
-          .order("xp", { ascending: false })
-          .order("streak", { ascending: false })
-          .limit(50);
+        // Read through the security-definer RPC so profile rows stay private.
+        const { data } = await (supabase as any).rpc("get_weekly_leaderboard", {
+          _year: null,
+          _limit: 50,
+        });
         if (!cancelled && data) {
           setRows(
-            (data as any[]).map((r) => ({
-              id: r.id,
-              display_name: r.display_name,
-              year: r.year as Year,
-              xp: r.xp,
-              year_xp: r.xp,
-              streak: r.streak,
-              year_seconds: 0,
-            }))
+            (data as any[])
+              .map((r) => ({
+                id: r.id,
+                display_name: r.display_name,
+                year: r.year as Year,
+                xp: r.xp,
+                year_xp: r.xp,
+                streak: r.streak,
+                year_seconds: Number(r.year_seconds ?? 0),
+              }))
+              .sort((a, b) => b.xp - a.xp || b.streak - a.streak)
           );
         }
       } else {
