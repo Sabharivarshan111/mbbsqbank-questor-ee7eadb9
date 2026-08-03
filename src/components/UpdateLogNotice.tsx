@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Rocket } from "lucide-react";
+import { Rocket, X } from "lucide-react";
 import { WhatsAppGroupCard } from "@/components/community/CommunityCards";
 
 /**
