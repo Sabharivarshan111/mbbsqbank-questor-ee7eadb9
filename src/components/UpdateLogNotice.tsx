@@ -45,14 +45,27 @@ export default function UpdateLogNotice() {
       aria-modal="true"
       className="fixed inset-0 z-[115] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
     >
-      <div className="w-full max-w-sm rounded-3xl border-2 border-primary/40 bg-card shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-        <div className="p-6">
-          <div className="mx-auto h-14 w-14 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center mb-4">
-            <Rocket className="h-7 w-7 text-primary-foreground" />
+      <div
+        className="relative w-full max-w-sm flex flex-col rounded-3xl border-2 border-primary/40 bg-card shadow-2xl overflow-hidden animate-in fade-in zoom-in-95"
+        style={{ maxHeight: "min(80vh, 560px)" }}
+      >
+        {/* Always-reachable close button */}
+        <button
+          onClick={close}
+          aria-label="Close update log"
+          className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full bg-background/80 border border-border/60 flex items-center justify-center active:scale-95 transition"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Scrollable body */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 pt-6">
+          <div className="mx-auto h-12 w-12 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center mb-3">
+            <Rocket className="h-6 w-6 text-primary-foreground" />
           </div>
           <h2 className="text-lg font-extrabold text-center mb-1">What's new today</h2>
           <p className="text-[11px] text-center text-muted-foreground mb-4">Update log · {UPDATE_ID}</p>
-          <ul className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+          <ul className="space-y-2.5">
             {CHANGES.map((c, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
@@ -66,9 +79,13 @@ export default function UpdateLogNotice() {
           <p className="mt-4 text-[11px] text-center text-muted-foreground/80">
             No ads in this popup. Thanks for your support 💜
           </p>
+        </div>
+
+        {/* Pinned footer — always visible, centered */}
+        <div className="shrink-0 border-t border-border/60 bg-card p-4 flex justify-center">
           <button
             onClick={close}
-            className="mt-4 w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-fuchsia-500 text-primary-foreground font-semibold text-sm active:scale-[0.98] transition"
+            className="w-full max-w-[240px] py-2.5 rounded-xl bg-gradient-to-r from-primary to-fuchsia-500 text-primary-foreground font-semibold text-sm active:scale-[0.98] transition"
           >
             OK, continue
           </button>
@@ -78,3 +95,4 @@ export default function UpdateLogNotice() {
     document.body,
   );
 }
+
