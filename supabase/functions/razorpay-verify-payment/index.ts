@@ -70,9 +70,43 @@ Deno.serve(async (req) => {
       return json({ error: "Payment signature could not be verified." }, 400);
     }
 
-    // Verification only — no entitlement is granted and nothing is stored.
-    console.log("payment verified", paymentId, "order", orderId);
-    return json({ success: true, payment_id: paymentId, order_id: orderId });
+    // Signature is valid → record / extend the ad-free subscription (30 days).
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false } },
+    );
+    const user = userData.user;
+
+    const { data: existing } = await admin
+      .from("premium_subscriptions")
+      .select("id, expires_at")
+      .eq("user_id", user.id)
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const base = existing?.expires_at && new Date(existing.expires_at) > new Date()
+      ? new Date(existing.expires_at)
+      : new Date();
+    const expiresAt = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error: insErr } = await admin.from("premium_subscriptions").insert({
+      user_id: user.id,
+      email: user.email ?? null,
+      plan: "adfree_monthly",
+      amount_paise: 5000,
+      razorpay_order_id: orderId as string,
+      razorpay_payment_id: paymentId as string,
+      expires_at: expiresAt,
+    });
+    if (insErr) {
+      console.error("subscription insert failed", insErr);
+      return json({ error: "Payment verified but the plan could not be saved. Contact support." }, 500);
+    }
+
+    console.log("payment verified + adfree granted", paymentId, "until", expiresAt);
+    return json({ success: true, payment_id: paymentId, order_id: orderId, expires_at: expiresAt });
   } catch (err) {
     console.error("verify-payment failure", err);
     return json({ error: (err as Error).message ?? "Unknown error" }, 500);
