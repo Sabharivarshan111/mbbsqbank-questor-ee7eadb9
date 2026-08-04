@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Test amount is fixed server-side. Razorpay minimum is 100 paise (₹1). */
-const AMOUNT_PAISE = 100;
+/** Ad-free plan: ₹50 for one month. Amount is fixed server-side. */
+const AMOUNT_PAISE = 5000;
 const CURRENCY = "INR";
 
 const json = (body: unknown, status = 200) =>
@@ -49,8 +49,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         amount: AMOUNT_PAISE,
         currency: CURRENCY,
-        receipt: `test_${user.id.slice(0, 8)}_${Date.now()}`,
-        notes: { user_id: user.id, purpose: "integration_test" },
+        receipt: `adfree_${user.id.slice(0, 8)}_${Date.now()}`,
+        notes: { user_id: user.id, purpose: "adfree_monthly" },
       }),
     });
 

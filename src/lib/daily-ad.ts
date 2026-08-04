@@ -8,6 +8,8 @@
 // at most once per calendar day per bucket, but the buckets do NOT share a cap.
 
 import { showRewardedAd } from "@/services/AndroidAds";
+import { isPremiumCached } from "@/hooks/use-premium";
+
 
 const WALKTHROUGH_FLAG = "orbit:walkthrough-active";
 
@@ -110,6 +112,8 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
 export function requestDailyAd(reason: DailyAdReason): void {
   if (typeof window === "undefined") return;
   if (isWalkthroughActive()) return;
+  if (isPremiumCached()) return; // paid ad-free users never see rewarded ads
+
 
   const bucket = REASON_TO_BUCKET[reason];
   if (hasShownFor(bucket)) return;

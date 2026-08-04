@@ -353,6 +353,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_xp: {
         Row: {
           updated_at: string
@@ -393,6 +414,22 @@ export type Database = {
       }
     }
     Functions: {
+      admin_list_subscriptions: {
+        Args: never
+        Returns: {
+          active: boolean
+          amount_paise: number
+          display_name: string
+          email: string
+          expires_at: string
+          id: string
+          plan: string
+          razorpay_payment_id: string
+          starts_at: string
+          user_id: string
+        }[]
+      }
+      admin_revoke_subscription: { Args: { _id: string }; Returns: undefined }
       app_today: { Args: never; Returns: string }
       app_week_start: { Args: never; Returns: string }
       award_quiz_xp: { Args: { _amount: number }; Returns: undefined }
@@ -455,6 +492,14 @@ export type Database = {
         Args: { _user_id: string; _year: string }
         Returns: number
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
       is_premium: { Args: { _user_id: string }; Returns: boolean }
       merge_into_current_user: {
         Args: { _old_user_id: string }
@@ -496,6 +541,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       app_year: "first" | "second" | "third" | "final"
     }
     CompositeTypes: {
@@ -624,6 +670,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       app_year: ["first", "second", "third", "final"],
     },
   },
