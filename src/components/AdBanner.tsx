@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { isPremiumCached } from '@/hooks/use-premium';
 
 interface AdBannerProps {
   adSlot: string;
@@ -7,15 +8,21 @@ interface AdBannerProps {
 }
 
 export const AdBanner = ({ adSlot, adFormat = 'auto', className = '' }: AdBannerProps) => {
+  const premium = isPremiumCached();
+
   useEffect(() => {
+    if (premium) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
       console.error('AdSense error:', e);
     }
-  }, []);
+  }, [premium]);
+
+  if (premium) return null;
 
   return (
+
     <div className={`ad-container my-4 flex justify-center ${className}`}>
       <ins
         className="adsbygoogle"
