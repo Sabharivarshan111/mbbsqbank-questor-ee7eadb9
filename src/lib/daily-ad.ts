@@ -110,6 +110,8 @@ const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
 export function requestDailyAd(reason: DailyAdReason): void {
   if (typeof window === "undefined") return;
   if (isWalkthroughActive()) return;
+  if (isPremiumCached()) return; // paid ad-free users never see rewarded ads
+
 
   const bucket = REASON_TO_BUCKET[reason];
   if (hasShownFor(bucket)) return;
