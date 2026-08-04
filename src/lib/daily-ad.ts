@@ -8,6 +8,8 @@
 // at most once per calendar day per bucket, but the buckets do NOT share a cap.
 
 import { showRewardedAd } from "@/services/AndroidAds";
+import { isPremiumCached } from "@/hooks/use-premium";
+
 
 const WALKTHROUGH_FLAG = "orbit:walkthrough-active";
 
