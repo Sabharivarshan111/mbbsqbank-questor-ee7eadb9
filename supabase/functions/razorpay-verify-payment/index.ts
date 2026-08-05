@@ -48,6 +48,9 @@ Deno.serve(async (req) => {
     const orderId = body?.razorpay_order_id;
     const paymentId = body?.razorpay_payment_id;
     const signature = body?.razorpay_signature;
+    const planKey = typeof body?.plan === "string" && body.plan === "notes_fmspm"
+      ? "notes_fmspm"
+      : "adfree_monthly";
     if (!isStr(orderId, 5, 120) || !isStr(paymentId, 5, 120) || !isStr(signature, 10, 200)) {
       return json({ error: "Missing or invalid payment fields." }, 400);
     }
@@ -70,7 +73,7 @@ Deno.serve(async (req) => {
       return json({ error: "Payment signature could not be verified." }, 400);
     }
 
-    // Signature is valid → record / extend the ad-free subscription (30 days).
+    // Signature is valid → record / extend the purchase.
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -78,23 +81,30 @@ Deno.serve(async (req) => {
     );
     const user = userData.user;
 
-    const { data: existing } = await admin
-      .from("premium_subscriptions")
-      .select("id, expires_at")
-      .eq("user_id", user.id)
-      .order("expires_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    let expiresAt: string;
+    if (planKey === "notes_fmspm") {
+      // One-time purchase → lifetime access.
+      expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString();
+    } else {
+      const { data: existing } = await admin
+        .from("premium_subscriptions")
+        .select("id, expires_at")
+        .eq("user_id", user.id)
+        .eq("plan", "adfree_monthly")
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    const base = existing?.expires_at && new Date(existing.expires_at) > new Date()
-      ? new Date(existing.expires_at)
-      : new Date();
-    const expiresAt = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const base = existing?.expires_at && new Date(existing.expires_at) > new Date()
+        ? new Date(existing.expires_at)
+        : new Date();
+      expiresAt = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    }
 
     const { error: insErr } = await admin.from("premium_subscriptions").insert({
       user_id: user.id,
       email: user.email ?? null,
-      plan: "adfree_monthly",
+      plan: planKey,
       amount_paise: 5000,
       razorpay_order_id: orderId as string,
       razorpay_payment_id: paymentId as string,
@@ -105,8 +115,8 @@ Deno.serve(async (req) => {
       return json({ error: "Payment verified but the plan could not be saved. Contact support." }, 500);
     }
 
-    console.log("payment verified + adfree granted", paymentId, "until", expiresAt);
-    return json({ success: true, payment_id: paymentId, order_id: orderId, expires_at: expiresAt });
+    console.log("payment verified + granted", planKey, paymentId, "until", expiresAt);
+    return json({ success: true, payment_id: paymentId, order_id: orderId, plan: planKey, expires_at: expiresAt });
   } catch (err) {
     console.error("verify-payment failure", err);
     return json({ error: (err as Error).message ?? "Unknown error" }, 500);

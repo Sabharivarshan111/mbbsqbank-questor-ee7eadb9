@@ -6,8 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Ad-free plan: ₹50 for one month. Amount is fixed server-side. */
-const AMOUNT_PAISE = 5000;
+/** Both products are ₹50. Amount is fixed server-side. */
+const PLANS: Record<string, { amount: number; label: string }> = {
+  adfree_monthly: { amount: 5000, label: "Ad-free — 1 month" },
+  notes_fmspm: { amount: 5000, label: "FM + SPM revision notes" },
+};
 const CURRENCY = "INR";
 
 const json = (body: unknown, status = 200) =>
@@ -24,6 +27,11 @@ Deno.serve(async (req) => {
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
     if (!keyId || !keySecret) return json({ error: "Razorpay keys are not configured." }, 500);
 
+    const body = await req.json().catch(() => ({})) as Record<string, unknown>;
+    const planKey = typeof body?.plan === "string" ? body.plan : "adfree_monthly";
+    const plan = PLANS[planKey];
+    if (!plan) return json({ error: "Unknown plan." }, 400);
+
     // Signed-in Supabase user required so the order can be attributed.
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.toLowerCase().startsWith("bearer ")) {
@@ -38,8 +46,6 @@ Deno.serve(async (req) => {
     const user = userData?.user;
     if (userErr || !user) return json({ error: "Your session expired. Sign in again." }, 401);
 
-    if (AMOUNT_PAISE < 100) return json({ error: "Amount must be at least 100 paise." }, 400);
-
     const res = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
@@ -47,10 +53,10 @@ Deno.serve(async (req) => {
         Authorization: `Basic ${btoa(`${keyId}:${keySecret}`)}`,
       },
       body: JSON.stringify({
-        amount: AMOUNT_PAISE,
+        amount: plan.amount,
         currency: CURRENCY,
-        receipt: `adfree_${user.id.slice(0, 8)}_${Date.now()}`,
-        notes: { user_id: user.id, purpose: "adfree_monthly" },
+        receipt: `${planKey.slice(0, 12)}_${user.id.slice(0, 8)}_${Date.now()}`,
+        notes: { user_id: user.id, purpose: planKey },
       }),
     });
 
@@ -64,12 +70,14 @@ Deno.serve(async (req) => {
     }
 
     const order = JSON.parse(text);
-    console.log("order created", order.id, order.amount);
+    console.log("order created", order.id, order.amount, planKey);
     return json({
       order_id: order.id,
       amount: order.amount,
       currency: order.currency,
       key_id: keyId,
+      plan: planKey,
+      label: plan.label,
     });
   } catch (err) {
     console.error("create-order failure", err);

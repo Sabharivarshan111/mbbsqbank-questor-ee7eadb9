@@ -50,7 +50,7 @@ export default function AdminSubscribersCard() {
     <section className="rounded-2xl border border-primary/30 bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-extrabold flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-primary" /> Admin — ad-free subscribers
+          <ShieldCheck className="h-4 w-4 text-primary" /> Admin — purchases (ads & notes)
         </h2>
         <button onClick={() => void load()} className="p-2 rounded-lg hover:bg-muted" aria-label="Refresh">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -58,7 +58,7 @@ export default function AdminSubscribersCard() {
       </div>
 
       {rows.length === 0 && !loading && (
-        <p className="text-xs text-muted-foreground">No paid subscriptions yet.</p>
+        <p className="text-xs text-muted-foreground">No purchases yet.</p>
       )}
 
       <ul className="space-y-2">
@@ -72,7 +72,7 @@ export default function AdminSubscribersCard() {
             </div>
             <div className="text-muted-foreground break-all">{r.email ?? "no email"}</div>
             <div className="text-muted-foreground break-all">
-              ₹{(r.amount_paise / 100).toFixed(0)} · {r.plan} · {r.razorpay_payment_id ?? "—"}
+              ₹{(r.amount_paise / 100).toFixed(0)} · {r.plan === "notes_fmspm" ? "FM + SPM notes" : "Ad-free monthly"} · {r.razorpay_payment_id ?? "—"}
             </div>
             <div className="text-muted-foreground">
               {new Date(r.starts_at).toLocaleDateString()} → {new Date(r.expires_at).toLocaleDateString()}
