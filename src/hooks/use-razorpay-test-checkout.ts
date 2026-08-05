@@ -60,14 +60,14 @@ export function useRazorpayTestCheckout() {
   }, []);
 
   /** Resolves with an error message, or null when the payment verified. */
-  const startCheckout = useCallback(async (): Promise<string | null> => {
+  const startCheckout = useCallback(async (plan: "adfree_monthly" | "notes_fmspm" = "adfree_monthly"): Promise<string | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return "Please sign in first.";
 
     const scriptOk = await loadRazorpay();
     if (!scriptOk) return "Could not load the payment window. Check your connection.";
 
-    const { data, error } = await supabase.functions.invoke("razorpay-create-order", { body: {} });
+    const { data, error } = await supabase.functions.invoke("razorpay-create-order", { body: { plan } });
     if (error || (data as any)?.error) {
       return (await readInvokeError(error, data)) ?? "Could not start the payment.";
     }
@@ -81,7 +81,7 @@ export function useRazorpayTestCheckout() {
         amount: order.amount,
         currency: order.currency,
         name: "ORBIT MBBS QBANK",
-        description: "Payment integration test",
+        description: (data as any)?.label ?? "ORBIT purchase",
         order_id: order.order_id,
         prefill: { email: session.user.email ?? "" },
         theme: { color: "#7c3aed" },
@@ -92,6 +92,7 @@ export function useRazorpayTestCheckout() {
               razorpay_order_id: resp.razorpay_order_id,
               razorpay_payment_id: resp.razorpay_payment_id,
               razorpay_signature: resp.razorpay_signature,
+              plan,
             },
           });
           if (vErr || (v as any)?.error || !(v as any)?.success) {
