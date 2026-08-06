@@ -65,7 +65,7 @@ export default function PremiumNotesCard() {
         className="flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3.5 active:scale-[0.99] transition shadow-[0_0_20px_-4px_hsl(var(--primary)/0.35)]"
       >
         <span className="h-9 w-9 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-          <FolderOpen className="h-4.5 w-4.5 text-emerald-500" />
+          <FolderOpen className="h-4 w-4 text-emerald-500" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold leading-tight">FM + SPM notes unlocked</span>
