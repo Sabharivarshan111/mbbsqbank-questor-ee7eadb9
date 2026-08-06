@@ -62,11 +62,18 @@ export default function PremiumNotesCard() {
         href={PREMIUM_NOTES_DRIVE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-full flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold active:scale-[0.99] transition"
+        className="flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3.5 active:scale-[0.99] transition shadow-[0_0_20px_-4px_hsl(var(--primary)/0.35)]"
       >
-        <FolderOpen className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-        <span className="flex-1 text-left truncate">FM + SPM notes unlocked</span>
-        <span className="text-emerald-600 dark:text-emerald-400">Open</span>
+        <span className="h-9 w-9 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+          <FolderOpen className="h-4 w-4 text-emerald-500" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold leading-tight">FM + SPM notes unlocked</span>
+          <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">
+            Tap to open your Google Drive folder
+          </span>
+        </span>
+        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">Open</span>
       </a>
     );
   }
@@ -75,14 +82,31 @@ export default function PremiumNotesCard() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold active:scale-[0.99] transition"
+        className="relative w-full text-left flex items-start gap-3 rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-400/15 via-amber-500/10 to-orange-500/15 px-4 py-3.5 active:scale-[0.99] transition shadow-[0_0_24px_-2px_hsl(38_92%_50%/0.45)] animate-pulse-glow overflow-hidden"
       >
-        <BookOpen className="h-3.5 w-3.5 text-primary shrink-0" />
-        <span className="flex-1 text-left truncate">FM + SPM revision combined — ₹50</span>
-        <span className="text-primary inline-flex items-center gap-1">
-          <Lock className="h-3 w-3" /> Buy
+        <span className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full bg-amber-400/25 blur-2xl" />
+        <span className="h-10 w-10 rounded-full bg-amber-400/25 ring-1 ring-amber-400/50 flex items-center justify-center shrink-0">
+          <BookOpen className="h-5 w-5 text-amber-500" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="block text-sm font-extrabold leading-tight">
+              Get your FM &amp; SPM notes for ₹50 only
+            </span>
+          </span>
+          <span className="block text-[11px] text-muted-foreground leading-snug mt-1">
+            FM 160 pages · SPM 130 pages — revise the whole thing in one night. All important
+            questions with answers, mnemonics &amp; easy flowcharts.
+          </span>
+          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-300">
+            One-night revision
+          </span>
+        </span>
+        <span className="shrink-0 self-center inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-bold text-white shadow">
+          <Lock className="h-3 w-3" /> ₹50
         </span>
       </button>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm rounded-2xl">
