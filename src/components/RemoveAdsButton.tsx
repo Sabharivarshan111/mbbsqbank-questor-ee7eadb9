@@ -61,6 +61,10 @@ export default function RemoveAdsButton({ onDone }: { onDone?: () => void }) {
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
         Remove ads — ₹50 / month
       </button>
+      <p className="text-[11px] text-center text-muted-foreground">
+        Includes free access to the FM + SPM revision notes, MCQs, previous year MCQs &amp; predicted papers.
+      </p>
+
       <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-600 dark:text-amber-400 space-y-1">
         <p className="flex items-start gap-1.5 font-semibold">
           <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
