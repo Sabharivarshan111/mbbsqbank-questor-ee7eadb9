@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Loader2, Lock, AlertTriangle, Smartphone, PartyPopper } from "lucide-react";
+import { BookOpen, Loader2, Lock, AlertTriangle, Smartphone, PartyPopper, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
@@ -55,6 +55,28 @@ export default function PremiumNotesCard() {
       setBusy(false);
     }
   };
+
+  const restore = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("razorpay-restore-purchase", { body: {} });
+      let msg: string | null = (data as any)?.error ?? null;
+      if (!msg && error) {
+        const ctx: any = (error as any)?.context;
+        try { msg = JSON.parse(await ctx?.text?.())?.error ?? error.message; } catch { msg = error.message; }
+      }
+      if (msg) { toast.error(msg); return; }
+      toast.success("Payment found — your notes are unlocked!");
+      await refresh();
+      setOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not restore your purchase.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
 
   if (owned) {
     return (
@@ -169,6 +191,18 @@ export default function PremiumNotesCard() {
                 {busy ? "Opening checkout…" : "Pay ₹50 & unlock notes"}
               </button>
             )}
+
+            {signedIn && (
+              <button
+                onClick={() => void restore()}
+                disabled={busy}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-xs font-semibold disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                Already paid? Restore my access
+              </button>
+            )}
+
           </div>
         </DialogContent>
       </Dialog>
