@@ -128,8 +128,10 @@ export default function PremiumNotesCard() {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground leading-relaxed">
               One-time payment · lifetime access to the combined Forensic Medicine + SPM
-              revision notes folder on Google Drive.
+              revision notes folder on Google Drive — including MCQs, previous year MCQs and
+              predicted papers. Bundled with <strong>1 month ad-free</strong> at no extra cost.
             </p>
+
 
             <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-[11px] leading-relaxed space-y-1">
               <p className="flex items-center gap-1.5 font-semibold">
