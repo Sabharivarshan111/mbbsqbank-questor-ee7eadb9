@@ -81,42 +81,51 @@ Deno.serve(async (req) => {
     );
     const user = userData.user;
 
-    let expiresAt: string;
-    if (planKey === "notes_fmspm") {
-      // One-time purchase → lifetime access.
-      expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString();
-    } else {
-      const { data: existing } = await admin
-        .from("premium_subscriptions")
-        .select("id, expires_at")
-        .eq("user_id", user.id)
-        .eq("plan", "adfree_monthly")
-        .order("expires_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    // Both plans are bundled: notes purchase includes 1 month ad-free,
+    // and the ad-free purchase includes lifetime access to the FM+SPM notes.
+    const lifetimeAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString();
 
-      const base = existing?.expires_at && new Date(existing.expires_at) > new Date()
-        ? new Date(existing.expires_at)
-        : new Date();
-      expiresAt = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    }
+    const { data: existing } = await admin
+      .from("premium_subscriptions")
+      .select("id, expires_at")
+      .eq("user_id", user.id)
+      .eq("plan", "adfree_monthly")
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    const { error: insErr } = await admin.from("premium_subscriptions").insert({
+    const base = existing?.expires_at && new Date(existing.expires_at) > new Date()
+      ? new Date(existing.expires_at)
+      : new Date();
+    const adfreeAt = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const common = {
       user_id: user.id,
       email: user.email ?? null,
-      plan: planKey,
-      amount_paise: 5000,
       razorpay_order_id: orderId as string,
       razorpay_payment_id: paymentId as string,
-      expires_at: expiresAt,
-    });
+    };
+
+    const { error: insErr } = await admin.from("premium_subscriptions").insert([
+      { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt },
+      { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt },
+    ]);
     if (insErr) {
       console.error("subscription insert failed", insErr);
       return json({ error: "Payment verified but the plan could not be saved. Contact support." }, 500);
     }
 
-    console.log("payment verified + granted", planKey, paymentId, "until", expiresAt);
-    return json({ success: true, payment_id: paymentId, order_id: orderId, plan: planKey, expires_at: expiresAt });
+    console.log("payment verified + bundle granted", planKey, paymentId);
+    return json({
+      success: true,
+      payment_id: paymentId,
+      order_id: orderId,
+      plan: planKey,
+      expires_at: planKey === "notes_fmspm" ? lifetimeAt : adfreeAt,
+      adfree_until: adfreeAt,
+      notes_unlocked: true,
+    });
+
   } catch (err) {
     console.error("verify-payment failure", err);
     return json({ error: (err as Error).message ?? "Unknown error" }, 500);

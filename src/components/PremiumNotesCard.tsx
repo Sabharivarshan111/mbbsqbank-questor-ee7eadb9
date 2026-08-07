@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Loader2, Lock, FolderOpen, AlertTriangle, Smartphone } from "lucide-react";
+import { BookOpen, Loader2, Lock, AlertTriangle, Smartphone, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
@@ -62,18 +62,22 @@ export default function PremiumNotesCard() {
         href={PREMIUM_NOTES_DRIVE_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3.5 active:scale-[0.99] transition shadow-[0_0_20px_-4px_hsl(var(--primary)/0.35)]"
+        className="relative flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3.5 active:scale-[0.99] transition shadow-[0_0_24px_-4px_hsl(150_80%_45%/0.45)] overflow-hidden"
       >
-        <span className="h-9 w-9 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-          <FolderOpen className="h-4 w-4 text-emerald-500" />
+        <span className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full bg-emerald-400/25 blur-2xl" />
+        <span className="h-10 w-10 rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/40 flex items-center justify-center shrink-0">
+          <PartyPopper className="h-5 w-5 text-emerald-500" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold leading-tight">FM + SPM notes unlocked</span>
-          <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">
-            Tap to open your Google Drive folder
+          <span className="block text-sm font-extrabold leading-tight">
+            Congratulations — FM + SPM notes unlocked! 🎉
+          </span>
+          <span className="block text-[11px] text-muted-foreground leading-snug mt-1">
+            You also unlocked <strong>ad-free for 1 month</strong>, plus MCQs, previous year MCQs
+            &amp; predicted papers. Tap to open your Google Drive folder.
           </span>
         </span>
-        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">Open</span>
+        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 self-center">Open</span>
       </a>
     );
   }
@@ -96,16 +100,23 @@ export default function PremiumNotesCard() {
           </span>
           <span className="block text-[11px] text-muted-foreground leading-snug mt-1">
             FM 160 pages · SPM 130 pages — revise the whole thing in one night. All important
-            questions with answers, mnemonics &amp; easy flowcharts.
+            questions with answers, mnemonics &amp; easy flowcharts. Now also includes{" "}
+            <strong>MCQs, previous year MCQs &amp; predicted papers</strong>.
           </span>
-          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-300">
-            One-night revision
+          <span className="mt-2 flex flex-wrap gap-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-300">
+              One-night revision
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
+              + Ad-free 1 month free
+            </span>
           </span>
         </span>
         <span className="shrink-0 self-center inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-bold text-white shadow">
           <Lock className="h-3 w-3" /> ₹50
         </span>
       </button>
+
 
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -117,8 +128,10 @@ export default function PremiumNotesCard() {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground leading-relaxed">
               One-time payment · lifetime access to the combined Forensic Medicine + SPM
-              revision notes folder on Google Drive.
+              revision notes folder on Google Drive — including MCQs, previous year MCQs and
+              predicted papers. Bundled with <strong>1 month ad-free</strong> at no extra cost.
             </p>
+
 
             <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-[11px] leading-relaxed space-y-1">
               <p className="flex items-center gap-1.5 font-semibold">
