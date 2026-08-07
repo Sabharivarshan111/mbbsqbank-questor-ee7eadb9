@@ -56,6 +56,28 @@ export default function PremiumNotesCard() {
     }
   };
 
+  const restore = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("razorpay-restore-purchase", { body: {} });
+      let msg: string | null = (data as any)?.error ?? null;
+      if (!msg && error) {
+        const ctx: any = (error as any)?.context;
+        try { msg = JSON.parse(await ctx?.text?.())?.error ?? error.message; } catch { msg = error.message; }
+      }
+      if (msg) { toast.error(msg); return; }
+      toast.success("Payment found — your notes are unlocked!");
+      await refresh();
+      setOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not restore your purchase.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
   if (owned) {
     return (
       <a
