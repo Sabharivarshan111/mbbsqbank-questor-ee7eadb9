@@ -191,6 +191,18 @@ export default function PremiumNotesCard() {
                 {busy ? "Opening checkout…" : "Pay ₹50 & unlock notes"}
               </button>
             )}
+
+            {signedIn && (
+              <button
+                onClick={() => void restore()}
+                disabled={busy}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-xs font-semibold disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                Already paid? Restore my access
+              </button>
+            )}
+
           </div>
         </DialogContent>
       </Dialog>
