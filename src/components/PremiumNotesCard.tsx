@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Loader2, Lock, AlertTriangle, Smartphone, PartyPopper } from "lucide-react";
+import { BookOpen, Loader2, Lock, AlertTriangle, Smartphone, PartyPopper, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
