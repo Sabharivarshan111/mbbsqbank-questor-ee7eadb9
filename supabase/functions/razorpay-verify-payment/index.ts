@@ -106,13 +106,22 @@ Deno.serve(async (req) => {
       razorpay_payment_id: paymentId as string,
     };
 
-    const { error: insErr } = await admin.from("premium_subscriptions").insert([
-      { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt },
-      { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt },
-    ]);
-    if (insErr) {
-      console.error("subscription insert failed", insErr);
+    // NOTE: razorpay_payment_id is unique, so the bundled bonus row gets a suffixed id.
+    const rows = [
+      { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt,
+        razorpay_payment_id: planKey === "notes_fmspm" ? (paymentId as string) : `${paymentId}:notes` },
+      { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt,
+        razorpay_payment_id: planKey === "adfree_monthly" ? (paymentId as string) : `${paymentId}:adfree` },
+    ];
+    let saved = 0;
+    for (const row of rows) {
+      const { error } = await admin.from("premium_subscriptions").insert(row);
+      if (error) console.error("subscription insert failed", row.plan, error);
+      else saved++;
+    }
+    if (saved === 0) {
       return json({ error: "Payment verified but the plan could not be saved. Contact support." }, 500);
+
     }
 
     console.log("payment verified + bundle granted", planKey, paymentId);
