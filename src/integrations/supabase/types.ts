@@ -414,6 +414,23 @@ export type Database = {
       }
     }
     Functions: {
+      admin_list_subscribers: {
+        Args: never
+        Returns: {
+          adfree_active: boolean
+          adfree_expires_at: string
+          adfree_id: string
+          display_name: string
+          email: string
+          first_purchase: string
+          notes_active: boolean
+          notes_expires_at: string
+          notes_id: string
+          payment_ids: string
+          total_paise: number
+          user_id: string
+        }[]
+      }
       admin_list_subscriptions: {
         Args: never
         Returns: {
@@ -430,6 +447,10 @@ export type Database = {
         }[]
       }
       admin_revoke_subscription: { Args: { _id: string }; Returns: undefined }
+      admin_revoke_user_access: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       app_today: { Args: never; Returns: string }
       app_week_start: { Args: never; Returns: string }
       award_quiz_xp: { Args: { _amount: number }; Returns: undefined }
