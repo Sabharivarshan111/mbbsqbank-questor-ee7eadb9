@@ -110,12 +110,19 @@ Deno.serve(async (req) => {
       console.warn("payment already recorded, granting to email owner", found.id);
     }
 
-    const { error: insErr } = await admin.from("premium_subscriptions").insert([
+    // razorpay_payment_id is unique — suffix the bundled bonus row.
+    const rows = [
       { ...common, plan: "notes_fmspm", amount_paise: found.amount, expires_at: lifetimeAt },
-      { ...common, plan: "adfree_monthly", amount_paise: 0, expires_at: adfreeAt },
-    ]);
-    if (insErr) {
-      console.error("restore insert failed", insErr);
+      { ...common, plan: "adfree_monthly", amount_paise: 0, expires_at: adfreeAt,
+        razorpay_payment_id: `${found.id}:adfree` },
+    ];
+    let saved = 0;
+    for (const row of rows) {
+      const { error } = await admin.from("premium_subscriptions").insert(row);
+      if (error) console.error("restore insert failed", row.plan, error);
+      else saved++;
+    }
+    if (saved === 0) {
       return json({ error: "Payment found but access could not be saved. Contact support." }, 500);
     }
 
