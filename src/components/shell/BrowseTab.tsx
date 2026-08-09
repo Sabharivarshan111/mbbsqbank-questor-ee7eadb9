@@ -106,11 +106,25 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
     }
   }, [meta?.subject, meta?.year, meta?.paper, meta?.topic, meta?.tab, meta?.highlightQuestion]);
 
+  // Hardware/gesture back: step up one drill level at a time (innermost first).
+  useEffect(() => {
+    if (subjectKey) return pushBackHandler(() => { setSubjectKey(null); return true; });
+  }, [subjectKey]);
+
+  useEffect(() => {
+    if (paperKey) return pushBackHandler(() => { setPaperKey(null); return true; });
+  }, [paperKey]);
+
+  useEffect(() => {
+    if (topicKey) return pushBackHandler(() => { setTopicKey(null); return true; });
+  }, [topicKey]);
+
   useEffect(() => {
     const h = () => setTick((t) => t + 1);
     window.addEventListener(QUESTION_PROGRESS_EVENT, h);
     return () => window.removeEventListener(QUESTION_PROGRESS_EVENT, h);
   }, []);
+
 
   const yearNode = (QUESTION_BANK_DATA as any)[yearKey];
   const subjects = useMemo(() => {

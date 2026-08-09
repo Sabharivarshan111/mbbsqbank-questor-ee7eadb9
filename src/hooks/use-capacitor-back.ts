@@ -1,8 +1,9 @@
 import { useEffect } from "react";
+import { popBackHandler } from "@/lib/back-stack";
 
 /**
  * Register Capacitor hardware back button.
- * If in-app history can go back, pop it; otherwise exit the app.
+ * In-app back handlers take priority; then browser history; then exit.
  */
 export function useCapacitorBack() {
   useEffect(() => {
@@ -13,12 +14,14 @@ export function useCapacitorBack() {
       try {
         const { App } = await import("@capacitor/app");
         const res = await App.addListener("backButton", ({ canGoBack }) => {
+          if (popBackHandler()) return;
           if (canGoBack) {
             window.history.back();
           } else {
             App.exitApp();
           }
         });
+
         if (cancelled) {
           res.remove();
         } else {
