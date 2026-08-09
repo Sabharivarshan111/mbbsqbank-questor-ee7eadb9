@@ -6,6 +6,8 @@ import { useProfile } from "@/hooks/use-profile";
 import QuestionCard from "@/components/QuestionCard";
 import { requestDailyAd } from "@/lib/daily-ad";
 import GoogleGateCard from "@/components/GoogleGateCard";
+import { pushBackHandler } from "@/lib/back-stack";
+
 
 import { cn } from "@/lib/utils";
 
