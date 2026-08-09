@@ -11,6 +11,8 @@ import AskAiTab from "@/components/shell/AskAiTab";
 import ProgressTab from "@/components/shell/ProgressTab";
 import BrowseTab from "@/components/shell/BrowseTab";
 import { requestDailyAd } from "@/lib/daily-ad";
+import { pushBackHandler } from "@/lib/back-stack";
+
 
 function hasLocalProfile(): boolean {
   try { return !!localStorage.getItem("orbit-profile-v1"); } catch { return false; }
@@ -29,7 +31,13 @@ const Index = () => {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
+  // Hardware/gesture back: return to home tab when not already on home.
+  useEffect(() => {
+    if (tab !== "home") return pushBackHandler(() => { setTab("home"); return true; });
+  }, [tab]);
+
   // Floating Pomodoro pill is hidden by default; user opens it via the
+
   // topic detail top-right timer icon, or from the Timer tab's Show button.
 
   // Route triple-tap / double-tap AI events to the Ask AI tab.
