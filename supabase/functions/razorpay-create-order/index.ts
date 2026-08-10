@@ -6,11 +6,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Both products are ₹50. Amount is fixed server-side. */
+/** Amounts are fixed server-side. */
 const PLANS: Record<string, { amount: number; label: string }> = {
   adfree_monthly: { amount: 5000, label: "Ad-free — 1 month" },
   notes_fmspm: { amount: 5000, label: "FM + SPM revision notes" },
+  notes_pharmac: { amount: 10000, label: "Pharmacology full-subject notes" },
 };
+
 const CURRENCY = "INR";
 
 const json = (body: unknown, status = 200) =>
