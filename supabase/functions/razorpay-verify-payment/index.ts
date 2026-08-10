@@ -108,13 +108,20 @@ Deno.serve(async (req) => {
       razorpay_payment_id: paymentId as string,
     };
 
-    // NOTE: razorpay_payment_id is unique, so the bundled bonus row gets a suffixed id.
-    const rows = [
-      { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt,
-        razorpay_payment_id: planKey === "notes_fmspm" ? (paymentId as string) : `${paymentId}:notes` },
-      { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt,
-        razorpay_payment_id: planKey === "adfree_monthly" ? (paymentId as string) : `${paymentId}:adfree` },
-    ];
+    // NOTE: razorpay_payment_id is unique, so bundled bonus rows get a suffixed id.
+    const rows = planKey === "notes_pharmac"
+      ? [
+        { ...common, plan: "notes_pharmac", amount_paise: 10000, expires_at: lifetimeAt },
+        { ...common, plan: "adfree_monthly", amount_paise: 0, expires_at: adfreeAt,
+          razorpay_payment_id: `${paymentId}:adfree` },
+      ]
+      : [
+        { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt,
+          razorpay_payment_id: planKey === "notes_fmspm" ? (paymentId as string) : `${paymentId}:notes` },
+        { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt,
+          razorpay_payment_id: planKey === "adfree_monthly" ? (paymentId as string) : `${paymentId}:adfree` },
+      ];
+
     let saved = 0;
     for (const row of rows) {
       const { error } = await admin.from("premium_subscriptions").insert(row);
