@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export type NotesPlan = "notes_fmspm" | "notes_pharmac";
+
 export const PREMIUM_NOTES_DRIVE_URL =
   "https://drive.google.com/drive/folders/1TbgyHOkdrfYd8-4nl1jTup3LSkkimzvv";
 
-/** Has the signed-in user bought the FM + SPM revision notes? */
-export function useNotesPurchase() {
+/** TODO: replace with the Pharmacology-notes Drive folder once shared. */
+export const PHARMAC_NOTES_DRIVE_URL = PREMIUM_NOTES_DRIVE_URL;
+
+export const NOTES_DRIVE_URL: Record<NotesPlan, string> = {
+  notes_fmspm: PREMIUM_NOTES_DRIVE_URL,
+  notes_pharmac: PHARMAC_NOTES_DRIVE_URL,
+};
+
+/** Has the signed-in user bought the given notes bundle? */
+export function useNotesPurchase(plan: NotesPlan = "notes_fmspm") {
   const [owned, setOwned] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -20,7 +30,7 @@ export function useNotesPurchase() {
         .from("premium_subscriptions")
         .select("expires_at")
         .eq("user_id", user.id)
-        .eq("plan", "notes_fmspm")
+        .eq("plan", plan)
         .order("expires_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -29,7 +39,7 @@ export function useNotesPurchase() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [plan]);
 
   useEffect(() => {
     void refresh();
