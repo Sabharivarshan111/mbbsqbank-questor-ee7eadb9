@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
       payment_id: paymentId,
       order_id: orderId,
       plan: planKey,
-      expires_at: planKey === "notes_fmspm" ? lifetimeAt : adfreeAt,
+      expires_at: planKey === "adfree_monthly" ? adfreeAt : lifetimeAt,
       adfree_until: adfreeAt,
       notes_unlocked: true,
     });
