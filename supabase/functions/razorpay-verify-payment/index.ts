@@ -48,9 +48,11 @@ Deno.serve(async (req) => {
     const orderId = body?.razorpay_order_id;
     const paymentId = body?.razorpay_payment_id;
     const signature = body?.razorpay_signature;
-    const planKey = typeof body?.plan === "string" && body.plan === "notes_fmspm"
-      ? "notes_fmspm"
+    const rawPlan = typeof body?.plan === "string" ? body.plan : "";
+    const planKey = rawPlan === "notes_fmspm" || rawPlan === "notes_pharmac"
+      ? rawPlan
       : "adfree_monthly";
+
     if (!isStr(orderId, 5, 120) || !isStr(paymentId, 5, 120) || !isStr(signature, 10, 200)) {
       return json({ error: "Missing or invalid payment fields." }, 400);
     }
@@ -106,13 +108,20 @@ Deno.serve(async (req) => {
       razorpay_payment_id: paymentId as string,
     };
 
-    // NOTE: razorpay_payment_id is unique, so the bundled bonus row gets a suffixed id.
-    const rows = [
-      { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt,
-        razorpay_payment_id: planKey === "notes_fmspm" ? (paymentId as string) : `${paymentId}:notes` },
-      { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt,
-        razorpay_payment_id: planKey === "adfree_monthly" ? (paymentId as string) : `${paymentId}:adfree` },
-    ];
+    // NOTE: razorpay_payment_id is unique, so bundled bonus rows get a suffixed id.
+    const rows = planKey === "notes_pharmac"
+      ? [
+        { ...common, plan: "notes_pharmac", amount_paise: 10000, expires_at: lifetimeAt },
+        { ...common, plan: "adfree_monthly", amount_paise: 0, expires_at: adfreeAt,
+          razorpay_payment_id: `${paymentId}:adfree` },
+      ]
+      : [
+        { ...common, plan: "notes_fmspm", amount_paise: planKey === "notes_fmspm" ? 5000 : 0, expires_at: lifetimeAt,
+          razorpay_payment_id: planKey === "notes_fmspm" ? (paymentId as string) : `${paymentId}:notes` },
+        { ...common, plan: "adfree_monthly", amount_paise: planKey === "adfree_monthly" ? 5000 : 0, expires_at: adfreeAt,
+          razorpay_payment_id: planKey === "adfree_monthly" ? (paymentId as string) : `${paymentId}:adfree` },
+      ];
+
     let saved = 0;
     for (const row of rows) {
       const { error } = await admin.from("premium_subscriptions").insert(row);
@@ -130,7 +139,7 @@ Deno.serve(async (req) => {
       payment_id: paymentId,
       order_id: orderId,
       plan: planKey,
-      expires_at: planKey === "notes_fmspm" ? lifetimeAt : adfreeAt,
+      expires_at: planKey === "adfree_monthly" ? adfreeAt : lifetimeAt,
       adfree_until: adfreeAt,
       notes_unlocked: true,
     });
