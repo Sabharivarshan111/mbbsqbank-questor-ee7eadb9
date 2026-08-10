@@ -60,7 +60,7 @@ export function useRazorpayTestCheckout() {
   }, []);
 
   /** Resolves with an error message, or null when the payment verified. */
-  const startCheckout = useCallback(async (plan: "adfree_monthly" | "notes_fmspm" = "adfree_monthly"): Promise<string | null> => {
+  const startCheckout = useCallback(async (plan: "adfree_monthly" | "notes_fmspm" | "notes_pharmac" = "adfree_monthly"): Promise<string | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return "Please sign in first.";
 
