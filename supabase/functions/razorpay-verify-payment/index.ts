@@ -48,9 +48,11 @@ Deno.serve(async (req) => {
     const orderId = body?.razorpay_order_id;
     const paymentId = body?.razorpay_payment_id;
     const signature = body?.razorpay_signature;
-    const planKey = typeof body?.plan === "string" && body.plan === "notes_fmspm"
-      ? "notes_fmspm"
+    const rawPlan = typeof body?.plan === "string" ? body.plan : "";
+    const planKey = rawPlan === "notes_fmspm" || rawPlan === "notes_pharmac"
+      ? rawPlan
       : "adfree_monthly";
+
     if (!isStr(orderId, 5, 120) || !isStr(paymentId, 5, 120) || !isStr(signature, 10, 200)) {
       return json({ error: "Missing or invalid payment fields." }, 400);
     }
