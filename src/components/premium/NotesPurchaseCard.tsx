@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isNative, nativeGoogleSignIn } from "@/lib/native-auth";
 import { useRazorpayTestCheckout } from "@/hooks/use-razorpay-test-checkout";
 import { useNotesPurchase, NOTES_DRIVE_URL, type NotesPlan } from "@/hooks/use-notes-purchase";
+import { syncPremiumCache } from "@/hooks/use-premium";
 import { useProfile } from "@/hooks/use-profile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -113,6 +114,7 @@ export default function NotesPurchaseCard({ copy }: { copy: NotesPlanCopy }) {
       if (err) toast.error(err);
       else {
         toast.success("Payment successful — your notes are unlocked!");
+        await syncPremiumCache();
         await refresh();
         setOpen(false);
       }
@@ -135,6 +137,7 @@ export default function NotesPurchaseCard({ copy }: { copy: NotesPlanCopy }) {
       }
       if (msg) { toast.error(msg); return; }
       toast.success("Payment found — your notes are unlocked!");
+      await syncPremiumCache();
       await refresh();
       setOpen(false);
     } catch (e: any) {
@@ -220,6 +223,7 @@ export default function NotesPurchaseCard({ copy }: { copy: NotesPlanCopy }) {
               </p>
               <p>• You <strong>must be signed in with Google</strong> and have a name set, so the notes stay unlocked on your account.</p>
               <p>• After paying, <strong>take a screenshot</strong> of the payment / UPI reference ID and send it to <strong>9080220563</strong> on WhatsApp if any issue arises.</p>
+              <p>• This money goes towards developing and maintaining the Orbit app. Thank you 💜</p>
             </div>
 
             {/* Step 1 — Google sign-in */}

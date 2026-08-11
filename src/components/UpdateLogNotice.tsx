@@ -2,25 +2,37 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Rocket, X } from "lucide-react";
 import { WhatsAppGroupCard } from "@/components/community/CommunityCards";
+import { useProfile } from "@/hooks/use-profile";
 
 /**
  * One-time-per-release changelog card (no ads, ever).
  * Bump UPDATE_ID whenever a new changelog should be shown.
  */
-const UPDATE_ID = "2026-08-02";
+const UPDATE_ID = "2026-08-11";
 const FLAG_KEY = `orbit-update-log-${UPDATE_ID}`;
 
-const CHANGES: string[] = [
-  "Fixed: the notes chat box now ADDS your approved change on top of the existing notes instead of erasing them.",
-  "Google sign-in is now required to open essays and short notes — one-time, and all your progress carries over.",
-  "New WhatsApp group for 3rd year students: study materials, notes and exam updates. Tap the WhatsApp card on Home or in Notes to join (Play Store version only).",
-  "3rd year Notes now has a Google Drive study-materials folder link.",
-  "Account security hardened — profiles and merge actions are now locked to their owner.",
+const CHANGES_SECOND_YEAR: string[] = [
+  "NEW for 2nd year: Pharmacology full-subject notes (\u20b9100) \u2014 all chapters from K.D. Tripathi + Tara Shanbhag, under 150 pages, important questions with answers. Tap the notes card on Home.",
+  "Buying the Pharmacology notes also unlocks 1 month ad-free, free.",
+  "New WhatsApp group for 2nd year students \u2014 study materials, notes and exam updates. Tap the WhatsApp card on Home or in Notes to join (Play Store version only).",
+  "My Progress now has a \"My purchases\" box showing every unlock on your account with a direct link to your notes folder.",
+  "Fixed: ads no longer appear after buying notes \u2014 your complimentary ad-free month now applies immediately.",
+];
+
+const CHANGES_DEFAULT: string[] = [
+  "My Progress now has a \"My purchases\" box showing every unlock on your account with a direct link to your notes folder.",
+  "Fixed: ads no longer appear after buying notes \u2014 your complimentary ad-free month now applies immediately.",
+  "3rd year: FM + SPM revision notes bundle (\u20b950) \u2014 MCQs, previous-year MCQs and predicted papers included, plus 1 month ad-free free.",
+  "New WhatsApp group for 2nd year students, alongside the existing 3rd year group.",
+  "Account security hardened \u2014 profiles and merge actions are locked to their owner.",
 ];
 
 
 export default function UpdateLogNotice() {
+  const { local } = useProfile();
   const [open, setOpen] = useState(false);
+  const isSecondYear = local?.year === "second";
+  const CHANGES = isSecondYear ? CHANGES_SECOND_YEAR : CHANGES_DEFAULT;
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -74,7 +86,14 @@ export default function UpdateLogNotice() {
             ))}
           </ul>
           <div className="mt-4">
-            <WhatsAppGroupCard note="New: WhatsApp group for 3rd year students — study materials, notes and exam updates." />
+            <WhatsAppGroupCard
+              year={isSecondYear ? "second" : "third"}
+              note={
+                isSecondYear
+                  ? "New: WhatsApp group for 2nd year students \u2014 study materials, notes and exam updates."
+                  : "WhatsApp group for 3rd year students \u2014 study materials, notes and exam updates."
+              }
+            />
           </div>
           <p className="mt-4 text-[11px] text-center text-muted-foreground/80">
             No ads in this popup. Thanks for your support 💜

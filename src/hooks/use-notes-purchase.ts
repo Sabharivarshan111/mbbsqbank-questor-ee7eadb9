@@ -6,8 +6,9 @@ export type NotesPlan = "notes_fmspm" | "notes_pharmac";
 export const PREMIUM_NOTES_DRIVE_URL =
   "https://drive.google.com/drive/folders/1TbgyHOkdrfYd8-4nl1jTup3LSkkimzvv";
 
-/** TODO: replace with the Pharmacology-notes Drive folder once shared. */
-export const PHARMAC_NOTES_DRIVE_URL = PREMIUM_NOTES_DRIVE_URL;
+/** "Premium 2nd year" Drive folder — Pharmacology full-subject notes. */
+export const PHARMAC_NOTES_DRIVE_URL =
+  "https://drive.google.com/drive/folders/1HuMtYbqTnWO-bQ-uGNlrrdCPp6pA4pch";
 
 export const NOTES_DRIVE_URL: Record<NotesPlan, string> = {
   notes_fmspm: PREMIUM_NOTES_DRIVE_URL,
