@@ -32,6 +32,7 @@ import { useScreenTime } from "./hooks/use-screen-time";
 import { useNotificationSync } from "./hooks/use-notification-sync";
 import { useCapacitorBack } from "./hooks/use-capacitor-back";
 import { PomodoroProvider } from "./hooks/pomodoro-context";
+import { PremiumSync } from "./hooks/use-premium";
 
 
 
@@ -63,6 +64,7 @@ const App = () => (
           <ScreenTimeTracker />
           <NotificationSync />
           <CapacitorBack />
+          <PremiumSync />
           <AdPreloader />
           <BrowserRouter>
             <Routes>
