@@ -1,5 +1,6 @@
 import ProgressDashboard from "@/components/progress/ProgressDashboard";
 import AdminSubscribersCard from "@/components/admin/AdminSubscribersCard";
+import MyPurchasesCard from "@/components/premium/MyPurchasesCard";
 
 export default function ProgressTab() {
   return (
@@ -9,6 +10,7 @@ export default function ProgressTab() {
         <p className="text-sm text-muted-foreground">Streaks, XP, weekly targets and revision</p>
       </header>
       <AdminSubscribersCard />
+      <MyPurchasesCard />
       <ProgressDashboard />
     </div>
   );
