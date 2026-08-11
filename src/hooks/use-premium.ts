@@ -21,6 +21,46 @@ function cache(expiresAt: string | null) {
   } catch { /* ignore */ }
 }
 
+/**
+ * Fetch the ad-free expiry for the signed-in user and write it into the cache
+ * the ad layer reads. Safe to call from anywhere (app boot, after a purchase).
+ */
+export async function syncPremiumCache(): Promise<string | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { cache(null); return null; }
+    const { data } = await supabase
+      .from("premium_subscriptions")
+      .select("expires_at")
+      .eq("user_id", user.id)
+      .eq("plan", "adfree_monthly")
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const exp = (data as any)?.expires_at ?? null;
+    const active = !!exp && new Date(exp).getTime() > Date.now();
+    cache(active ? exp : null);
+    return active ? exp : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Mount once at app root so the ad layer always knows about paid users. */
+export function PremiumSync() {
+  useEffect(() => {
+    void syncPremiumCache();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { void syncPremiumCache(); });
+    const onVisible = () => { if (document.visibilityState === "visible") void syncPremiumCache(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      sub.subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+  return null;
+}
+
 /** Ad-free subscription state for the signed-in user. */
 export function usePremium() {
   const [premium, setPremium] = useState<boolean>(isPremiumCached);
@@ -30,21 +70,9 @@ export function usePremium() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setPremium(false); setExpiresAt(null); cache(null); return; }
-      const { data } = await supabase
-        .from("premium_subscriptions")
-        .select("expires_at")
-        .eq("user_id", user.id)
-        .eq("plan", "adfree_monthly")
-        .order("expires_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const exp = (data as any)?.expires_at ?? null;
-      const active = !!exp && new Date(exp).getTime() > Date.now();
+      const exp = await syncPremiumCache();
       setExpiresAt(exp);
-      setPremium(active);
-      cache(active ? exp : null);
+      setPremium(!!exp);
     } finally {
       setLoading(false);
     }
