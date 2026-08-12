@@ -24,7 +24,7 @@ import {
   YearKey,
 } from '@/lib/questionBank';
 import { useCountDone } from '@/hooks/useProgress';
-import { loadProfile } from '@/lib/profile';
+import { useProfile } from '@/hooks/useProfile';
 import { QuestionRow } from '@/components/QuestionRow';
 import type { HomeStackParamList, RootTabParamList } from '@/navigation/types';
 import { SegmentedControl } from '@/components/ui';
@@ -41,16 +41,17 @@ export default function BrowseHomeScreen() {
   const route = useRoute<Route>();
   const countDone = useCountDone();
 
-  const [year, setYear] = useState<YearKey>(route.params?.year ?? 'second-year');
+  const { yearKey: profileYear } = useProfile();
+  const [year, setYear] = useState<YearKey>(route.params?.year ?? profileYear);
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
 
+  // Follow the profile's year until the user picks one on this screen.
   useEffect(() => {
-    if (route.params?.year) {
-      return;
+    if (!route.params?.year) {
+      setYear(profileYear);
     }
-    loadProfile().then(profile => setYear(profile.year));
-  }, [route.params?.year]);
+  }, [route.params?.year, profileYear]);
 
   // The bank is large; debounce so the walk does not run on every keystroke.
   useEffect(() => {

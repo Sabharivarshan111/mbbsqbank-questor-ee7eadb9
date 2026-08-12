@@ -5,6 +5,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { ThemeProvider, useTheme } from '@/theme';
 import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress, reconcileProgress } from '@/lib/progress';
+import { hydrateProfile } from '@/hooks/useProfile';
 
 function Shell() {
   const { theme, colors } = useTheme();
@@ -15,6 +16,8 @@ function Shell() {
     hydrateProgress().then(() => {
       reconcileProgress().catch(() => {});
     });
+    // Profile, streak and XP; all cloud steps are best-effort.
+    hydrateProfile().catch(() => {});
   }, []);
 
   const navTheme = {

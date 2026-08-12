@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -29,7 +29,9 @@ import {
 } from '@/lib/questionBank';
 import { reconcileProgress } from '@/lib/progress';
 import { useCountDone } from '@/hooks/useProgress';
-import { loadProfile, type Profile } from '@/lib/profile';
+import { useProfile } from '@/hooks/useProfile';
+import { ProfileSheet } from '@/components/ProfileSheet';
+import { Leaderboard } from '@/components/Leaderboard';
 
 type Tab = 'stats' | 'calendar' | 'notes';
 
@@ -67,16 +69,13 @@ export default function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const countDone = useCountDone();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { local: profile, yearKey: year, year: shortYear, displayName, streak, freezes, save } =
+    useProfile();
+  const [editOpen, setEditOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('stats');
   const [rewardsOpen, setRewardsOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
-    loadProfile().then(setProfile);
-  }, []);
-
-  const year = profile?.year ?? 'second-year';
 
   const subjects = useMemo(
     () =>
@@ -128,11 +127,11 @@ export default function ProgressScreen() {
       <View style={styles.profileRow}>
         <View>
           <Text style={[styles.name, { color: colors.text }]}>
-            {profile?.name ? `Dr. ${profile.name}` : 'Your profile'}
+            {displayName ? `Dr. ${displayName}` : 'Set up your profile'}
           </Text>
           <Text style={[styles.year, { color: colors.textMuted }]}>{YEAR_LABEL[year]}</Text>
         </View>
-        <Pressable hitSlop={10}>
+        <Pressable hitSlop={10} onPress={() => setEditOpen(true)}>
           <Pencil size={20} color={colors.text} />
         </Pressable>
       </View>
@@ -227,10 +226,12 @@ export default function ProgressScreen() {
             <View style={styles.streakTop}>
               <View style={styles.streakLeft}>
                 <Flame size={22} color="#FB923C" />
-                <Text style={[styles.streakText, { color: colors.text }]}>0 day streak</Text>
+                <Text style={[styles.streakText, { color: colors.text }]}>
+                  {streak} day streak
+                </Text>
                 <View style={[styles.freeze, { borderColor: withAlpha(colors.cyan, 0.5) }]}>
                   <Snowflake size={11} color={colors.cyan} />
-                  <Text style={[styles.freezeText, { color: colors.cyan }]}>2</Text>
+                  <Text style={[styles.freezeText, { color: colors.cyan }]}>{freezes}</Text>
                 </View>
               </View>
               <View style={styles.streakRight}>
@@ -338,6 +339,9 @@ export default function ProgressScreen() {
             ) : null}
           </View>
 
+          {/* Leaderboard */}
+          <Leaderboard year={shortYear} selfName={displayName} />
+
           {/* Weak-topic heatmap */}
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.cardHeader}>
@@ -432,6 +436,13 @@ export default function ProgressScreen() {
           </View>
         </>
       )}
+      <ProfileSheet
+        visible={editOpen || (!profile && tab === 'stats')}
+        profile={profile}
+        onClose={() => setEditOpen(false)}
+        onSave={save}
+        dismissable={!!profile}
+      />
     </ScrollView>
   );
 }

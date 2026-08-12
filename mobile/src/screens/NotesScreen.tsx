@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   Linking,
   Pressable,
@@ -13,7 +13,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MessageCircle, Sparkles, TriangleAlert } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
-import { loadProfile, type Profile } from '@/lib/profile';
+import { useProfile } from '@/hooks/useProfile';
 import { YEAR_KEYS, YEAR_LABEL, type YearKey } from '@/lib/questionBank';
 import type { RootTabParamList } from '@/navigation/types';
 
@@ -29,13 +29,7 @@ export default function NotesScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const [profile, setProfile] = useState<Profile | null>(null);
-
-  useEffect(() => {
-    loadProfile().then(setProfile);
-  }, []);
-
-  const year = profile?.year ?? 'second-year';
+  const { yearKey: year } = useProfile();
 
   const openYear = useCallback(
     (key: YearKey) => {

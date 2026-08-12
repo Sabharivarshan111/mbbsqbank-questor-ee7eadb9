@@ -40,7 +40,8 @@ import {
   type YearKey,
 } from '@/lib/questionBank';
 import { useCountDone } from '@/hooks/useProgress';
-import { loadProfile, saveProfile, type Profile } from '@/lib/profile';
+import { useProfile } from '@/hooks/useProfile';
+import { KEY_TO_YEAR } from '@/lib/profile';
 import { readFocusMinutes, formatFocusTime } from '@/lib/focusStats';
 import type { HomeStackParamList, RootTabParamList } from '@/navigation/types';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -86,13 +87,11 @@ export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const countDone = useCountDone();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [slide, setSlide] = useState(0);
   const [focusMinutes, setFocusMinutes] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
 
   useEffect(() => {
-    loadProfile().then(setProfile);
     readFocusMinutes().then(setFocusMinutes);
   }, []);
 
@@ -101,7 +100,7 @@ export default function HomeScreen() {
     return () => clearInterval(id);
   }, []);
 
-  const year = profile?.year ?? 'second-year';
+  const { yearKey: year, streak, setYear } = useProfile();
 
   const subjects = useMemo(
     () =>
@@ -132,14 +131,13 @@ export default function HomeScreen() {
     [navigation, year],
   );
 
-  const pickYear = useCallback((next: YearKey) => {
-    setProfile(prev => {
-      const updated = { name: prev?.name ?? '', year: next };
-      saveProfile(updated);
-      return updated;
-    });
-    setYearPickerOpen(false);
-  }, []);
+  const pickYear = useCallback(
+    (next: YearKey) => {
+      setYear(KEY_TO_YEAR[next]);
+      setYearPickerOpen(false);
+    },
+    [setYear],
+  );
 
   const hero = HERO_SLIDES[slide];
 
@@ -342,7 +340,7 @@ export default function HomeScreen() {
           <View>
             <Text style={[styles.statLabel, { color: colors.textMuted }]}>Study Streak</Text>
             <Text style={[styles.statValue, { color: colors.text }]}>
-              {profile ? 0 : 0}
+              {streak}
               <Text style={[styles.statUnit, { color: colors.textMuted }]}> days 🔥</Text>
             </Text>
           </View>

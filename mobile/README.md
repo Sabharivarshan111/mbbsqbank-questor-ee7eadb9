@@ -216,15 +216,29 @@ identically.
 - Full-text search across all 5,500+ questions
 - Ask AI — talks to the same `ask-gemini` Supabase edge function as the web app
 - Pomodoro timer — wall-clock based, so it keeps time while backgrounded
-- My Progress — totals by year and subject, theme switch, cloud sync
+- My Progress — profile header, year ring, streak and level, rewards, weak-topic
+  heatmap, per-subject breakdown, theme switch, cloud sync
+- Profile — name and year editor, doubling as first-run onboarding; the name
+  goes through the web app's blocklist (shared, not copied) and the stored
+  shape is byte-compatible with the web app's `orbit-profile-v1`, so one
+  profile covers both installs
+- Streak — via the same `register_open` RPC the web app calls on launch
+- Leaderboard — weekly and lifetime, read through the `get_weekly_leaderboard`
+  and `get_year_leaderboard` security-definer RPCs, so profile rows stay
+  private
 - Progress storage — same `question-*` keys as the web app, so a signed-in
   account sees the same completion state on both
+
+Anything touching Supabase degrades gracefully: the profile saves locally first
+and an unreachable backend is logged, not surfaced as a failure.
 
 **Still to port** (each is a self-contained addition):
 
 - Google sign-in — add `@react-native-google-signin/google-signin` and call
   `supabase.auth.signInWithIdToken`; needs an Android OAuth client whose SHA-1
-  matches your signing key
+  matches your signing key. Until then the app uses anonymous Supabase
+  sessions, which is enough for progress sync, streaks and the leaderboard.
+- Calendar and saved-notes tabs on My Progress (placeholders today)
 - AdMob — `react-native-google-mobile-ads`
 - Razorpay payments — `react-native-razorpay`
 - Handwritten notes generation, quiz/revision sessions, leaderboard

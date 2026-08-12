@@ -18,6 +18,7 @@ export default defineConfig({
     extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js', '.json'],
     alias: [
       { find: '@data', replacement: path.resolve(root, '..', 'src', 'data') },
+      { find: '@shared', replacement: path.resolve(root, '..', 'src', 'lib') },
       { find: '@', replacement: path.resolve(root, 'src') },
       // lucide-react-native needs react-native-svg; the DOM build is equivalent
       // and exports the same icon names.

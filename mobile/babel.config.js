@@ -10,6 +10,7 @@ module.exports = {
           '@': './src',
           // Shared with the web app — see metro.config.js.
           '@data': '../src/data',
+          '@shared': '../src/lib',
         },
       },
     ],

@@ -5,9 +5,17 @@
     "types": [],
     "paths": {
       "@/*": ["./src/*"],
-      "@data/*": ["../src/data/*"]
+      "@data/*": ["../src/data/*"],
+      "@shared/*": ["../src/lib/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts", "*.tsx", "../src/data/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "*.ts",
+    "*.tsx",
+    "../src/data/**/*.ts",
+    "../src/lib/profanity.ts"
+  ],
   "exclude": ["**/node_modules", "**/Pods"]
 }

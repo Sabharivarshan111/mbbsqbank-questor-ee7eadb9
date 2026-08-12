@@ -12,6 +12,7 @@ import type { InitialState } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from '@/theme';
 import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress } from '@/lib/progress';
+import { hydrateProfile } from '@/hooks/useProfile';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -68,6 +69,7 @@ function Shell() {
   const { theme, colors } = useTheme();
   React.useEffect(() => {
     hydrateProgress();
+    hydrateProfile().catch(() => {});
   }, []);
 
   const base = theme === 'dark' ? DarkTheme : DefaultTheme;

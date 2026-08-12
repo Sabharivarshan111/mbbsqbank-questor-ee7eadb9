@@ -6,6 +6,11 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 // instead of keeping a second copy in sync.
 const sharedData = path.resolve(__dirname, '..', 'src', 'data');
 
+// A few web-app modules are pure logic with no DOM dependency and are shared
+// rather than forked — notably the display-name blocklist, which would drift
+// if it were duplicated. Only files this app actually imports are bundled.
+const sharedLib = path.resolve(__dirname, '..', 'src', 'lib');
+
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -15,10 +20,11 @@ const sharedData = path.resolve(__dirname, '..', 'src', 'data');
 const config = {
   // Metro refuses to resolve files outside the project root unless they are
   // explicitly watched.
-  watchFolders: [sharedData],
+  watchFolders: [sharedData, sharedLib],
   resolver: {
     extraNodeModules: {
       '@data': sharedData,
+      '@shared': sharedLib,
     },
   },
 };
