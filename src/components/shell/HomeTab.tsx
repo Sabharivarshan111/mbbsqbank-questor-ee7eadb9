@@ -426,14 +426,15 @@ function QuestionSearchOverlay({
 function YearPickerDialog({
   currentYear,
   onClose,
+  onClose,
   onPick,
 }: {
   currentYear: Year;
   onClose: () => void;
-  onPick: (y: Year, makeDefault: boolean) => void;
+  onPick: (y: Year) => void;
 }) {
   const [pick, setPick] = useState<Year>(currentYear);
-  const [makeDefault, setMakeDefault] = useState(false);
+
   const YEARS: { key: Year; label: string }[] = [
     { key: "first", label: "1st Year" },
     { key: "second", label: "2nd Year" },
