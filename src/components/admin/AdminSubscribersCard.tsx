@@ -12,6 +12,7 @@ type Row = {
   adfree_active: boolean;
   notes_expires_at: string | null;
   adfree_expires_at: string | null;
+  notes_plans: string | null;
   total_paise: number;
   payment_ids: string | null;
   first_purchase: string;
