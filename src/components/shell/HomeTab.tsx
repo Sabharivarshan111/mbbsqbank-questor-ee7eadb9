@@ -220,11 +220,10 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
         <YearPickerDialog
           currentYear={local?.year ?? "second"}
           onClose={() => setYearPickerOpen(false)}
-          onPick={(y, makeDefault) => {
-            if (makeDefault) {
-              const base = local ?? { display_name: "Student", year: y } as any;
-              saveProfile({ ...base, year: y }).catch(() => {});
-            }
+          onPick={(y) => {
+            // Always persist the picked year so it sticks after navigating away
+            const base = local ?? ({ display_name: "Student", year: y } as any);
+            saveProfile({ ...base, year: y }).catch(() => {});
             setYearPickerOpen(false);
             const yk = ({ first: "first-year", second: "second-year", third: "third-year", final: "final-year" } as const)[y];
             onNavigate("browse", { year: yk });
