@@ -18,6 +18,16 @@ type Row = {
   first_purchase: string;
 };
 
+/** Human label for the notes bundle(s) a user owns. */
+function notesLabel(plans: string | null) {
+  if (!plans) return "Notes";
+  const fm = plans.includes("notes_fmspm");
+  const ph = plans.includes("notes_pharmac");
+  if (fm && ph) return "FM+SPM & Pharmac notes";
+  if (ph) return "Pharmacology notes";
+  return "FM+SPM notes";
+}
+
 /** Admin-only: one row per buyer, showing which unlocks are active. */
 export default function AdminSubscribersCard() {
   const { isAdmin } = useIsAdmin();
