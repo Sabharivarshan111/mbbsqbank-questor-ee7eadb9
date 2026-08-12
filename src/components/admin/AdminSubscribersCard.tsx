@@ -77,7 +77,7 @@ export default function AdminSubscribersCard() {
                   r.notes_active ? "bg-emerald-500/15 text-emerald-500" : "bg-muted text-muted-foreground"
                 }`}
               >
-                <BookOpen className="h-3 w-3" /> FM+SPM notes {r.notes_active ? "unlocked" : "locked"}
+                <BookOpen className="h-3 w-3" /> {notesLabel(r.notes_plans)} {r.notes_active ? "unlocked" : "locked"}
               </span>
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold ${
