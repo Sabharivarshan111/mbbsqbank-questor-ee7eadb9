@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ArrowRight,
+  Check,
   ChevronRight,
   Flag,
   Flame,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   Trophy,
   Type,
+  X,
 } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
@@ -269,33 +271,18 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {yearPickerOpen ? (
-        <View style={[styles.yearPicker, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {YEAR_KEYS.map(key => {
-            const active = key === year;
-            return (
-              <Pressable
-                key={key}
-                onPress={() => pickYear(key)}
-                style={[
-                  styles.yearChip,
-                  {
-                    backgroundColor: active ? colors.primary : 'transparent',
-                    borderColor: active ? colors.primary : colors.border,
-                  },
-                ]}>
-                <Text
-                  style={[
-                    styles.yearChipText,
-                    { color: active ? colors.primaryText : colors.textMuted },
-                  ]}>
-                  {YEAR_LABEL[key]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
+      <YearPickerSheet
+        visible={yearPickerOpen}
+        currentYear={year}
+        onClose={() => setYearPickerOpen(false)}
+        onBrowse={(key, makeDefault) => {
+          if (makeDefault) {
+            pickYear(key);
+          }
+          setYearPickerOpen(false);
+          navigation.navigate('BrowseHome', { year: key });
+        }}
+      />
 
       <View style={styles.subjectGrid}>
         {subjects.map(subject => (
@@ -367,6 +354,112 @@ export default function HomeScreen() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+/** "Select Year" bottom sheet, opened from "View all". */
+function YearPickerSheet({
+  visible,
+  currentYear,
+  onClose,
+  onBrowse,
+}: {
+  visible: boolean;
+  currentYear: YearKey;
+  onClose: () => void;
+  onBrowse: (year: YearKey, makeDefault: boolean) => void;
+}) {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const [picked, setPicked] = useState<YearKey>(currentYear);
+  const [makeDefault, setMakeDefault] = useState(false);
+
+  // Reopening always starts from the user's current year.
+  useEffect(() => {
+    if (visible) {
+      setPicked(currentYear);
+      setMakeDefault(false);
+    }
+  }, [visible, currentYear]);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable
+        style={[styles.backdrop, { backgroundColor: withAlpha('#000000', 0.7) }]}
+        onPress={onClose}
+      />
+      <View
+        style={[
+          styles.sheet,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            paddingBottom: insets.bottom + 20,
+          },
+        ]}>
+        <View style={styles.sheetHeader}>
+          <View>
+            <Text style={[styles.sheetTitle, { color: colors.text }]}>Select Year</Text>
+            <Text style={[styles.sheetSub, { color: colors.textMuted }]}>
+              Choose the year you want to browse
+            </Text>
+          </View>
+          <Pressable onPress={onClose} hitSlop={10}>
+            <X size={22} color={colors.text} />
+          </Pressable>
+        </View>
+
+        <View style={styles.sheetGrid}>
+          {YEAR_KEYS.map(key => {
+            const active = key === picked;
+            const isDefault = key === currentYear;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setPicked(key)}
+                style={[
+                  styles.sheetYear,
+                  {
+                    backgroundColor: colors.cardElevated,
+                    borderColor: active ? colors.text : colors.border,
+                    borderWidth: active ? 1.5 : StyleSheet.hairlineWidth,
+                  },
+                ]}>
+                <Text style={[styles.sheetYearName, { color: colors.text }]}>
+                  {YEAR_LABEL[key]}
+                </Text>
+                {isDefault ? (
+                  <Text style={[styles.sheetYearHint, { color: colors.textMuted }]}>
+                    Current default
+                  </Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Pressable style={styles.checkRow} onPress={() => setMakeDefault(v => !v)}>
+          <View
+            style={[
+              styles.checkbox,
+              {
+                borderColor: makeDefault ? colors.primary : colors.border,
+                backgroundColor: makeDefault ? colors.primary : 'transparent',
+              },
+            ]}>
+            {makeDefault ? <Check size={14} color={colors.primaryText} strokeWidth={3} /> : null}
+          </View>
+          <Text style={[styles.checkLabel, { color: colors.text }]}>Set as my default year</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => onBrowse(picked, makeDefault)}
+          style={({ pressed }) => [styles.browseButton, { opacity: pressed ? 0.9 : 1 }]}>
+          <GradientFill from="#FFFFFF" to={colors.fuchsia} borderRadius={14} />
+          <Text style={styles.browseText}>Browse {YEAR_LABEL[picked]}</Text>
+        </Pressable>
+      </View>
+    </Modal>
   );
 }
 
@@ -611,24 +704,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  yearPicker: {
+  backdrop: {
+    flex: 1,
+  },
+  sheet: {
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    paddingTop: 22,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  sheetTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  sheetSub: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  sheetGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
-    marginBottom: 12,
+    gap: 12,
   },
-  yearChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
+  sheetYear: {
+    width: '47%',
+    flexGrow: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 72,
+    justifyContent: 'center',
   },
-  yearChipText: {
+  sheetYearName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  sheetYearHint: {
     fontSize: 13,
-    fontWeight: '600',
+    marginTop: 2,
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 18,
+  },
+  checkbox: {
+    height: 24,
+    width: 24,
+    borderRadius: 5,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkLabel: {
+    fontSize: 16,
+  },
+  browseButton: {
+    borderRadius: 14,
+    paddingVertical: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    marginTop: 18,
+  },
+  browseText: {
+    color: '#1A0A1F',
+    fontSize: 17,
+    fontWeight: '800',
   },
   subjectGrid: {
     flexDirection: 'row',

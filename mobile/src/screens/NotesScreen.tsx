@@ -1,15 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FolderOpen, Lock, MessageCircle, PenLine } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { MessageCircle, Sparkles, TriangleAlert } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
+import { GradientFill } from '@/components/Gradient';
 import { loadProfile, type Profile } from '@/lib/profile';
-import { YEAR_LABEL } from '@/lib/questionBank';
+import { YEAR_KEYS, YEAR_LABEL, type YearKey } from '@/lib/questionBank';
+import type { RootTabParamList } from '@/navigation/types';
+
+const YEAR_EMOJI: Record<YearKey, string> = {
+  'first-year': '🩺',
+  'second-year': '💊',
+  'third-year': '⚖️',
+  'final-year': '🏥',
+};
 
 /** Port of src/components/shell/NotesTab.tsx. */
 export default function NotesScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -17,6 +29,13 @@ export default function NotesScreen() {
   }, []);
 
   const year = profile?.year ?? 'second-year';
+
+  const openYear = useCallback(
+    (key: YearKey) => {
+      navigation.navigate('Home', { screen: 'BrowseHome', params: { year: key } });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
@@ -28,76 +47,83 @@ export default function NotesScreen() {
         AI-generated handwritten notes for every topic
       </Text>
 
-      <View style={[styles.hub, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={[styles.hubIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
-          <PenLine size={26} color={colors.primary} />
+      {/* AI hero */}
+      <View style={styles.hero}>
+        <GradientFill from="#1E40AF" to="#3B82F6" borderRadius={18} />
+        <View style={styles.heroKickerRow}>
+          <Sparkles size={16} color="#FFFFFF" />
+          <Text style={styles.heroKicker}>AI GENERATED</Text>
         </View>
-        <Text style={[styles.hubTitle, { color: colors.text }]}>Handwritten notes</Text>
-        <Text style={[styles.hubBody, { color: colors.textMuted }]}>
-          Open any question and tap the sparkle to generate notes for that topic. Saved notes
-          appear here.
+        <Text style={styles.heroTitle}>Handwritten Notes</Text>
+        <Text style={styles.heroBody}>
+          Pick a year → subject → topic. We synthesize an exam-ready page from every essay &
+          short-note in that topic.
         </Text>
       </View>
 
-      <View style={[styles.locked, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={[styles.lockIcon, { backgroundColor: colors.cardElevated, borderColor: colors.border }]}>
-          <Lock size={28} color={colors.textMuted} />
+      <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>SELECT YEAR</Text>
+      <View style={styles.yearGrid}>
+        {YEAR_KEYS.map(key => (
+          <Pressable
+            key={key}
+            onPress={() => openYear(key)}
+            style={({ pressed }) => [
+              styles.yearCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}>
+            <Text style={styles.yearEmoji}>{YEAR_EMOJI[key]}</Text>
+            <Text style={[styles.yearName, { color: colors.text }]}>{YEAR_LABEL[key]}</Text>
+            <Text style={[styles.yearHint, { color: colors.textMuted }]}>
+              Tap to browse subjects
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* WhatsApp group */}
+      <View style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={styles.groupHeader}>
+          <View style={[styles.groupIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
+            <MessageCircle size={18} color={colors.green} />
+          </View>
+          <View style={styles.groupBody}>
+            <Text style={[styles.groupTitle, { color: colors.text }]}>
+              WhatsApp group for {YEAR_LABEL[year].toLowerCase()}
+            </Text>
+            <Text style={[styles.groupSub, { color: colors.textMuted }]}>
+              Join our WhatsApp group for {YEAR_LABEL[year].toLowerCase()} study materials, notes
+              and exam updates.
+            </Text>
+          </View>
         </View>
-        <Text style={[styles.lockedTitle, { color: colors.text }]}>Study Materials</Text>
-        <Text style={[styles.lockedBody, { color: colors.textMuted }]}>
-          Currently locked while we sort out copyright clearances.
-        </Text>
+
+        <Pressable
+          onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
+          style={({ pressed }) => [styles.joinButton, { opacity: pressed ? 0.85 : 1 }]}>
+          <GradientFill from="#22C55E" to="#16A34A" borderRadius={12} />
+          <Text style={styles.joinText}>Tap here to join our WhatsApp group</Text>
+        </Pressable>
+
         <View
           style={[
-            styles.badge,
+            styles.warning,
             {
-              backgroundColor: withAlpha(colors.primary, 0.1),
-              borderColor: withAlpha(colors.primary, 0.3),
+              backgroundColor: withAlpha(colors.warning, 0.08),
+              borderColor: withAlpha(colors.warning, 0.4),
             },
           ]}>
-          <Text style={[styles.badgeText, { color: colors.primary }]}>
-            New study material coming soon
+          <TriangleAlert size={16} color={colors.warning} />
+          <Text style={[styles.warningText, { color: colors.warning }]}>
+            You must be using the ORBIT MBBS app downloaded from the Play Store, on the latest
+            version, to join. Search "Orbit MBBS" on the Play Store and install or update it.
+            Older or illegitimate versions will not be allowed.
           </Text>
         </View>
       </View>
-
-      <Pressable
-        onPress={() => Linking.openURL('https://drive.google.com/').catch(() => {})}
-        style={[styles.linkCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={[styles.linkIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
-          <FolderOpen size={16} color={colors.primary} />
-        </View>
-        <View style={styles.linkBody}>
-          <Text style={[styles.linkTitle, { color: colors.text }]}>Drive folder</Text>
-          <Text style={[styles.linkSub, { color: colors.textMuted }]}>
-            MCQs, previous year papers & predicted papers
-          </Text>
-        </View>
-        <Text style={[styles.linkAction, { color: colors.primary }]}>Open</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
-        style={[
-          styles.linkCard,
-          {
-            backgroundColor: withAlpha(colors.green, 0.05),
-            borderColor: withAlpha(colors.green, 0.3),
-          },
-        ]}>
-        <View style={[styles.linkIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
-          <MessageCircle size={16} color={colors.green} />
-        </View>
-        <View style={styles.linkBody}>
-          <Text style={[styles.linkTitle, { color: colors.text }]}>
-            Join our WhatsApp community
-          </Text>
-          <Text style={[styles.linkSub, { color: colors.textMuted }]}>
-            {YEAR_LABEL[year]} materials, notes & updates
-          </Text>
-        </View>
-        <Text style={[styles.linkAction, { color: colors.green }]}>Join</Text>
-      </Pressable>
     </ScrollView>
   );
 }
@@ -105,108 +131,130 @@ export default function NotesScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 28,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '800',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     marginTop: 2,
     marginBottom: 16,
   },
-  hub: {
+  hero: {
+    borderRadius: 18,
+    padding: 20,
+    overflow: 'hidden',
+    marginBottom: 22,
+  },
+  heroKickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroKicker: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    letterSpacing: 1.6,
+    fontWeight: '700',
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '800',
+    marginTop: 10,
+  },
+  heroBody: {
+    color: 'rgba(255,255,255,0.88)',
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 10,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    letterSpacing: 2,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  yearGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 22,
+  },
+  yearCard: {
+    width: '48%',
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    alignItems: 'center',
+    padding: 16,
+    minHeight: 130,
+    justifyContent: 'flex-end',
+  },
+  yearEmoji: {
+    fontSize: 34,
     marginBottom: 12,
   },
-  hubIcon: {
-    height: 56,
-    width: 56,
-    borderRadius: 28,
+  yearName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  yearHint: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  groupCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  groupIcon: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
-  hubTitle: {
+  groupBody: {
+    flex: 1,
+  },
+  groupTitle: {
     fontSize: 16,
     fontWeight: '700',
   },
-  hubBody: {
+  groupSub: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
+  },
+  joinButton: {
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    marginTop: 16,
+  },
+  joinText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  warning: {
+    flexDirection: 'row',
+    gap: 10,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    marginTop: 14,
+  },
+  warningText: {
+    flex: 1,
     fontSize: 13,
     lineHeight: 19,
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  locked: {
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  lockIcon: {
-    height: 64,
-    width: 64,
-    borderRadius: 32,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  lockedTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  lockedBody: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  badge: {
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  badgeText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  linkCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  linkIcon: {
-    height: 32,
-    width: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  linkBody: {
-    flex: 1,
-  },
-  linkTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  linkSub: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  linkAction: {
-    fontSize: 12,
-    fontWeight: '700',
   },
 });

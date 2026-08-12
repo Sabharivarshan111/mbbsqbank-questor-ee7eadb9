@@ -1,31 +1,69 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Moon, RefreshCw, Sun, Smartphone } from 'lucide-react-native';
-import { useTheme, type ThemePreference } from '@/theme';
-import { Card, Muted, ProgressBar, SectionTitle } from '@/components/ui';
+import {
+  ChevronUp,
+  Flame,
+  FlaskConical,
+  Lock,
+  Moon,
+  Pencil,
+  RefreshCw,
+  Snowflake,
+  Sun,
+  Trophy,
+} from 'lucide-react-native';
+import { useTheme, withAlpha, type ThemePreference } from '@/theme';
+import { GradientFill } from '@/components/Gradient';
+import { ProgressRing, ThinBar } from '@/components/ProgressRing';
 import {
   collectAllQuestions,
   getSubjects,
-  SUBJECT_ICON,
-  YEAR_KEYS,
   YEAR_LABEL,
 } from '@/lib/questionBank';
-import { reconcileProgress, totalDone } from '@/lib/progress';
+import { reconcileProgress } from '@/lib/progress';
 import { useCountDone } from '@/hooks/useProgress';
-import { loadProfile, Profile } from '@/lib/profile';
+import { loadProfile, type Profile } from '@/lib/profile';
 
-const THEME_OPTIONS: { key: ThemePreference; label: string; icon: React.ReactNode }[] = [
-  { key: 'light', label: 'Light', icon: <Sun size={15} /> },
-  { key: 'dark', label: 'Dark', icon: <Moon size={15} /> },
-  { key: 'system', label: 'System', icon: <Smartphone size={15} /> },
+type Tab = 'stats' | 'calendar' | 'notes';
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'stats', label: 'Stats' },
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'notes', label: 'Notes' },
+];
+
+const XP_MILESTONES = [
+  { label: 'Bronze Scholar', xp: 10, medal: '🥉' },
+  { label: 'Silver Scholar', xp: 50, medal: '🥈' },
+  { label: 'Gold Scholar', xp: 100, medal: '🥇' },
+  { label: 'Platinum Mind', xp: 250, medal: '🔘' },
+  { label: 'Diamond Mind', xp: 500, medal: '💎' },
+  { label: 'Legendary Healer', xp: 1000, medal: '👑' },
+];
+
+const STREAK_BADGES = [
+  { label: 'Spark', days: 3, tint: '#7C2D12' },
+  { label: 'Blaze', days: 7, tint: '#3F3F46' },
+  { label: 'Inferno', days: 14, tint: '#713F12' },
+  { label: 'Wildfire', days: 30, tint: '#164E63' },
+  { label: 'Eternal', days: 100, tint: '#27272A' },
+];
+
+const THEME_OPTIONS: { key: ThemePreference; label: string }[] = [
+  { key: 'light', label: 'Light' },
+  { key: 'dark', label: 'Dark' },
+  { key: 'system', label: 'System' },
 ];
 
 export default function ProgressScreen() {
   const { colors, preference, setPreference } = useTheme();
   const insets = useSafeAreaInsets();
   const countDone = useCountDone();
+
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [tab, setTab] = useState<Tab>('stats');
+  const [rewardsOpen, setRewardsOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
@@ -34,38 +72,35 @@ export default function ProgressScreen() {
 
   const year = profile?.year ?? 'second-year';
 
-  const perYear = useMemo(
-    () =>
-      YEAR_KEYS.map(key => {
-        const questions = getSubjects(key).flatMap(subject => collectAllQuestions(subject.node));
-        const unique = Array.from(new Set(questions));
-        return {
-          key,
-          label: YEAR_LABEL[key],
-          total: unique.length,
-          done: countDone(unique),
-        };
-      }),
-    [countDone],
-  );
-
-  const currentYearSubjects = useMemo(
+  const subjects = useMemo(
     () =>
       getSubjects(year).map(subject => {
         const all = collectAllQuestions(subject.node);
-        return { ...subject, total: all.length, done: countDone(all) };
+        const done = countDone(all);
+        return {
+          ...subject,
+          total: all.length,
+          done,
+          pct: all.length ? Math.round((done / all.length) * 100) : 0,
+        };
       }),
     [year, countDone],
   );
 
-  const grandTotal = useMemo(
+  const totals = useMemo(
     () =>
-      perYear.reduce(
-        (acc, item) => ({ done: acc.done + item.done, total: acc.total + item.total }),
+      subjects.reduce(
+        (acc, subject) => ({
+          done: acc.done + subject.done,
+          total: acc.total + subject.total,
+        }),
         { done: 0, total: 0 },
       ),
-    [perYear],
+    [subjects],
   );
+
+  const yearPct = totals.total ? Math.round((totals.done / totals.total) * 100) : 0;
+  const xp = totals.done;
 
   const sync = useCallback(async () => {
     setSyncing(true);
@@ -76,93 +111,321 @@ export default function ProgressScreen() {
     }
   }, []);
 
+  const weakest = useMemo(() => [...subjects].sort((a, b) => a.pct - b.pct).slice(0, 4), [subjects]);
+
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}>
-      <Text style={[styles.title, { color: colors.text }]}>My Progress</Text>
-
-      <Card style={styles.xpCard}>
-        <Text style={[styles.xpValue, { color: colors.primary }]}>{totalDone()}</Text>
-        <Muted>questions completed</Muted>
-        <View style={styles.xpBar}>
-          <ProgressBar value={grandTotal.done} total={grandTotal.total} />
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
+      showsVerticalScrollIndicator={false}>
+      {/* Profile header */}
+      <View style={styles.profileRow}>
+        <View>
+          <Text style={[styles.name, { color: colors.text }]}>
+            {profile?.name ? `Dr. ${profile.name}` : 'Your profile'}
+          </Text>
+          <Text style={[styles.year, { color: colors.textMuted }]}>{YEAR_LABEL[year]}</Text>
         </View>
-        <Muted style={styles.xpFoot}>
-          {grandTotal.done} of {grandTotal.total} across all four years
-        </Muted>
-      </Card>
-
-      <SectionTitle style={styles.sectionSpacer}>By year</SectionTitle>
-      {perYear.map(item => (
-        <Card key={item.key} style={styles.rowCard}>
-          <View style={styles.rowHeader}>
-            <Text style={[styles.rowLabel, { color: colors.text }]}>{item.label}</Text>
-            <Muted>
-              {item.done} / {item.total}
-            </Muted>
-          </View>
-          <ProgressBar value={item.done} total={item.total} />
-        </Card>
-      ))}
-
-      <SectionTitle style={styles.sectionSpacer}>{YEAR_LABEL[year]} subjects</SectionTitle>
-      {currentYearSubjects.map(subject => (
-        <Card key={subject.key} style={styles.rowCard}>
-          <View style={styles.rowHeader}>
-            <Text style={[styles.rowLabel, { color: colors.text }]}>
-              {SUBJECT_ICON[subject.key] ?? '📘'} {subject.name}
-            </Text>
-            <Muted>
-              {subject.done} / {subject.total}
-            </Muted>
-          </View>
-          <ProgressBar value={subject.done} total={subject.total} />
-        </Card>
-      ))}
-
-      <SectionTitle style={styles.sectionSpacer}>Settings</SectionTitle>
-      <Card>
-        <Text style={[styles.settingLabel, { color: colors.text }]}>Appearance</Text>
-        <View style={styles.themeRow}>
-          {THEME_OPTIONS.map(option => {
-            const active = option.key === preference;
-            return (
-              <Pressable
-                key={option.key}
-                onPress={() => setPreference(option.key)}
-                style={[
-                  styles.themeChip,
-                  {
-                    backgroundColor: active ? colors.primary : colors.cardElevated,
-                    borderColor: active ? colors.primary : colors.border,
-                  },
-                ]}>
-                <Text
-                  style={[
-                    styles.themeText,
-                    { color: active ? colors.primaryText : colors.textMuted },
-                  ]}>
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Pressable
-          onPress={sync}
-          style={[styles.syncRow, { borderTopColor: colors.border }]}
-          disabled={syncing}>
-          <RefreshCw size={16} color={colors.accent} />
-          <View style={styles.syncBody}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>
-              {syncing ? 'Syncing…' : 'Sync progress'}
-            </Text>
-            <Muted>Merge this device with your cloud progress</Muted>
-          </View>
+        <Pressable hitSlop={10}>
+          <Pencil size={20} color={colors.text} />
         </Pressable>
-      </Card>
+      </View>
+
+      {/* Sync state */}
+      <Pressable
+        onPress={sync}
+        style={[
+          styles.syncCard,
+          {
+            backgroundColor: withAlpha(colors.green, 0.06),
+            borderColor: withAlpha(colors.green, 0.3),
+          },
+        ]}>
+        <View style={[styles.syncIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
+          <RefreshCw size={16} color={colors.green} />
+        </View>
+        <View style={styles.syncBody}>
+          <Text style={[styles.syncLabel, { color: colors.textMuted }]}>
+            {syncing ? 'Syncing…' : 'Progress sync'}
+          </Text>
+          <Text style={[styles.syncValue, { color: colors.text }]}>
+            Tap to merge this device with the cloud
+          </Text>
+        </View>
+      </Pressable>
+
+      {/* Tabs */}
+      <View style={[styles.tabs, { backgroundColor: colors.cardElevated }]}>
+        {TABS.map(item => {
+          const active = item.key === tab;
+          return (
+            <Pressable
+              key={item.key}
+              onPress={() => setTab(item.key)}
+              style={[styles.tab, active && { backgroundColor: colors.background }]}>
+              <Text
+                style={[styles.tabText, { color: active ? colors.text : colors.textMuted }]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {tab !== 'stats' ? (
+        <View style={[styles.placeholder, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
+            {tab === 'calendar'
+              ? 'The study calendar is not ported yet.'
+              : 'Saved notes are not ported yet.'}
+          </Text>
+        </View>
+      ) : (
+        <>
+          {/* Year ring */}
+          <View style={[styles.ringCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.ringKicker, { color: colors.textMuted }]}>YOUR YEAR</Text>
+            <View style={styles.ringWrap}>
+              <ProgressRing percent={yearPct}>
+                <Text style={[styles.ringPct, { color: colors.fuchsia }]}>{yearPct}%</Text>
+                <Text style={[styles.ringLabel, { color: colors.textMuted }]}>done</Text>
+              </ProgressRing>
+            </View>
+            <View style={styles.ringStats}>
+              <View style={styles.ringStat}>
+                <Text style={[styles.ringStatValue, { color: colors.success }]}>{totals.done}</Text>
+                <Text style={[styles.ringStatLabel, { color: colors.textMuted }]}>COMPLETED</Text>
+              </View>
+              <View style={styles.ringStat}>
+                <Text style={[styles.ringStatValue, { color: '#FB923C' }]}>
+                  {totals.total - totals.done}
+                </Text>
+                <Text style={[styles.ringStatLabel, { color: colors.textMuted }]}>REMAINING</Text>
+              </View>
+              <View style={styles.ringStat}>
+                <Text style={[styles.ringStatValue, { color: colors.fuchsia }]}>
+                  {totals.total}
+                </Text>
+                <Text style={[styles.ringStatLabel, { color: colors.textMuted }]}>TOTAL</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Streak / level */}
+          <View style={[styles.streakCard, { borderColor: colors.border }]}>
+            <GradientFill
+              from={withAlpha(colors.fuchsia, 0.12)}
+              to={withAlpha('#FB923C', 0.06)}
+              borderRadius={16}
+            />
+            <View style={styles.streakTop}>
+              <View style={styles.streakLeft}>
+                <Flame size={22} color="#FB923C" />
+                <Text style={[styles.streakText, { color: colors.text }]}>0 day streak</Text>
+                <View style={[styles.freeze, { borderColor: withAlpha(colors.cyan, 0.5) }]}>
+                  <Snowflake size={11} color={colors.cyan} />
+                  <Text style={[styles.freezeText, { color: colors.cyan }]}>2</Text>
+                </View>
+              </View>
+              <View style={styles.streakRight}>
+                <Text style={[styles.levelText, { color: colors.text }]}>
+                  Level <Text style={{ color: colors.fuchsia }}>1</Text>
+                  <Text style={{ color: colors.textMuted }}> · {xp} Year XP</Text>
+                </Text>
+                <Text style={[styles.lifetime, { color: colors.textMuted }]}>
+                  Lifetime: {xp} XP
+                </Text>
+              </View>
+            </View>
+            <View style={styles.streakBar}>
+              <ThinBar percent={Math.min(100, (xp / 50) * 100)} />
+            </View>
+            <Text style={[styles.streakHint, { color: colors.textMuted }]}>
+              {Math.min(xp, 50)} / 50 XP to level 2
+            </Text>
+            <View style={styles.badgeRow}>
+              {[10, 50, 100, 500].map(milestone => (
+                <View
+                  key={milestone}
+                  style={[styles.miniBadge, { borderColor: colors.border }]}>
+                  <Trophy size={16} color={xp >= milestone ? colors.warning : colors.textMuted} />
+                  <Text style={[styles.miniBadgeText, { color: colors.textMuted }]}>
+                    {milestone}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Rewards */}
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Pressable style={styles.cardHeader} onPress={() => setRewardsOpen(open => !open)}>
+              <Trophy size={20} color={colors.warning} />
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Rewards</Text>
+              <Text style={[styles.cardCount, { color: colors.fuchsia }]}>
+                {XP_MILESTONES.filter(m => xp >= m.xp).length}
+                <Text style={{ color: colors.textMuted }}> / {XP_MILESTONES.length + 5}</Text>
+              </Text>
+              <View style={styles.grow} />
+              <ChevronUp
+                size={20}
+                color={colors.textMuted}
+                style={rewardsOpen ? undefined : styles.flip}
+              />
+            </Pressable>
+
+            {rewardsOpen ? (
+              <>
+                <Text style={[styles.subLabel, { color: colors.textMuted }]}>XP MILESTONES</Text>
+                <View style={styles.milestoneGrid}>
+                  {XP_MILESTONES.map(milestone => {
+                    const unlocked = xp >= milestone.xp;
+                    return (
+                      <View
+                        key={milestone.label}
+                        style={[
+                          styles.milestone,
+                          {
+                            backgroundColor: colors.cardElevated,
+                            borderColor: colors.border,
+                            opacity: unlocked ? 1 : 0.55,
+                          },
+                        ]}>
+                        {!unlocked ? (
+                          <Lock size={11} color={colors.textMuted} style={styles.lock} />
+                        ) : null}
+                        <Text style={styles.milestoneMedal}>{milestone.medal}</Text>
+                        <Text style={[styles.milestoneName, { color: colors.text }]}>
+                          {milestone.label}
+                        </Text>
+                        <Text style={[styles.milestoneXp, { color: colors.textMuted }]}>
+                          {milestone.xp} XP
+                        </Text>
+                        <View style={styles.milestoneBar}>
+                          <ThinBar percent={Math.min(100, (xp / milestone.xp) * 100)} />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                <Text style={[styles.subLabel, { color: colors.textMuted }]}>STREAK BADGES</Text>
+                <View style={styles.streakBadges}>
+                  {STREAK_BADGES.map(badge => (
+                    <View
+                      key={badge.label}
+                      style={[
+                        styles.streakBadge,
+                        { backgroundColor: badge.tint, borderColor: colors.border },
+                      ]}>
+                      <Text style={styles.streakBadgeEmoji}>🔥</Text>
+                      <Text style={[styles.streakBadgeName, { color: colors.text }]}>
+                        {badge.label}
+                      </Text>
+                      <Text style={[styles.streakBadgeDays, { color: colors.textMuted }]}>
+                        {badge.days} d
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            ) : null}
+          </View>
+
+          {/* Weak-topic heatmap */}
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Weak-topic heatmap</Text>
+              <View style={styles.grow} />
+              <Text style={[styles.cardHint, { color: colors.textMuted }]}>weakest first</Text>
+            </View>
+            <View style={styles.heatGrid}>
+              {weakest.map(subject => (
+                <View
+                  key={subject.key}
+                  style={[
+                    styles.heatTile,
+                    {
+                      backgroundColor: withAlpha(colors.danger, 0.14),
+                      borderColor: withAlpha(colors.danger, 0.5),
+                    },
+                  ]}>
+                  <Text style={[styles.heatName, { color: '#FCA5A5' }]}>{subject.name}</Text>
+                  <Text style={[styles.heatPct, { color: '#FCA5A5' }]}>{subject.pct}%</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Subjects */}
+          <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>SUBJECTS</Text>
+          {subjects.map(subject => (
+            <View
+              key={subject.key}
+              style={[styles.subjectRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.flask, { borderColor: colors.border }]}>
+                <GradientFill
+                  from={withAlpha(colors.fuchsia, 0.35)}
+                  to={withAlpha('#FB923C', 0.2)}
+                  borderRadius={10}
+                />
+                <FlaskConical size={20} color={colors.text} />
+              </View>
+              <View style={styles.subjectBody}>
+                <View style={styles.subjectTop}>
+                  <Text style={[styles.subjectName, { color: colors.text }]}>{subject.name}</Text>
+                  <Text style={[styles.subjectPct, { color: colors.fuchsia }]}>
+                    {subject.pct}%
+                  </Text>
+                </View>
+                <View style={styles.subjectBar}>
+                  <ThinBar percent={subject.pct} />
+                </View>
+                <Text style={[styles.subjectCount, { color: colors.textMuted }]}>
+                  {subject.done} / {subject.total} questions
+                </Text>
+              </View>
+            </View>
+          ))}
+
+          {/* Appearance */}
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.cardHeader}>
+              {preference === 'light' ? (
+                <Sun size={18} color={colors.text} />
+              ) : (
+                <Moon size={18} color={colors.text} />
+              )}
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Appearance</Text>
+            </View>
+            <View style={styles.themeRow}>
+              {THEME_OPTIONS.map(option => {
+                const active = option.key === preference;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setPreference(option.key)}
+                    style={[
+                      styles.themeChip,
+                      {
+                        backgroundColor: active ? colors.primary : colors.cardElevated,
+                        borderColor: active ? colors.primary : colors.border,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.themeText,
+                        { color: active ? colors.primaryText : colors.textMuted },
+                      ]}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -172,74 +435,356 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  xpCard: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  xpValue: {
-    fontSize: 44,
+  name: {
+    fontSize: 26,
     fontWeight: '800',
   },
-  xpBar: {
-    alignSelf: 'stretch',
-    marginTop: 18,
+  year: {
+    fontSize: 14,
+    marginTop: 2,
   },
-  xpFoot: {
+  syncCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    marginBottom: 16,
+  },
+  syncIcon: {
+    height: 34,
+    width: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBody: {
+    flex: 1,
+  },
+  syncLabel: {
+    fontSize: 12,
+  },
+  syncValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  tabs: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    padding: 4,
+    gap: 4,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  tabText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  placeholder: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 32,
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  ringCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 22,
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  ringKicker: {
+    fontSize: 12,
+    letterSpacing: 2,
+    fontWeight: '600',
+  },
+  ringWrap: {
+    marginTop: 16,
+  },
+  ringPct: {
+    fontSize: 38,
+    fontWeight: '800',
+  },
+  ringLabel: {
+    fontSize: 14,
+  },
+  ringStats: {
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    marginTop: 20,
+  },
+  ringStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  ringStatValue: {
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  ringStatLabel: {
+    fontSize: 11,
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  streakCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    overflow: 'hidden',
+    marginBottom: 14,
+  },
+  streakTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  streakLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  streakText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  freeze: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  freezeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  streakRight: {
+    alignItems: 'flex-end',
+  },
+  levelText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  lifetime: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  streakBar: {
+    marginTop: 14,
+  },
+  streakHint: {
+    fontSize: 12,
     marginTop: 8,
   },
-  sectionSpacer: {
-    marginTop: 22,
-  },
-  rowCard: {
-    marginBottom: 8,
-    paddingVertical: 12,
-  },
-  rowHeader: {
+  badgeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    gap: 8,
+    marginTop: 12,
   },
-  rowLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+  miniBadge: {
     flex: 1,
-    marginRight: 8,
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 10,
   },
-  settingLabel: {
+  miniBadgeText: {
+    fontSize: 11,
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 14,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  cardCount: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  cardHint: {
+    fontSize: 12,
+  },
+  grow: {
+    flex: 1,
+  },
+  flip: {
+    transform: [{ rotate: '180deg' }],
+  },
+  subLabel: {
+    fontSize: 11,
+    letterSpacing: 1.6,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  milestoneGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  milestone: {
+    width: '31.5%',
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 10,
+    alignItems: 'center',
+  },
+  lock: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  milestoneMedal: {
+    fontSize: 22,
+  },
+  milestoneName: {
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  milestoneXp: {
+    fontSize: 10,
+    marginTop: 1,
+  },
+  milestoneBar: {
+    alignSelf: 'stretch',
+    marginTop: 8,
+  },
+  streakBadges: {
+    flexDirection: 'row',
+    gap: 7,
+  },
+  streakBadge: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  streakBadgeEmoji: {
+    fontSize: 20,
+  },
+  streakBadgeName: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  streakBadgeDays: {
+    fontSize: 10,
+    marginTop: 1,
+  },
+  heatGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 14,
+  },
+  heatTile: {
+    width: '48%',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 14,
+  },
+  heatName: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  heatPct: {
+    fontSize: 22,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    letterSpacing: 1.6,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  subjectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    marginBottom: 10,
+  },
+  flask: {
+    height: 48,
+    width: 48,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  subjectBody: {
+    flex: 1,
+  },
+  subjectTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  subjectName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  subjectPct: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  subjectBar: {
+    marginTop: 8,
+  },
+  subjectCount: {
+    fontSize: 13,
+    marginTop: 8,
   },
   themeRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 10,
+    marginTop: 12,
   },
   themeChip: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
   },
   themeText: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  syncRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  syncBody: {
-    flex: 1,
   },
 });

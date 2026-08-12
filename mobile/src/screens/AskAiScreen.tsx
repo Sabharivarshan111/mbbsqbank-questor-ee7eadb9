@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { Send, Sparkles } from 'lucide-react-native';
-import { useTheme } from '@/theme';
-import { Muted } from '@/components/ui';
+import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';
+import { useTheme, withAlpha } from '@/theme';
+import { GradientFill } from '@/components/Gradient';
 import { supabase } from '@/lib/supabase';
 import type { RootTabParamList } from '@/navigation/types';
 
@@ -23,12 +23,6 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
 }
-
-const SUGGESTIONS = [
-  'Explain the pathophysiology of nephrotic syndrome',
-  'High-yield topics in Pharmacology paper 1',
-  'Give me 10 MCQs on cell injury',
-];
 
 let messageSeq = 0;
 function nextId() {
@@ -53,10 +47,7 @@ export default function AskAiScreen() {
         return;
       }
       setInput('');
-      const history = messages.map(message => ({
-        role: message.role,
-        content: message.text,
-      }));
+      const history = messages.map(message => ({ role: message.role, content: message.text }));
       setMessages(prev => [...prev, { id: nextId(), role: 'user', text: prompt }]);
       setLoading(true);
 
@@ -113,161 +104,207 @@ export default function AskAiScreen() {
     }
   }, [messages.length, loading]);
 
+  const canSend = input.trim().length > 0 && !loading;
+
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}
+      style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={[styles.title, { color: colors.text }]}>Ask AI</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+        Your instant medical study companion
+      </Text>
 
-      {messages.length === 0 ? (
-        <View style={styles.empty}>
-          <Sparkles size={34} color={colors.accent} />
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            Your medical study assistant
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {/* Assistant header */}
+        <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
+          <View
+            style={[styles.avatar, { backgroundColor: withAlpha(colors.fuchsia, 0.18) }]}>
+            <Text style={styles.avatarEmoji}>🧠</Text>
+          </View>
+          <Text style={[styles.assistantName, { color: colors.text }]}>
+            Medical <Text style={{ color: colors.fuchsia }}>Assistant</Text>
           </Text>
-          <Muted style={styles.emptyText}>
-            Ask about any topic, or tap the sparkle on a question to get it explained.
-          </Muted>
-          <View style={styles.suggestions}>
-            {SUGGESTIONS.map(suggestion => (
-              <Pressable
-                key={suggestion}
-                onPress={() => send(suggestion)}
-                style={({ pressed }) => [
-                  styles.suggestion,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}>
-                <Text style={[styles.suggestionText, { color: colors.text }]}>{suggestion}</Text>
-              </Pressable>
-            ))}
+          <View style={[styles.onlineDot, { backgroundColor: colors.green }]} />
+          <View style={styles.headerSpacer} />
+          <View style={[styles.expandButton, { borderColor: colors.border }]}>
+            <Maximize2 size={16} color={colors.textMuted} />
           </View>
         </View>
-      ) : (
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.messages}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => {
-            const mine = item.role === 'user';
-            return (
-              <View
-                style={[
-                  styles.bubble,
-                  mine
-                    ? { backgroundColor: colors.primary, alignSelf: 'flex-end' }
-                    : {
-                        backgroundColor: colors.card,
-                        borderColor: colors.border,
-                        borderWidth: StyleSheet.hairlineWidth,
-                        alignSelf: 'flex-start',
-                      },
-                ]}>
-                <Text
-                  style={[styles.bubbleText, { color: mine ? colors.primaryText : colors.text }]}>
-                  {item.text}
-                </Text>
-              </View>
-            );
-          }}
-          ListFooterComponent={
-            loading ? (
-              <View style={[styles.bubble, styles.typing, { backgroundColor: colors.card }]}>
-                <ActivityIndicator size="small" color={colors.accent} />
-                <Muted>Thinking…</Muted>
-              </View>
-            ) : undefined
-          }
-        />
-      )}
 
-      <View
-        style={[
-          styles.composer,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            marginBottom: insets.bottom > 0 ? 4 : 10,
-          },
-        ]}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="Ask anything medical…"
-          placeholderTextColor={colors.textMuted}
-          style={[styles.input, { color: colors.text }]}
-          multiline
-          onSubmitEditing={() => send(input)}
-        />
-        <Pressable
-          onPress={() => send(input)}
-          disabled={loading || input.trim().length === 0}
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor: colors.primary,
-              opacity: loading || input.trim().length === 0 ? 0.4 : 1,
-            },
-          ]}>
-          <Send size={18} color={colors.primaryText} />
-        </Pressable>
+        {/* Conversation */}
+        {messages.length === 0 ? (
+          <View style={styles.empty}>
+            <RefreshCw size={28} color={colors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: colors.textMuted }]}>
+              Ask me any medical question!
+            </Text>
+            <Text style={[styles.emptySub, { color: colors.textMuted }]}>
+              I'm ACEV, your personal medical assistant
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={item => item.id}
+            style={styles.messages}
+            contentContainerStyle={styles.messagesContent}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => {
+              const mine = item.role === 'user';
+              return (
+                <View
+                  style={[
+                    styles.bubble,
+                    mine
+                      ? { backgroundColor: colors.cardElevated, alignSelf: 'flex-end' }
+                      : {
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                          borderWidth: StyleSheet.hairlineWidth,
+                          alignSelf: 'flex-start',
+                        },
+                  ]}>
+                  <Text style={[styles.bubbleText, { color: colors.text }]}>{item.text}</Text>
+                </View>
+              );
+            }}
+            ListFooterComponent={
+              loading ? (
+                <View style={styles.typing}>
+                  <ActivityIndicator size="small" color={colors.fuchsia} />
+                  <Text style={[styles.typingText, { color: colors.textMuted }]}>Thinking…</Text>
+                </View>
+              ) : undefined
+            }
+          />
+        )}
+
+        {/* Composer */}
+        <View style={[styles.composerWrap, { borderTopColor: colors.border }]}>
+          <View
+            style={[
+              styles.composer,
+              { backgroundColor: colors.background, borderColor: colors.border },
+            ]}>
+            <View
+              style={[styles.sparkAvatar, { backgroundColor: withAlpha(colors.fuchsia, 0.18) }]}>
+              <Sparkles size={16} color={colors.fuchsia} />
+            </View>
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              placeholder="Ask a medical question…"
+              placeholderTextColor={colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              multiline
+            />
+            <Pressable
+              onPress={() => send(input)}
+              disabled={!canSend}
+              style={[
+                styles.sendButton,
+                { backgroundColor: colors.fuchsia, opacity: canSend ? 1 : 0.45 },
+              ]}>
+              <GradientFill from="#F5D0FE" to={colors.fuchsia} borderRadius={12} />
+              <Send size={18} color="#3B0764" style={styles.sendIcon} />
+            </Pressable>
+          </View>
+          <View style={styles.disclaimer}>
+            <Sparkles size={12} color={colors.textMuted} />
+            <Text style={[styles.disclaimerText, { color: colors.textMuted }]}>
+              AI-generated content
+            </Text>
+          </View>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     paddingHorizontal: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
-    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 2,
+    marginBottom: 14,
+  },
+  card: {
+    flex: 1,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  avatar: {
+    height: 40,
+    width: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarEmoji: {
+    fontSize: 20,
+  },
+  assistantName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  onlineDot: {
+    height: 9,
+    width: 9,
+    borderRadius: 5,
+  },
+  headerSpacer: {
+    flex: 1,
+  },
+  expandButton: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   empty: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 24,
+    gap: 10,
   },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    marginTop: 12,
   },
-  emptyText: {
+  emptySub: {
+    fontSize: 15,
     textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 19,
-  },
-  suggestions: {
-    marginTop: 22,
-    alignSelf: 'stretch',
-    gap: 8,
-  },
-  suggestion: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  suggestionText: {
-    fontSize: 13,
   },
   messages: {
-    paddingVertical: 8,
+    flex: 1,
+  },
+  messagesContent: {
+    padding: 14,
     gap: 10,
   },
   bubble: {
-    maxWidth: '86%',
-    borderRadius: 16,
+    maxWidth: '88%',
+    borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -279,27 +316,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingVertical: 4,
+  },
+  typingText: {
+    fontSize: 13,
+  },
+  composerWrap: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    padding: 12,
   },
   composer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 8,
+    padding: 10,
+  },
+  sparkAvatar: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
-    maxHeight: 120,
-    fontSize: 14,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
+    maxHeight: 110,
+    fontSize: 15,
+    paddingVertical: 6,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    height: 44,
+    width: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  sendIcon: {
+    // Keeps the glyph above the absolutely-positioned gradient.
+    zIndex: 1,
+  },
+  disclaimer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  disclaimerText: {
+    fontSize: 12,
   },
 });

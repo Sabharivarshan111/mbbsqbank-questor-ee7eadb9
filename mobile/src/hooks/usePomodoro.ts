@@ -21,6 +21,13 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
 const SESSION_KEY = 'pomodoro:session';
 const SETTINGS_KEY = 'pomodoro:settings';
 const FOCUS_TOTAL_KEY = 'pomodoro:focus-minutes-total';
+const FOCUS_TODAY_KEY = 'pomodoro:focus-today';
+
+/** Local calendar day, so "today" rolls over at the user's midnight. */
+function todayKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+}
 
 interface PersistedSession {
   mode: PomodoroMode;
@@ -48,6 +55,7 @@ export function usePomodoro() {
   const [isRunning, setIsRunning] = useState(false);
   const [completedFocus, setCompletedFocus] = useState(0);
   const [focusMinutesTotal, setFocusMinutesTotal] = useState(0);
+  const [focusMinutesToday, setFocusMinutesToday] = useState(0);
 
   const endsAtRef = useRef<number | null>(null);
   const settingsRef = useRef(settings);
@@ -65,13 +73,27 @@ export function usePomodoro() {
     let cancelled = false;
     (async () => {
       try {
-        const stored = await AsyncStorage.getMany([SETTINGS_KEY, SESSION_KEY, FOCUS_TOTAL_KEY]);
+        const stored = await AsyncStorage.getMany([
+          SETTINGS_KEY,
+          SESSION_KEY,
+          FOCUS_TOTAL_KEY,
+          FOCUS_TODAY_KEY,
+        ]);
         if (cancelled) {
           return;
         }
         const rawSettings = stored[SETTINGS_KEY];
         const rawSession = stored[SESSION_KEY];
         const rawTotal = stored[FOCUS_TOTAL_KEY];
+        const rawToday = stored[FOCUS_TODAY_KEY];
+
+        if (rawToday) {
+          const parsed = JSON.parse(rawToday) as { date: string; minutes: number };
+          // Yesterday's total does not carry over.
+          if (parsed.date === todayKey()) {
+            setFocusMinutesToday(parsed.minutes || 0);
+          }
+        }
 
         let active = DEFAULT_SETTINGS;
         if (rawSettings) {
@@ -128,6 +150,14 @@ export function usePomodoro() {
       setFocusMinutesTotal(prev => {
         const updated = prev + settingsRef.current.focusMinutes;
         AsyncStorage.setItem(FOCUS_TOTAL_KEY, String(updated)).catch(() => {});
+        return updated;
+      });
+      setFocusMinutesToday(prev => {
+        const updated = prev + settingsRef.current.focusMinutes;
+        AsyncStorage.setItem(
+          FOCUS_TODAY_KEY,
+          JSON.stringify({ date: todayKey(), minutes: updated }),
+        ).catch(() => {});
         return updated;
       });
 
@@ -249,6 +279,7 @@ export function usePomodoro() {
     isRunning,
     completedFocus,
     focusMinutesTotal,
+    focusMinutesToday,
     settings,
     start,
     pause,
