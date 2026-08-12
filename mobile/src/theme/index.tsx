@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requestDailyAd } from '@/lib/dailyAd';
 
 export type ThemeName = 'light' | 'dark';
 export type ThemePreference = ThemeName | 'system';
@@ -119,6 +120,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
+    // Once-a-day rewarded ad for the "theme" bucket.
+    requestDailyAd('theme').catch(() => undefined);
   }, []);
 
   const theme: ThemeName =

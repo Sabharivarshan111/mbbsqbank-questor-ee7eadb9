@@ -32,6 +32,7 @@ import {
   YEAR_LABEL,
 } from '@/lib/questionBank';
 import { reconcileProgress } from '@/lib/progress';
+import { requestDailyAd } from '@/lib/dailyAd';
 import {
   GoogleSignInCancelled,
   getSignedInEmail,
@@ -123,6 +124,15 @@ export default function ProgressScreen() {
   useEffect(() => {
     getSignedInEmail().then(setEmail);
   }, []);
+
+  // Once-a-day rewarded ad for the "progress" bucket. Gated on an existing
+  // profile, matching the web app — a first-run user is being onboarded and
+  // should not get an ad prompt stacked behind that sheet.
+  useEffect(() => {
+    if (profile) {
+      requestDailyAd('progress').catch(() => undefined);
+    }
+  }, [profile]);
 
   const signIn = useCallback(async () => {
     setAuthBusy(true);

@@ -1,4 +1,7 @@
 {
   "name": "OrbitMBBS",
-  "displayName": "Orbit MBBS"
+  "displayName": "Orbit MBBS",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-3177287525203129~3298255365"
+  }
 }

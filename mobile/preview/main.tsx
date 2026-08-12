@@ -13,6 +13,7 @@ import { ThemeProvider, useTheme } from '@/theme';
 import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
+import { DailyAdConsent } from '@/components/DailyAdConsent';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -88,6 +89,7 @@ function Shell() {
   return (
     <NavigationContainer theme={navTheme} initialState={buildInitialState()}>
       <RootNavigator />
+      <DailyAdConsent />
     </NavigationContainer>
   );
 }

@@ -35,6 +35,10 @@ export default defineConfig({
         find: '@react-native-google-signin/google-signin',
         replacement: path.resolve(__dirname, 'shims', 'google-signin.ts'),
       },
+      {
+        find: 'react-native-google-mobile-ads',
+        replacement: path.resolve(__dirname, 'shims', 'google-mobile-ads.ts'),
+      },
       { find: 'react-native', replacement: 'react-native-web' },
     ],
   },

@@ -183,6 +183,23 @@ this repo carries **14 / "0.0.0.14"** — Play rejects any upload whose
 `versionCode` is not higher than the last published one. Raise both in
 `android/app/build.gradle` before every subsequent upload.
 
+### AdMob
+
+The app ID lives in `app.json` under `react-native-google-mobile-ads`; the
+library's Gradle script reads it from there and injects the manifest
+meta-data, so it must **not** also be declared in `AndroidManifest.xml`.
+
+Ad units are in `src/lib/ads.ts`. Release builds use the live units; debug
+builds use Google's test units — impressions or clicks on your own live ads
+during development are a policy violation and can get the AdMob account
+suspended, so do not "fix" that ternary.
+
+Rewarded ads follow the web app's policy (`src/lib/dailyAd.ts`): three
+independent daily buckets — `progress`, `theme`, `questions` — each capped at
+one ad per calendar day, behind a consent prompt. The storage keys match the
+web app's, so the cap is shared rather than doubled if a user has both
+installed.
+
 ### Google Sign-In
 
 Configured in `src/lib/googleAuth.ts` with the existing Web Client ID and

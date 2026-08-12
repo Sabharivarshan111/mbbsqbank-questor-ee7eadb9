@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -26,6 +26,7 @@ import {
   resolveNode,
 } from '@/lib/questionBank';
 import { useCountDone } from '@/hooks/useProgress';
+import { requestDailyAd } from '@/lib/dailyAd';
 import type { HomeStackParamList, RootTabParamList } from '@/navigation/types';
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, 'BrowseNode'>;
@@ -62,6 +63,14 @@ export default function BrowseNodeScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  // Opening a leaf topic is the "questions" bucket's trigger.
+  const isLeaf = getTopicChildren(resolveNode(year, path)).length === 0;
+  useEffect(() => {
+    if (isLeaf) {
+      requestDailyAd('questions').catch(() => undefined);
+    }
+  }, [isLeaf]);
 
   const node = useMemo(() => resolveNode(year, path), [year, path]);
   const children = useMemo(() => getTopicChildren(node), [node]);

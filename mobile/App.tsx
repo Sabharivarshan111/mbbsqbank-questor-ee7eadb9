@@ -6,6 +6,8 @@ import { ThemeProvider, useTheme } from '@/theme';
 import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress, reconcileProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
+import { initializeAds } from '@/lib/ads';
+import { DailyAdConsent } from '@/components/DailyAdConsent';
 
 function Shell() {
   const { theme, colors } = useTheme();
@@ -18,6 +20,8 @@ function Shell() {
     });
     // Profile, streak and XP; all cloud steps are best-effort.
     hydrateProfile().catch(() => {});
+    // Consent + SDK start, then preload so the first ad has no wait.
+    initializeAds().catch(() => {});
   }, []);
 
   const navTheme = {
@@ -38,6 +42,7 @@ function Shell() {
           only the icon style is ours to set. */}
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <RootNavigator />
+      <DailyAdConsent />
     </NavigationContainer>
   );
 }
