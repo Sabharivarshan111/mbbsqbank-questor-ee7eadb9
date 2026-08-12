@@ -1,4 +1,4 @@
-package com.orbitmbbs
+package com.aistudio.mbbsqbank.aycxvd
 
 import android.app.Application
 import com.facebook.react.PackageList

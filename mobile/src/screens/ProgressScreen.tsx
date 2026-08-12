@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,10 +9,13 @@ import {
 import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  Check,
   ChevronUp,
   Flame,
   FlaskConical,
   Lock,
+  LogIn,
+  LogOut,
   Moon,
   Pencil,
   RefreshCw,
@@ -28,6 +32,12 @@ import {
   YEAR_LABEL,
 } from '@/lib/questionBank';
 import { reconcileProgress } from '@/lib/progress';
+import {
+  GoogleSignInCancelled,
+  getSignedInEmail,
+  signInWithGoogle,
+  signOutGoogle,
+} from '@/lib/googleAuth';
 import { useCountDone } from '@/hooks/useProgress';
 import { useProfile } from '@/hooks/useProfile';
 import { ProfileSheet } from '@/components/ProfileSheet';
@@ -75,6 +85,9 @@ export default function ProgressScreen() {
   const [tab, setTab] = useState<Tab>('stats');
   const [rewardsOpen, setRewardsOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
 
   const subjects = useMemo(
@@ -107,6 +120,37 @@ export default function ProgressScreen() {
   const yearPct = totals.total ? Math.round((totals.done / totals.total) * 100) : 0;
   const xp = totals.done;
 
+  useEffect(() => {
+    getSignedInEmail().then(setEmail);
+  }, []);
+
+  const signIn = useCallback(async () => {
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      const account = await signInWithGoogle();
+      setEmail(account.email);
+      // Merge whatever this device recorded anonymously into the account.
+      await reconcileProgress();
+    } catch (err) {
+      if (!(err instanceof GoogleSignInCancelled)) {
+        setAuthError(err instanceof Error ? err.message : 'Sign-in failed.');
+      }
+    } finally {
+      setAuthBusy(false);
+    }
+  }, []);
+
+  const signOut = useCallback(async () => {
+    setAuthBusy(true);
+    try {
+      await signOutGoogle();
+      setEmail(null);
+    } finally {
+      setAuthBusy(false);
+    }
+  }, []);
+
   const sync = useCallback(async () => {
     setSyncing(true);
     try {
@@ -137,26 +181,65 @@ export default function ProgressScreen() {
       </View>
 
       {/* Sync state */}
+      {email ? (
+        <View
+          style={[
+            styles.syncCard,
+            {
+              backgroundColor: withAlpha(colors.green, 0.06),
+              borderColor: withAlpha(colors.green, 0.3),
+            },
+          ]}>
+          <View style={[styles.syncIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
+            <Check size={16} color={colors.green} />
+          </View>
+          <View style={styles.syncBody}>
+            <Text style={[styles.syncLabel, { color: colors.textMuted }]}>
+              Synced across devices
+            </Text>
+            <Text style={[styles.syncValue, { color: colors.text }]} numberOfLines={1}>
+              {email}
+            </Text>
+          </View>
+          <Pressable onPress={signOut} hitSlop={10} disabled={authBusy}>
+            <LogOut size={20} color={colors.textMuted} />
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          onPress={signIn}
+          disabled={authBusy}
+          style={[styles.syncCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.syncIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
+            {authBusy ? (
+              <ActivityIndicator size="small" color={colors.text} />
+            ) : (
+              <LogIn size={16} color={colors.text} />
+            )}
+          </View>
+          <View style={styles.syncBody}>
+            <Text style={[styles.syncLabel, { color: colors.textMuted }]}>
+              {authBusy ? 'Signing in…' : 'Not signed in'}
+            </Text>
+            <Text style={[styles.syncValue, { color: colors.text }]}>
+              Sign in with Google to sync across devices
+            </Text>
+          </View>
+        </Pressable>
+      )}
+
+      {authError ? (
+        <Text style={[styles.authError, { color: colors.danger }]}>{authError}</Text>
+      ) : null}
+
       <Pressable
         onPress={sync}
-        style={[
-          styles.syncCard,
-          {
-            backgroundColor: withAlpha(colors.green, 0.06),
-            borderColor: withAlpha(colors.green, 0.3),
-          },
-        ]}>
-        <View style={[styles.syncIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
-          <RefreshCw size={16} color={colors.green} />
-        </View>
-        <View style={styles.syncBody}>
-          <Text style={[styles.syncLabel, { color: colors.textMuted }]}>
-            {syncing ? 'Syncing…' : 'Progress sync'}
-          </Text>
-          <Text style={[styles.syncValue, { color: colors.text }]}>
-            Tap to merge this device with the cloud
-          </Text>
-        </View>
+        style={[styles.syncRow, { borderColor: colors.border }]}
+        disabled={syncing}>
+        <RefreshCw size={15} color={colors.textMuted} />
+        <Text style={[styles.syncRowText, { color: colors.textMuted }]}>
+          {syncing ? 'Syncing…' : 'Merge this device with the cloud'}
+        </Text>
       </Pressable>
 
       {/* Tabs */}
@@ -465,6 +548,24 @@ const styles = StyleSheet.create({
   year: {
     fontSize: 14,
     marginTop: 2,
+  },
+  authError: {
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  syncRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 11,
+    marginBottom: 16,
+  },
+  syncRowText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   syncCard: {
     flexDirection: 'row',

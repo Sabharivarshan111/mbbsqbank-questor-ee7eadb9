@@ -1,4 +1,4 @@
-package com.orbitmbbs
+package com.aistudio.mbbsqbank.aycxvd
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

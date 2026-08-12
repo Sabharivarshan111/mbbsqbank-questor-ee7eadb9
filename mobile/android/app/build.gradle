@@ -77,13 +77,26 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.orbitmbbs"
+    // Must stay exactly the ID of the published listing — Play treats a
+    // different applicationId as a different app, so changing it would ship a
+    // second listing instead of an update.
+    namespace "com.aistudio.mbbsqbank.aycxvd"
     defaultConfig {
-        applicationId "com.orbitmbbs"
+        applicationId "com.aistudio.mbbsqbank.aycxvd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // 13 / "0.0.0.13" is already live on Play, and Play rejects an upload
+        // whose versionCode is not higher than the last one. Bump these for
+        // every subsequent upload.
+        versionCode 14
+        versionName "0.0.0.14"
+
+        // Deep-link / OAuth callback scheme, consumed by the intent-filter in
+        // AndroidManifest.xml. Added with an indexed put rather than assigning
+        // the whole map: the React Native Gradle plugin writes
+        // `usesCleartextTraffic` into the same placeholders, and replacing the
+        // map could drop it and break manifest merging.
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.aistudio.mbbsqbank.aycxvd"
     }
     signingConfigs {
         debug {
@@ -92,16 +105,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        // Real upload key. Values come from ~/.gradle/gradle.properties (or
-        // android/gradle.properties, which is gitignored for this purpose) so
-        // the keystore password never lands in version control. See
-        // mobile/README.md → "Signing a release build".
+        // The existing upload key. Passwords come from the environment so they
+        // never land in version control:
+        //   KEYSTORE_PATH   absolute path to my-upload-key.jks
+        //   STORE_PASSWORD  keystore password
+        //   KEY_PASSWORD    key password
+        // See mobile/README.md → "Signing a release build".
         release {
-            if (project.hasProperty('ORBIT_UPLOAD_STORE_FILE')) {
-                storeFile file(ORBIT_UPLOAD_STORE_FILE)
-                storePassword ORBIT_UPLOAD_STORE_PASSWORD
-                keyAlias ORBIT_UPLOAD_KEY_ALIAS
-                keyPassword ORBIT_UPLOAD_KEY_PASSWORD
+            def keystorePath = System.getenv("KEYSTORE_PATH")
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv("STORE_PASSWORD")
+                keyAlias "upload"
+                keyPassword System.getenv("KEY_PASSWORD")
             }
         }
     }
@@ -111,8 +127,9 @@ android {
         }
         release {
             // Falls back to the debug key so `assembleRelease` still works
-            // before a keystore exists — that build is NOT publishable.
-            signingConfig project.hasProperty('ORBIT_UPLOAD_STORE_FILE')
+            // before the keystore is configured — that build is NOT
+            // publishable and Play will reject it.
+            signingConfig System.getenv("KEYSTORE_PATH")
                 ? signingConfigs.release
                 : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds

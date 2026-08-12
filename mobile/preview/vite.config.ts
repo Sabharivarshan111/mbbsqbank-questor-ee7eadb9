@@ -31,6 +31,10 @@ export default defineConfig({
         find: '@react-native/assets-registry/registry',
         replacement: path.resolve(__dirname, 'shims', 'assets-registry.ts'),
       },
+      {
+        find: '@react-native-google-signin/google-signin',
+        replacement: path.resolve(__dirname, 'shims', 'google-signin.ts'),
+      },
       { find: 'react-native', replacement: 'react-native-web' },
     ],
   },

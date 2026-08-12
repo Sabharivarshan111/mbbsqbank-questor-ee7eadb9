@@ -10,6 +10,7 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="${usesCleartextTraffic}"
+      android:enableOnBackInvokedCallback="true"
       android:supportsRtl="true">
       <activity
         android:name=".MainActivity"
@@ -21,6 +22,13 @@
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        <!-- OAuth / deep-link callback: com.aistudio.mbbsqbank.aycxvd://… -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="${appAuthRedirectScheme}" />
         </intent-filter>
       </activity>
     </application>

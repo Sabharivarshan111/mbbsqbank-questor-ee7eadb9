@@ -115,34 +115,29 @@ npm run lint         # ESLint
 
 ## Step 5 — Sign the release build
 
-A release APK must be signed with a key **you keep forever** — lose it and you
-can never update the app on Play again.
+This app is **already published**, so it must be signed with the existing
+upload key — `my-upload-key.jks`, alias `upload`. A different key produces an
+upload Play will reject.
 
-1. Generate an upload key:
+Point the build at it through the environment (never commit these):
 
-   ```sh
-   keytool -genkeypair -v -storetype PKCS12 \
-     -keystore orbit-upload.keystore \
-     -alias orbit-upload \
-     -keyalg RSA -keysize 2048 -validity 10000
-   ```
+```sh
+export KEYSTORE_PATH=/absolute/path/to/my-upload-key.jks
+export STORE_PASSWORD=…
+export KEY_PASSWORD=…
+```
 
-   Move `orbit-upload.keystore` to `mobile/android/app/`. **Back it up
-   somewhere safe.** It is gitignored on purpose.
+On Windows PowerShell:
 
-2. Put the passwords in `~/.gradle/gradle.properties` (your home directory —
-   *not* the repo, so they never get committed):
+```powershell
+$env:KEYSTORE_PATH="C:\path\to\my-upload-key.jks"
+$env:STORE_PASSWORD="…"
+$env:KEY_PASSWORD="…"
+```
 
-   ```properties
-   ORBIT_UPLOAD_STORE_FILE=orbit-upload.keystore
-   ORBIT_UPLOAD_KEY_ALIAS=orbit-upload
-   ORBIT_UPLOAD_STORE_PASSWORD=your-password
-   ORBIT_UPLOAD_KEY_PASSWORD=your-password
-   ```
-
-`android/app/build.gradle` picks these up automatically. Without them the
-release build falls back to the debug key so it still compiles — that output
-is for testing only and **cannot be published**.
+Without `KEYSTORE_PATH` the release build falls back to the debug key so
+`assembleRelease` still compiles — that output is for local testing only and
+**cannot be published**.
 
 ## Step 6 — Build the artifact
 
@@ -168,21 +163,40 @@ Upload that `.aab` in the Play Console.
 
 On Windows use `gradlew.bat` instead of `./gradlew`.
 
+### Published app identity — do not change
+
+These match the live Play listing. Changing `applicationId` would create a
+**second listing** rather than updating the existing one.
+
+| | Value |
+|---|---|
+| App name | Orbit MBBS |
+| `applicationId` / `namespace` | `com.aistudio.mbbsqbank.aycxvd` |
+| Deep-link scheme | `com.aistudio.mbbsqbank.aycxvd` |
+| `minSdkVersion` | 24 |
+| `targetSdkVersion` | 36 |
+
 ### Version bumps
 
-Before each Play upload, raise both values in `android/app/build.gradle`:
+`versionCode 13` / `versionName "0.0.0.13"` is the version already on Play, so
+this repo carries **14 / "0.0.0.14"** — Play rejects any upload whose
+`versionCode` is not higher than the last published one. Raise both in
+`android/app/build.gradle` before every subsequent upload.
 
-```gradle
-versionCode 2        // must increase every upload
-versionName "1.1"    // what users see
-```
+### Google Sign-In
 
-### Changing the app ID
+Configured in `src/lib/googleAuth.ts` with the existing Web Client ID and
+`offlineAccess: true`, exchanged for a Supabase session via
+`signInWithIdToken`. Two things live outside this repo and must be in place or
+sign-in fails at runtime:
 
-The package is `com.orbitmbbs` (`namespace` + `applicationId` in
-`android/app/build.gradle`). Change it *before* your first Play upload — it is
-permanent afterwards. The Java package directories under
-`android/app/src/main/java/` must be renamed to match.
+1. The same Web Client ID must be set in **Supabase → Auth → Providers →
+   Google**, which validates the ID token's audience.
+2. Google Cloud needs an **Android OAuth client** whose SHA-1 matches the
+   signing certificate. You need one per certificate — the upload key for
+   local/internal builds, and the **Play App Signing** certificate for
+   production (Play Console → Setup → App signing). Miss the Play one and
+   sign-in works in testing but fails for real users.
 
 ---
 
