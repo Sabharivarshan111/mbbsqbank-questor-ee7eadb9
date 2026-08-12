@@ -468,15 +468,9 @@ function YearPickerDialog({
             );
           })}
         </div>
-        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-          <span className={`h-5 w-5 rounded-md border flex items-center justify-center ${makeDefault ? "bg-primary border-primary" : "border-border"}`}>
-            {makeDefault && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
-          </span>
-          <input type="checkbox" className="sr-only" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} />
-          Set as my default year
-        </label>
+        <p className="text-[11px] text-muted-foreground">This year will be saved as your default automatically.</p>
         <button
-          onClick={() => onPick(pick, makeDefault)}
+          onClick={() => onPick(pick)}
           className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-fuchsia-500 text-primary-foreground font-semibold"
         >
           Browse {YEARS.find((y) => y.key === pick)?.label}
