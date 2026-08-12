@@ -1,0 +1,54 @@
+{
+  "name": "OrbitMBBS",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "lint": "eslint .",
+    "start": "react-native start",
+    "preview": "vite --config preview/vite.config.ts",
+    "preview:build": "vite build --config preview/vite.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.1.1",
+    "@react-native/new-app-screen": "0.87.0",
+    "@react-navigation/bottom-tabs": "^7.18.16",
+    "@react-navigation/native": "^7.3.16",
+    "@react-navigation/native-stack": "^7.18.8",
+    "@supabase/supabase-js": "^2.112.3",
+    "lucide-react-native": "^1.31.0",
+    "react": "19.2.3",
+    "react-native": "0.87.0",
+    "react-native-get-random-values": "^2.0.0",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.27.0",
+    "react-native-svg": "^15.15.5",
+    "react-native-url-polyfill": "^4.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@eslint/eslintrc": "^3.3.6",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native/babel-preset": "0.87.0",
+    "@react-native/eslint-config": "0.87.0",
+    "@react-native/metro-config": "0.87.0",
+    "@react-native/typescript-config": "0.87.0",
+    "@types/react": "^19.2.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "babel-plugin-module-resolver": "^5.0.3",
+    "eslint": "^8.19.0",
+    "lucide-react": "^1.31.0",
+    "prettier": "2.8.8",
+    "react-dom": "^19.2.3",
+    "react-native-web": "^0.21.2",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.6"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}
