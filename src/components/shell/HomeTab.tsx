@@ -426,7 +426,6 @@ function QuestionSearchOverlay({
 function YearPickerDialog({
   currentYear,
   onClose,
-  onClose,
   onPick,
 }: {
   currentYear: Year;
