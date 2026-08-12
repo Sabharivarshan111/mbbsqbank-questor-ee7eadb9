@@ -232,6 +232,11 @@ identically.
 Anything touching Supabase degrades gracefully: the profile saves locally first
 and an unreachable backend is logged, not surfaced as a failure.
 
+- Handwritten notes — year → subject → topic, then batched generation against
+  the `generate-handwritten-notes` edge function, with the merged page cached
+  back so later opens are a single call. Includes the AI refine box and
+  regenerate, and renders all ten section shapes the function emits.
+
 **Still to port** (each is a self-contained addition):
 
 - Google sign-in — add `@react-native-google-signin/google-signin` and call
