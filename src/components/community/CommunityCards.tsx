@@ -16,6 +16,13 @@ function groupFor(year: GroupYear) {
     : { url: WHATSAPP_GROUP_URL, label: "3rd year" };
 }
 
+/** Resolves the community year from local (device) or cloud profile. */
+export function useGroupYear(): GroupYear {
+  const { local, cloud } = useProfile();
+  const y = local?.year ?? cloud?.year;
+  return y === "second" ? "second" : "third";
+}
+
 const PlayStoreWarning = () => (
   <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2">
     <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
@@ -56,8 +63,9 @@ export function StudyMaterialsDriveCard() {
 }
 
 /** WhatsApp community card with the Play Store warning */
-export function WhatsAppGroupCard({ note, year = "third" }: { note?: string; year?: GroupYear }) {
-  const { url, label } = groupFor(year);
+export function WhatsAppGroupCard({ note, year }: { note?: string; year?: GroupYear }) {
+  const detected = useGroupYear();
+  const { url, label } = groupFor(year ?? detected);
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
       <div className="flex items-start gap-3">
@@ -87,8 +95,7 @@ export function WhatsAppGroupCard({ note, year = "third" }: { note?: string; yea
 
 /** Slim home-screen row — picks the group that matches the selected year. */
 export function WhatsAppMiniButton() {
-  const { local } = useProfile();
-  const year: GroupYear = local?.year === "second" ? "second" : "third";
+  const year = useGroupYear();
   const { url, label } = groupFor(year);
   return (
     <a

@@ -5,7 +5,6 @@ import { useProfile } from "@/hooks/use-profile";
 export default function NotesTab() {
   const { local } = useProfile();
   const isThirdYear = local?.year === "third";
-  const isSecondYear = local?.year === "second";
 
   return (
     <div className="space-y-3 pb-4">
@@ -15,18 +14,10 @@ export default function NotesTab() {
       </header>
       <HandwrittenNotesHub />
 
-      {isThirdYear && (
-        <div className="space-y-3 pt-2">
-          <StudyMaterialsDriveCard />
-          <WhatsAppGroupCard year="third" />
-        </div>
-      )}
-
-      {isSecondYear && (
-        <div className="space-y-3 pt-2">
-          <WhatsAppGroupCard year="second" />
-        </div>
-      )}
+      <div className="space-y-3 pt-2">
+        {isThirdYear && <StudyMaterialsDriveCard />}
+        <WhatsAppGroupCard />
+      </div>
     </div>
   );
 }
