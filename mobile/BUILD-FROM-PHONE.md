@@ -1,0 +1,237 @@
+# Shipping Orbit MBBS without a computer
+
+Short answer: **yes, you can go from this repo to a Play Store update using only
+your phone** — but not by compiling on the phone. You trigger a build on
+GitHub's servers, download the result, and upload it to Play. Everything below
+happens in a mobile browser.
+
+---
+
+## What is and isn't possible on a phone
+
+| Task | On phone? | How |
+|---|---|---|
+| Edit code | Yes | github.com in browser, or the GitHub mobile app |
+| Build a signed AAB/APK | Yes | GitHub Actions (this repo has the workflow) |
+| Upload to Play Console | Yes | play.google.com/console in browser |
+| Install and test the APK | Yes | Download the artifact and open it |
+| Supabase configuration | Yes | supabase.com/dashboard in browser |
+| AdMob / Google Cloud setup | Yes | Both consoles work in a mobile browser |
+| Run Metro / hot reload while coding | **No, realistically** | Needs a desktop |
+| Android emulator | **No** | Needs a desktop |
+
+The one thing you genuinely lose is the fast edit → see-it-instantly loop.
+Every change has to go through a ~10-minute cloud build. That is fine for
+shipping; it is painful for designing.
+
+---
+
+## Before anything else: do you still have the keystore?
+
+This is the single thing that can block you, so check it first.
+
+Your app is already on Play as `com.aistudio.mbbsqbank.aycxvd`. An update must
+be signed with the **same upload key** (`my-upload-key.jks`, alias `upload`).
+
+- **You have the .jks file** → carry on to Step 1.
+- **You do not have it** → check Play Console → *Setup → App signing*. If
+  **Play App Signing** is enabled (it is by default for apps published in
+  recent years), you can request an **upload key reset**: Play Console →
+  Setup → App signing → *Request upload key reset*. Google issues a new upload
+  key and your users are unaffected. Without Play App Signing and without the
+  original key, the listing cannot be updated at all — you would have to
+  publish under a new package name and lose your installs.
+
+Do not skip this check. Everything else is easy to redo; this is not.
+
+---
+
+## Step 1 — Turn the keystore into a secret
+
+GitHub secrets hold text, so the `.jks` has to be base64 first.
+
+**Never paste a keystore into a random "online base64 converter" website.** It
+is the key to your app's identity. Use one of these instead:
+
+**Option A — GitHub Codespaces (free tier, works in a phone browser)**
+
+1. On github.com, open your repo → green **Code** button → **Codespaces** →
+   *Create codespace on main*.
+2. Upload `my-upload-key.jks` into the codespace (drag into the file
+   explorer, or use the upload button).
+3. In the codespace terminal:
+
+   ```sh
+   base64 -w0 my-upload-key.jks
+   ```
+
+4. Copy the long single-line output.
+5. Delete the file from the codespace, then delete the codespace.
+
+**Option B — Termux (offline, nothing leaves the phone)**
+
+1. Install Termux from F-Droid (the Play Store build is outdated).
+2. `pkg install coreutils`
+3. `termux-setup-storage`, then:
+
+   ```sh
+   base64 -w0 /sdcard/Download/my-upload-key.jks
+   ```
+
+4. Long-press to copy the output.
+
+## Step 2 — Add the three secrets
+
+On github.com → your repo → **Settings** → *Secrets and variables* →
+**Actions** → *New repository secret*. Add exactly these names:
+
+| Secret name | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the long base64 string from Step 1 |
+| `ANDROID_STORE_PASSWORD` | your keystore password |
+| `ANDROID_KEY_PASSWORD` | your key password |
+
+The mobile GitHub *app* does not expose Settings — use a browser
+(github.com in Chrome, "Desktop site" if the menu is hard to reach).
+
+## Step 3 — Run the build
+
+1. github.com → your repo → **Actions** tab.
+2. Pick **Android release build** in the left sidebar.
+3. **Run workflow** → choose the branch → **Run workflow**.
+4. Wait ~10–15 minutes for the first run (later runs are faster — npm is
+   cached).
+5. Open the finished run and scroll to **Artifacts**:
+   - `orbit-mbbs-aab` → upload this to Play
+   - `orbit-mbbs-apk` → install this on your phone to test
+
+The workflow typechecks and lints before building, so a broken commit fails
+fast instead of producing a bad artifact.
+
+## Step 4 — Test the APK on your phone first
+
+1. Download `orbit-mbbs-apk` from the run. It arrives as a `.zip`.
+2. Extract it (Files app, or any zip app) → `app-release.apk`.
+3. Tap it. Android will ask to allow installing from this source — allow it.
+4. Because it is signed with the upload key, this **replaces** an installed
+   Play copy of the app. If you want to keep both, uninstall the Play version
+   first.
+
+Check on the device, in this order:
+
+- App opens, name reads **Orbit MBBS**
+- Onboarding accepts a name, and it survives closing and reopening
+- Question counts look right (2nd year should total 1219)
+- Ticking a question sticks after a restart
+- **Google sign-in completes** — the most likely thing to fail, see
+  troubleshooting below
+- Ask AI returns an answer
+- A rewarded ad plays once when you open My Progress
+- The Notes tab generates a page for a topic
+
+## Step 5 — Upload to Play
+
+1. play.google.com/console in your browser → your app.
+2. **Testing → Internal testing** for the first upload. Do not go straight to
+   production.
+3. *Create new release* → upload the `.aab` → add release notes → **Review** →
+   **Start rollout to Internal testing**.
+4. Add yourself as a tester, install via the opt-in link, and check the same
+   list as Step 4 — this build is signed by Google, so it is the first one
+   that proves Google sign-in works with the **Play App Signing** certificate.
+5. Only once internal testing looks right, promote to Production.
+
+`versionCode` is 14 in this repo. Play rejects re-uploading a code that is
+already used, so raise it in `mobile/android/app/build.gradle` for every
+upload after this one.
+
+---
+
+## Supabase configuration
+
+Most of this is already correct, because the web app uses the same project.
+Everything is at supabase.com/dashboard → project `pmtgeydtqypwrypshhsx`.
+
+**1. Anonymous sign-ins — must be ON**
+
+*Authentication → Providers → Anonymous*. The app signs in anonymously so a
+user gets progress sync, streaks and the leaderboard before they ever sign in
+with Google. Your web app already relies on this, so it should be on. If it is
+off, the profile still saves locally but nothing reaches the cloud.
+
+**2. Google provider**
+
+*Authentication → Providers → Google.* Client ID must be
+`358287134961-24qidem5pd6qhtkq43b3a9cfcp87c49p.apps.googleusercontent.com`
+— the same value the app sends. You have confirmed this is set.
+
+**3. Nothing else needs changing**
+
+The native app calls the same RPCs and edge functions the web app already
+uses, all of which exist in `supabase/migrations`:
+
+- `register_open` — daily streak
+- `claim_or_merge_profile` — profile upsert
+- `record_question_done` / `record_question_undone` / `record_questions_done`
+- `get_weekly_leaderboard` / `get_year_leaderboard`
+
+Edge functions used: `ask-gemini` (Ask AI) and `generate-handwritten-notes`
+(Notes). If those are deployed for the web app, the native app uses them
+as-is. No new tables, policies or functions.
+
+---
+
+## Google Cloud — the one that bites after release
+
+You have added both SHA-1 fingerprints, which is the right thing. To restate
+why it matters:
+
+Sign-in works only if Google Cloud has an **Android OAuth client** whose SHA-1
+matches the certificate the running app was signed with. There are two
+different certificates:
+
+- your **upload key** — signs the APK you sideload for testing
+- the **Play App Signing key** — Google re-signs your app with this before
+  serving it to users (Play Console → Setup → App signing)
+
+Miss the second and sign-in works perfectly in your own testing and fails for
+every real user. That is why Step 5 says to verify sign-in from the internal
+testing track, not just from the sideloaded APK.
+
+---
+
+## If something fails
+
+**Build fails at "Restore the upload keystore"** — the secret is missing or
+misnamed. Names are case-sensitive: `ANDROID_KEYSTORE_BASE64`.
+
+**Build fails in gradle with a keystore/password error** — the base64 got
+truncated when copying, or the passwords are wrong. Re-copy the base64 as a
+single line with no spaces or newlines (`base64 -w0` produces one line).
+
+**Play rejects the upload: "Version code 14 has already been used"** — bump
+`versionCode` in `mobile/android/app/build.gradle` and rebuild.
+
+**Play rejects: wrong signing key** — the keystore in the secret is not the
+upload key for this listing. See the keystore section at the top.
+
+**Google sign-in fails on device** — almost always a missing SHA-1 for the
+certificate in use. Confirm you have Android OAuth clients for both the upload
+key and the Play App Signing key.
+
+**Ads never appear** — a brand-new AdMob app ID can take a few hours to start
+serving, and rewarded ads are capped to once per bucket per day by design.
+Debug builds show Google's test ads; only release builds request live ones.
+
+**App crashes immediately on launch** — usually a missing AdMob app ID.
+Confirm `app.json` still contains the `react-native-google-mobile-ads` block.
+
+---
+
+## If you ever get access to a computer
+
+The full loop is much better: `npm install` then `npm run android` with a
+phone plugged in gives Fast Refresh, so edits appear in about a second instead
+of a 15-minute build. See `README.md` for that path. The cloud workflow keeps
+working either way, and is the better way to produce release builds regardless
+because it builds from a clean checkout every time.

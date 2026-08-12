@@ -113,6 +113,11 @@ npm run typecheck    # TypeScript
 npm run lint         # ESLint
 ```
 
+> **No computer?** You can build and ship entirely from a phone using the
+> GitHub Actions workflow in this repo — see
+> [BUILD-FROM-PHONE.md](./BUILD-FROM-PHONE.md). The steps below are the
+> desktop path.
+
 ## Step 5 — Sign the release build
 
 This app is **already published**, so it must be signed with the existing
