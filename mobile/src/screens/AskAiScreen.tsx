@@ -6,10 +6,10 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
+import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';

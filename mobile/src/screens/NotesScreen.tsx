@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';

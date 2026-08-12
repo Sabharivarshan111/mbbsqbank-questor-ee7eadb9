@@ -1,5 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { FileText, Home, Sparkles, Timer, User } from 'lucide-react-native';

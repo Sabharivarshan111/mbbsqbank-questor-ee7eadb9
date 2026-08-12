@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';

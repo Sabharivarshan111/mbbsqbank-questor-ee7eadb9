@@ -3,11 +3,11 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
+import { Text } from '@/components/Text';
 import { useTheme } from '@/theme';
 
 export function Card({

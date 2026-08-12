@@ -1,6 +1,8 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
+    // The RN preset pulls in Jest types; this project has no test suite.
+    "types": [],
     "paths": {
       "@/*": ["./src/*"],
       "@data/*": ["../src/data/*"]

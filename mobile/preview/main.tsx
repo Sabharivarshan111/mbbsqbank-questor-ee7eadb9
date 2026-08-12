@@ -1,3 +1,9 @@
+// Android renders the app in Roboto (React Native's default face, and the same
+// font the web app inherits from Tailwind's stack). Desktop Linux has no
+// Roboto, so the preview would otherwise fall back to Liberation Sans and
+// misrepresent the typography. react-native-web's default font stack already
+// names Roboto, so loading it here is enough.
+import '@fontsource-variable/roboto';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
