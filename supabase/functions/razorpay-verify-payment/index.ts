@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
     // NOTE: razorpay_payment_id is unique, so bundled bonus rows get a suffixed id.
     const rows = planKey === "notes_pharmac"
       ? [
-        { ...common, plan: "notes_pharmac", amount_paise: 10000, expires_at: lifetimeAt },
+        { ...common, plan: "notes_pharmac", amount_paise: 5000, expires_at: lifetimeAt },
         { ...common, plan: "adfree_monthly", amount_paise: 0, expires_at: adfreeAt,
           razorpay_payment_id: `${paymentId}:adfree` },
       ]
