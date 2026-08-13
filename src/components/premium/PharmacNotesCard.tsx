@@ -7,7 +7,7 @@ export default function PharmacNotesCard() {
     <NotesPurchaseCard
       copy={{
         plan: "notes_pharmac",
-        priceLabel: "₹100",
+        priceLabel: "₹50",
         icon: Pill,
         cardTitle: "Pharmacology full-subject notes — pass guarantee 💊",
         cardBody: (
@@ -22,7 +22,7 @@ export default function PharmacNotesCard() {
           { text: "Pass mark guarantee", tone: "amber" },
           { text: "+ Ad-free 1 month free", tone: "emerald" },
         ],
-        dialogTitle: "Pharmacology notes — ₹100",
+        dialogTitle: "Pharmacology notes — ₹50",
         dialogBody: (
           <>
             One-time payment · lifetime access to the full-subject Pharmacology notes folder on

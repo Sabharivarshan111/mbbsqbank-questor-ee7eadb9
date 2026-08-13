@@ -10,7 +10,7 @@ const corsHeaders = {
 const PLANS: Record<string, { amount: number; label: string }> = {
   adfree_monthly: { amount: 5000, label: "Ad-free — 1 month" },
   notes_fmspm: { amount: 5000, label: "FM + SPM revision notes" },
-  notes_pharmac: { amount: 10000, label: "Pharmacology full-subject notes" },
+  notes_pharmac: { amount: 5000, label: "Pharmacology full-subject notes" },
 };
 
 const CURRENCY = "INR";
