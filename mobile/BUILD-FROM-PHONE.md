@@ -26,25 +26,55 @@ shipping; it is painful for designing.
 
 ---
 
-## Before anything else: do you still have the keystore?
+## Before anything else: the signing key
 
-This is the single thing that can block you, so check it first.
+Your app is on Play as `com.aistudio.mbbsqbank.aycxvd`. An update must be
+signed with an upload key Google recognises for that listing.
 
-Your app is already on Play as `com.aistudio.mbbsqbank.aycxvd`. An update must
-be signed with the **same upload key** (`my-upload-key.jks`, alias `upload`).
+**The current upload key belongs to Google AI Studio, not to you.** The upload
+certificate is self-signed with `CN=AI Studio, O=Google`, which means AI Studio
+generated the private key and holds it. There is no `.jks` on your machine to
+find, so the CI workflow cannot sign with it as things stand.
 
-- **You have the .jks file** → carry on to Step 1.
-- **You do not have it** → check Play Console → *Setup → App signing*. If
-  **Play App Signing** is enabled (it is by default for apps published in
-  recent years), you can request an **upload key reset**: Play Console →
-  Setup → App signing → *Request upload key reset*. Google issues a new upload
-  key and your users are unaffected. Without Play App Signing and without the
-  original key, the listing cannot be updated at all — you would have to
-  publish under a new package name and lose your installs.
+Play App Signing *is* enabled — the deployment certificate is a Google-issued
+`CN=Android, O=Google Inc.` cert, separate from the upload one. That is what
+makes this recoverable.
 
-Do not skip this check. Everything else is easy to redo; this is not.
+Pick one:
 
----
+**Option A — Request an upload key reset (recommended)**
+
+Play Console → *Setup → App signing* → **Request upload key reset**. Google
+issues a new upload key that you control. Users are unaffected, because Play
+re-signs every release with the deployment key regardless. Allow 1–2 business
+days. Then generate your own keystore:
+
+```sh
+keytool -genkeypair -v -storetype PKCS12 \
+  -keystore my-upload-key.jks -alias upload \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Register its SHA-1 in Google Cloud (see below) and continue from Step 1.
+
+**Option B — Export the keystore from AI Studio**, if it offers an export.
+Then continue from Step 1 as written.
+
+### Certificate fingerprints
+
+Public information — extractable from any published APK — recorded here so the
+OAuth setup can be checked without re-downloading the certs.
+
+| Certificate | SHA-1 |
+|---|---|
+| Upload (AI Studio) | `65:C0:36:DE:45:8B:20:58:33:E4:84:0D:09:79:AD:F1:07:6A:76:05` |
+| Deployment (Play App Signing) | `54:F7:27:F7:21:AD:9D:36:3A:42:4C:85:F4:B9:7A:25:A2:E3:FB:D5` |
+
+Google Cloud needs an Android OAuth client for **whichever certificate signed
+the build that is running**. The deployment fingerprint is the one real users
+hit; miss it and sign-in works in your testing and fails in production. If you
+reset the upload key, add the new upload SHA-1 too — the old one stops
+mattering once the reset takes effect.
 
 ## Step 1 — Turn the keystore into a secret
 
