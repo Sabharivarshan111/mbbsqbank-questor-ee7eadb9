@@ -426,6 +426,7 @@ export type Database = {
           notes_active: boolean
           notes_expires_at: string
           notes_id: string
+          notes_plans: string
           payment_ids: string
           total_paise: number
           user_id: string

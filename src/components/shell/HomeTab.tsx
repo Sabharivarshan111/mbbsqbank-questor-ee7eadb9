@@ -220,11 +220,10 @@ export default function HomeTab({ onNavigate }: { onNavigate: (tab: ShellTab, me
         <YearPickerDialog
           currentYear={local?.year ?? "second"}
           onClose={() => setYearPickerOpen(false)}
-          onPick={(y, makeDefault) => {
-            if (makeDefault) {
-              const base = local ?? { display_name: "Student", year: y } as any;
-              saveProfile({ ...base, year: y }).catch(() => {});
-            }
+          onPick={(y) => {
+            // Always persist the picked year so it sticks after navigating away
+            const base = local ?? ({ display_name: "Student", year: y } as any);
+            saveProfile({ ...base, year: y }).catch(() => {});
             setYearPickerOpen(false);
             const yk = ({ first: "first-year", second: "second-year", third: "third-year", final: "final-year" } as const)[y];
             onNavigate("browse", { year: yk });
@@ -431,10 +430,10 @@ function YearPickerDialog({
 }: {
   currentYear: Year;
   onClose: () => void;
-  onPick: (y: Year, makeDefault: boolean) => void;
+  onPick: (y: Year) => void;
 }) {
   const [pick, setPick] = useState<Year>(currentYear);
-  const [makeDefault, setMakeDefault] = useState(false);
+
   const YEARS: { key: Year; label: string }[] = [
     { key: "first", label: "1st Year" },
     { key: "second", label: "2nd Year" },
@@ -469,15 +468,9 @@ function YearPickerDialog({
             );
           })}
         </div>
-        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-          <span className={`h-5 w-5 rounded-md border flex items-center justify-center ${makeDefault ? "bg-primary border-primary" : "border-border"}`}>
-            {makeDefault && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
-          </span>
-          <input type="checkbox" className="sr-only" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} />
-          Set as my default year
-        </label>
+        <p className="text-[11px] text-muted-foreground">This year will be saved as your default automatically.</p>
         <button
-          onClick={() => onPick(pick, makeDefault)}
+          onClick={() => onPick(pick)}
           className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-fuchsia-500 text-primary-foreground font-semibold"
         >
           Browse {YEARS.find((y) => y.key === pick)?.label}
