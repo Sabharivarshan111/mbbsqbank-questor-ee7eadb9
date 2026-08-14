@@ -211,6 +211,22 @@ as-is. No new tables, policies or functions.
 
 ---
 
+## Play Console "Protected with Play" — leave it alone
+
+The Play Integrity API shows all its verdict fields switched on. That only
+controls what a verdict token *would* contain if the app requested one. This
+app never calls the Integrity API, so those toggles are inert — no verdicts are
+requested and nothing needs decrypting. Do not change the response-encryption
+setting; it configures a feature that is not in use.
+
+"Automatic protection" is different and worth keeping on: Google injects
+anti-tamper as it serves the app, so unofficial copies are flagged. It applies
+to the Play-distributed build only, so it does not affect an APK sideloaded
+from a CI artifact, and it does not affect uploads.
+
+If you ever *do* want integrity checks, they need server-side verification in
+the Supabase edge functions — it is not something a console switch turns on.
+
 ## Google Cloud — the one that bites after release
 
 You have added both SHA-1 fingerprints, which is the right thing. To restate
