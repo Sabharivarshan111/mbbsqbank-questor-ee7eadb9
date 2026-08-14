@@ -21,9 +21,26 @@ export type Section = BaseSection;
 const PyqBadge = ({ years }: { years?: string[] }) => {
   if (!years || years.length === 0) return null;
   return (
-    <div className="inline-block bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-semibold tracking-wide px-3 py-1.5 rounded-md mb-3">
-      PYQ {years.join(", ")}
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[9px] font-extrabold tracking-widest px-2 py-1 rounded bg-amber-200 text-amber-900 dark:bg-amber-500/25 dark:text-amber-200">
+        {years.length}\u00d7 ASKED
+      </span>
+      {years.map((y) => (
+        <span key={y} className="text-[9px] font-bold tracking-wider px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300 uppercase">
+          {y}
+        </span>
+      ))}
     </div>
+  );
+};
+
+const StarsChip = ({ count }: { count: number }) => {
+  if (!count) return null;
+  const stars = "\u2605".repeat(Math.min(3, count));
+  return (
+    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white">
+      {stars} asked {count}\u00d7
+    </span>
   );
 };
 
@@ -64,8 +81,11 @@ const SectionShell = ({
 
 /** ---------- Section renderers ---------- */
 const DefinitionSection = ({ text }: { text: string }) => (
-  <div className="border-l-4 border-primary bg-muted/40 p-4 rounded-r-lg">
-    <p className="text-sm leading-relaxed">{text}</p>
+  <div className="border-l-[3px] border-rose-500 bg-rose-50 dark:bg-rose-950/25 px-3.5 py-3 rounded-r-lg">
+    <p className="text-[9px] font-extrabold tracking-widest text-rose-600 dark:text-rose-300 mb-1.5">
+      DEFINITION \u2014 VERBATIM, LEARN BOTH
+    </p>
+    <p className="text-[13px] leading-relaxed text-rose-900 dark:text-rose-100 font-medium">{text}</p>
   </div>
 );
 
@@ -176,12 +196,12 @@ function imnciRowStyle(cell?: string): string {
 }
 
 const TableSection = ({ columns, rows }: { columns: string[]; rows: string[][] }) => (
-  <div className="overflow-x-auto rounded-lg border">
-    <table className="w-full text-sm">
+  <div className="-mx-1 overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
+    <table className="w-full text-[12.5px] min-w-[340px]">
       <thead>
-        <tr className="bg-muted/60">
+        <tr className="bg-slate-800 dark:bg-slate-950">
           {columns.map((c, i) => (
-            <th key={i} className="text-left p-3 text-xs font-bold uppercase tracking-wider text-muted-foreground align-top">
+            <th key={i} className="text-left px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider text-white align-top">
               {c}
             </th>
           ))}
@@ -191,9 +211,16 @@ const TableSection = ({ columns, rows }: { columns: string[]; rows: string[][] }
         {rows.map((row, i) => {
           const tint = imnciRowStyle(row[0]);
           return (
-            <tr key={i} className={tint || (i % 2 ? "bg-muted/20" : "")}>
+            <tr key={i} className={tint || (i % 2 ? "bg-slate-50 dark:bg-white/[0.03]" : "")}>
               {row.map((cell, j) => (
-                <td key={j} className={`p-3 align-top border-t ${j === 0 && tint ? "font-bold" : ""}`}>{cell}</td>
+                <td
+                  key={j}
+                  className={`px-2.5 py-2 align-top border-t border-slate-100 dark:border-white/10 ${
+                    j === 0 ? "font-bold text-rose-600 dark:text-rose-300 whitespace-nowrap" : ""
+                  } ${j > 0 && !tint ? "[&>*]:bg-amber-100" : ""}`}
+                >
+                  {cell}
+                </td>
               ))}
             </tr>
           );
@@ -229,21 +256,20 @@ const OutcomeSection = ({ text }: { text: string }) => (
 );
 
 const RevisionSection = ({ items }: { items: string[] }) => (
-  <div className="rounded-xl border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/30 p-4">
-    <div className="flex items-center gap-2 mb-3">
-      <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-300" />
-      <p className="font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-200 text-sm">Must-Write Points</p>
-    </div>
-    <ul className="space-y-2">
+  <div className="rounded-xl border-2 border-dashed border-violet-400 dark:border-violet-500/60 bg-violet-50 dark:bg-violet-950/25 p-3.5">
+    <p className="text-[9px] font-extrabold tracking-widest text-violet-500 dark:text-violet-300 mb-1">
+      MNEMONIC \u2014 MUST-WRITE POINTS
+    </p>
+    <ol className="space-y-1.5 mt-2">
       {items.map((it, i) => (
-        <li key={i} className="flex items-start gap-2">
-          <span className="mt-0.5 h-5 w-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-extrabold flex-shrink-0">
+        <li key={i} className="flex items-start gap-2.5">
+          <span className="text-violet-600 dark:text-violet-300 font-extrabold text-[13px] w-4 flex-shrink-0">
             {i + 1}
           </span>
-          <p className="text-sm font-semibold text-amber-900 dark:text-amber-100 leading-relaxed">{it}</p>
+          <p className="text-[13px] font-medium text-violet-950 dark:text-violet-100 leading-relaxed">{it}</p>
         </li>
       ))}
-    </ul>
+    </ol>
   </div>
 );
 
@@ -251,38 +277,46 @@ const RevisionSection = ({ items }: { items: string[] }) => (
 export default function HandwrittenNotesView({
   subtopicName, content,
 }: { subtopicName: string; content: NotesContent }) {
+  const askedCount = content.pyqYears?.length ?? 0;
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-900 via-blue-900 to-blue-950 text-white p-5">
-        <p className="text-[10px] tracking-widest uppercase text-blue-200 mb-1">Handwritten Notes</p>
-        <h2 className="text-2xl font-extrabold">{subtopicName}</h2>
-        {content.pyqYears && content.pyqYears.length > 0 && (
-          <div className="mt-3 inline-block bg-white/10 backdrop-blur text-blue-100 text-xs font-semibold px-3 py-1.5 rounded-full">
-            📖 PYQ {content.pyqYears.join(", ")}
-          </div>
-        )}
+    <div className="space-y-3.5 pb-2">
+      {/* Chapter banner */}
+      <div className="rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-3.5 text-white">
+          <p className="text-[9px] tracking-[0.18em] uppercase text-white/80 mb-1">
+            Handwritten Notes {askedCount > 0 ? "\u00b7 High Yield" : ""}
+          </p>
+          <h2 className="text-[19px] font-extrabold leading-tight tracking-tight uppercase">{subtopicName}</h2>
+          {askedCount > 0 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <StarsChip count={askedCount} />
+              {content.pyqYears!.map((y) => (
+                <span key={y} className="text-[9px] font-bold tracking-wider px-2 py-1 rounded bg-white/20 text-white uppercase">
+                  {y}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* High-Yield Tip */}
+      {/* Read this first */}
       {content.highYieldTip && (
-        <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-4">
-          <div className="flex gap-3">
-            <div className="h-10 w-10 rounded-full bg-amber-200 dark:bg-amber-900 flex items-center justify-center flex-shrink-0">
-              <Trophy className="h-5 w-5 text-amber-700 dark:text-amber-300" />
-            </div>
-            <div>
-              <p className="font-bold text-amber-700 dark:text-amber-300 mb-1">High-Yield Tip</p>
-              <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">{content.highYieldTip}</p>
-            </div>
+        <div className="rounded-r-lg border-l-[3px] border-amber-400 bg-amber-50 dark:bg-amber-950/25 px-3.5 py-3">
+          <div className="flex items-start gap-2">
+            <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-300 mt-0.5 flex-shrink-0" />
+            <p className="text-[12.5px] leading-relaxed text-amber-900 dark:text-amber-100">
+              <span className="font-extrabold text-amber-700 dark:text-amber-300">Read this first \u2014 </span>
+              {content.highYieldTip}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Sections */}
+      {/* Sections as exam sheets */}
       {content.sections.map((s, i) => (
-        <div key={i}>
-          <PyqBadge years={s.pyqYears} />
+        <div key={i} className="space-y-1.5">
+          {s.pyqYears && s.pyqYears.length > 0 && <PyqBadge years={s.pyqYears} />}
           <SectionShell icon={s.icon} title={s.title} defaultOpen={i < 2}>
             {renderPayload(s)}
           </SectionShell>
