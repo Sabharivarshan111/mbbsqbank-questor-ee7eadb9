@@ -32,6 +32,7 @@ const screen = (params.get('screen') ?? 'home').toLowerCase();
 const nodePath = params.get('node');
 const nodeYear = params.get('year') ?? 'second-year';
 const nodeTitle = params.get('title') ?? 'Topic';
+const themeParam = params.get('theme') === 'light' ? 'light' : 'dark';
 
 const tabIndex = Math.max(
   0,
@@ -98,7 +99,7 @@ function Shell() {
 
 createRoot(document.getElementById('root')!).render(
   <SafeAreaProvider initialMetrics={METRICS}>
-    <ThemeProvider>
+    <ThemeProvider initialPreference={themeParam}>
       <Shell />
     </ThemeProvider>
   </SafeAreaProvider>,

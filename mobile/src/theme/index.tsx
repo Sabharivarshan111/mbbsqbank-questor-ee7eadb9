@@ -38,21 +38,38 @@ export interface Palette {
 }
 
 /**
- * Mirrors the CSS custom properties in src/index.css so the native app is the
- * same design, not a lookalike. The dark theme is pure black with a *white*
- * primary — that is why the hero title reads as a white-to-pink gradient and
- * the centre timer button is a white disc.
+ * Started as a mirror of src/index.css and has since diverged, deliberately, in
+ * one respect: **surface separation**.
+ *
+ * The web values put `card` at 3% lightness on a 0% background and, in light
+ * mode, 98% on 100%. Those are 2–3 point steps — invisible. Every card in the
+ * app was being held together by its 1px border alone, which is why the screens
+ * read as a flat wall of outlines rather than as layers. Material weight is
+ * what encodes hierarchy (apple-design §12), and there was none to read.
+ *
+ * So the surfaces now step properly: background → card → cardElevated is a
+ * visible progression at both ends. The neutrals also carry a slight cool cast
+ * rather than being pure grey, which is what stops a dark UI looking like an
+ * unstyled default.
+ *
+ * What did NOT change, because it is the app's identity: the pure-black dark
+ * background (it is an OLED win as well as a look), the *white* primary — that
+ * is why the hero title reads as a white-to-pink gradient and the centre timer
+ * button is a white disc — and every accent hue.
+ *
+ * The web app keeps its own values. If the two are ever reunified, bring the
+ * web up to these rather than flattening these back down.
  */
 const DARK: Palette = {
-  background: '#000000', // --background: 0 0% 0%
-  card: '#080808', // --card: 0 0% 3%
-  cardElevated: '#1A1A1A', // --muted: 0 0% 10%
-  muted: '#1A1A1A',
-  border: '#333333', // --border: 0 0% 20%
-  text: '#FFFFFF', // --foreground: 0 0% 100%
-  textMuted: '#B3B3B3', // --muted-foreground: 0 0% 70%
-  primary: '#FFFFFF', // --primary: 0 0% 100%
-  primaryText: '#000000', // --primary-foreground: 0 0% 0%
+  background: '#000000', // unchanged: pure black, OLED and identity
+  card: '#0E0E11', // was #080808 — a card you can actually see
+  cardElevated: '#191920', // was #1A1A1A, now with the same cool cast
+  muted: '#191920',
+  border: '#2C2C33', // was #333333 — softer, so it frames rather than fences
+  text: '#FFFFFF',
+  textMuted: '#A8A8B3', // was #B3B3B3
+  primary: '#FFFFFF', // unchanged: identity
+  primaryText: '#000000',
   cyan: '#22D3EE',
   emerald: '#34D399',
   fuchsia: '#E879F9',
@@ -65,14 +82,14 @@ const DARK: Palette = {
 };
 
 const LIGHT: Palette = {
-  background: '#FFFFFF', // --background: 0 0% 100%
-  card: '#FAFAFA', // --card: 0 0% 98%
-  cardElevated: '#EBEBEB', // --muted: 0 0% 92%
-  muted: '#EBEBEB',
-  border: '#D9D9D9', // --border: 0 0% 85%
-  text: '#0A0A0A', // --foreground: 0 0% 3.9%
-  textMuted: '#737373', // --muted-foreground: 0 0% 45.1%
-  primary: '#171717', // --primary: 0 0% 9%
+  background: '#FFFFFF',
+  card: '#F6F6F9', // was #FAFAFA — 98% on 100% was not a surface
+  cardElevated: '#ECECF1', // was #EBEBEB
+  muted: '#ECECF1',
+  border: '#DCDCE4', // was #D9D9D9
+  text: '#0A0A0B',
+  textMuted: '#6B6B78', // was #737373 — also lifts contrast on white
+  primary: '#171717',
   primaryText: '#FAFAFA',
   cyan: '#0891B2',
   emerald: '#059669',
@@ -108,10 +125,21 @@ const ThemeContext = createContext<ThemeContextValue>({
   setTextSize: () => {},
 });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({
+  children,
+  initialPreference = 'dark',
+}: {
+  children: React.ReactNode;
+  /**
+   * Starting theme before the stored preference loads. The app never passes
+   * this — it exists so the screenshot harness can capture both themes without
+   * a stored preference to fight over.
+   */
+  initialPreference?: ThemePreference;
+}) {
   const systemScheme = useColorScheme();
   // The web app ships dark by default; keep that rather than following the OS.
-  const [preference, setPreferenceState] = useState<ThemePreference>('dark');
+  const [preference, setPreferenceState] = useState<ThemePreference>(initialPreference);
   const [textSize, setTextSizeState] = useState<TextSize>('default');
 
   useEffect(() => {

@@ -687,7 +687,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: space.lg,
-    paddingBottom: space.xxl,
+    // Clears the tab bar. Its raised centre disc overhangs its own strip, so
+    // the content needs more room than the bar's height suggests.
+    paddingBottom: 96,
   },
   header: {
     flexDirection: 'row',
@@ -746,17 +748,19 @@ const styles = StyleSheet.create({
   hero: {
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: space.xl,
+    padding: 18,
     overflow: 'hidden',
-    marginBottom: space.xl,
+    marginBottom: space.lg,
   },
   heroGlow: {
+    // Pushed mostly off the card so what shows is the soft shoulder of the
+    // circle, not a hard arc sliced by the corner radius.
     position: 'absolute',
-    right: -24,
-    top: -24,
-    height: 160,
-    width: 160,
-    borderRadius: 80,
+    right: -70,
+    top: -90,
+    height: 210,
+    width: 210,
+    borderRadius: 105,
   },
   heroTitle: typeScale.title1,
   heroBody: {
@@ -772,7 +776,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginTop: 16,
+    marginTop: space.md,
   },
   creditLabel: typeScale.overline,
   creditName: {
@@ -792,7 +796,7 @@ const styles = StyleSheet.create({
   quickRow: {
     flexDirection: 'row',
     gap: space.sm,
-    marginBottom: space.xl,
+    marginBottom: space.lg,
   },
   quickAction: {
     flex: 1,
@@ -802,7 +806,7 @@ const styles = StyleSheet.create({
     // topics instantly" — so they moved to the accessibility hint and the card
     // shrank to what it actually holds. minHeight, not height: fixed heights
     // and growing text are the classic clipping pair.
-    minHeight: 92,
+    minHeight: 84,
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: space.md,
@@ -942,12 +946,21 @@ const styles = StyleSheet.create({
   subjectGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    // `space-between` rather than a gap. With `gap: 12` and `width: '48%'` the
+    // two columns came to 96% + 12dp, which on a 358dp content width left ~2dp
+    // dangling on the right — the grid was very slightly off-centre against
+    // every other block on the screen. `space-between` makes both outer edges
+    // flush by construction, so the column gutter is whatever is left over and
+    // the block is mirror-symmetric at any screen width.
+    justifyContent: 'space-between',
+    rowGap: 12,
+    marginBottom: space.lg,
   },
   subjectCard: {
-    // Strict two-column grid, matching `grid-cols-2` on the web. An odd last
-    // card stays half-width instead of stretching.
-    width: '48%',
+    // 48.5% x 2 = 97%, leaving a 3% gutter between the columns and nothing at
+    // the edges. Strict two columns; an odd last card stays half-width instead
+    // of stretching across.
+    width: '48.5%',
     height: 160,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,

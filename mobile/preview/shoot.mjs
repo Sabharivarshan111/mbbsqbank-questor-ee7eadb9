@@ -21,6 +21,9 @@ const outDir = path.resolve(process.argv[2] ?? path.join(here, '..', '..', 'scre
 
 const SHOTS = [
   { name: 'home', query: 'screen=home' },
+  // Long screens need their tail checked too — a footer that overlaps the tab
+  // bar or a card clipped by the scroll container is invisible from the top.
+  { name: 'home-bottom', query: 'screen=home', scroll: 'bottom' },
   { name: 'browse', query: 'screen=browse' },
   { name: 'notes', query: 'screen=notes' },
   { name: 'timer', query: 'screen=timer' },
@@ -30,6 +33,10 @@ const SHOTS = [
     name: 'questions',
     query: 'screen=browse&year=second-year&node=pathology&title=Pathology',
   },
+  // Both themes get captured. A palette change that only ever gets eyeballed
+  // in dark is a palette change that breaks light.
+  { name: 'home-light', query: 'screen=home&theme=light' },
+  { name: 'progress-light', query: 'screen=progress&theme=light' },
 ];
 
 const server = await createServer({
@@ -70,6 +77,24 @@ for (const shot of SHOTS) {
   await page.goto(`http://localhost:5199/?${shot.query}`, { waitUntil: 'networkidle' });
   // Let springs settle and fonts swap in.
   await page.waitForTimeout(1200);
+  if (shot.scroll === 'bottom') {
+    // react-native-web renders ScrollView as an overflow container, so the
+    // window does not scroll — find the scroller and drive it directly.
+    await page.evaluate(() => {
+      // Pick the *deepest, tallest* overflowing element. Taking the first
+      // match walks into an ancestor that barely overflows and moves nothing.
+      const candidates = [...document.querySelectorAll('div')]
+        .filter(node => node.scrollHeight > node.clientHeight + 40)
+        .sort(
+          (a, b) =>
+            b.scrollHeight - b.clientHeight - (a.scrollHeight - a.clientHeight),
+        );
+      for (const node of candidates) {
+        node.scrollTop = node.scrollHeight;
+      }
+    });
+    await page.waitForTimeout(500);
+  }
   await page.screenshot({ path: path.join(outDir, `${shot.name}.png`) });
   process.stdout.write(`captured ${shot.name}\n`);
 }
