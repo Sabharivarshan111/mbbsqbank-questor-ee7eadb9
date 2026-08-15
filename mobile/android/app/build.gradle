@@ -107,7 +107,7 @@ android {
         }
         // The existing upload key. Passwords come from the environment so they
         // never land in version control:
-        //   KEYSTORE_PATH   absolute path to my-upload-key.jks
+        //   KEYSTORE_PATH   absolute path to upload-keystore.jks
         //   STORE_PASSWORD  keystore password
         //   KEY_PASSWORD    key password
         // See mobile/README.md → "Signing a release build".

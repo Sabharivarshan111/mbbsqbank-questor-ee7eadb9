@@ -121,13 +121,13 @@ npm run lint         # ESLint
 ## Step 5 — Sign the release build
 
 This app is **already published**, so it must be signed with the existing
-upload key — `my-upload-key.jks`, alias `upload`. A different key produces an
+upload key — `upload-keystore.jks`, alias `upload`. A different key produces an
 upload Play will reject.
 
 Point the build at it through the environment (never commit these):
 
 ```sh
-export KEYSTORE_PATH=/absolute/path/to/my-upload-key.jks
+export KEYSTORE_PATH=/absolute/path/to/upload-keystore.jks
 export STORE_PASSWORD=…
 export KEY_PASSWORD=…
 ```
@@ -135,7 +135,7 @@ export KEY_PASSWORD=…
 On Windows PowerShell:
 
 ```powershell
-$env:KEYSTORE_PATH="C:\path\to\my-upload-key.jks"
+$env:KEYSTORE_PATH="C:\path\to\upload-keystore.jks"
 $env:STORE_PASSWORD="…"
 $env:KEY_PASSWORD="…"
 ```

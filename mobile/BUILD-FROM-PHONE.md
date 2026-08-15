@@ -51,11 +51,20 @@ days. Then generate your own keystore:
 
 ```sh
 keytool -genkeypair -v -storetype PKCS12 \
-  -keystore my-upload-key.jks -alias upload \
+  -keystore upload-keystore.jks -alias upload \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Register its SHA-1 in Google Cloud (see below) and continue from Step 1.
+Export its certificate — this `.pem`, not the keystore, is what Google's reset
+form asks for:
+
+```sh
+keytool -export -rfc -keystore upload-keystore.jks \
+  -alias upload -file upload_certificate.pem
+```
+
+The keystore stays with you. Register the new key's SHA-1 in Google Cloud (see
+below) and continue from Step 1.
 
 **Option B — Export the keystore from AI Studio**, if it offers an export.
 Then continue from Step 1 as written.
@@ -87,12 +96,12 @@ is the key to your app's identity. Use one of these instead:
 
 1. On github.com, open your repo → green **Code** button → **Codespaces** →
    *Create codespace on main*.
-2. Upload `my-upload-key.jks` into the codespace (drag into the file
+2. Upload `upload-keystore.jks` into the codespace (drag into the file
    explorer, or use the upload button).
 3. In the codespace terminal:
 
    ```sh
-   base64 -w0 my-upload-key.jks
+   base64 -w0 upload-keystore.jks
    ```
 
 4. Copy the long single-line output.
@@ -105,7 +114,7 @@ is the key to your app's identity. Use one of these instead:
 3. `termux-setup-storage`, then:
 
    ```sh
-   base64 -w0 /sdcard/Download/my-upload-key.jks
+   base64 -w0 /sdcard/Download/upload-keystore.jks
    ```
 
 4. Long-press to copy the output.
