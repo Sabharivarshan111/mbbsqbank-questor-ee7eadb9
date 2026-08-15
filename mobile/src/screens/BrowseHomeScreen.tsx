@@ -6,6 +6,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ChevronRight, Search } from 'lucide-react-native';
+import { typeScale } from '@/theme/typography';
 import { useTheme } from '@/theme';
 import { Card, EmptyState, Muted, ProgressBar } from '@/components/ui';
 import { BackButton } from '@/components/BackButton';
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
     marginLeft: -6,
   },
   title: {
+    ...typeScale.title2,
     fontSize: 22,
     fontWeight: '800',
   },

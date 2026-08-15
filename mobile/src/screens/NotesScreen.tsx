@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
+import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
 import { NotesContentView } from '@/components/NotesContentView';
@@ -579,10 +580,7 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-  },
+  title: typeScale.title1,
   subtitle: {
     fontSize: 15,
     marginTop: 2,
@@ -664,6 +662,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backTitle: {
+    ...typeScale.title2,
     fontSize: 20,
     fontWeight: '800',
   },

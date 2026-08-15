@@ -25,6 +25,9 @@ import {
 } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
 import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
+import { TEXT_SIZE_OPTIONS, TEXT_SIZE_SCALE } from '@/theme/textScale';
+import { radius, space } from '@/theme/tokens';
+import { typeScale } from '@/theme/typography';
 import { GradientFill } from '@/components/Gradient';
 import {
   collectAllQuestions,
@@ -77,7 +80,7 @@ const WHATSAPP_LABEL: Record<YearKey, string> = {
 };
 
 export default function HomeScreen() {
-  const { colors, theme, toggleTheme } = useTheme();
+  const { colors, theme, toggleTheme, textSize, setTextSize } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const countDone = useCountDone();
@@ -85,6 +88,7 @@ export default function HomeScreen() {
   const [slide, setSlide] = useState(0);
   const [focusMinutes, setFocusMinutes] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
+  const [textSizeOpen, setTextSizeOpen] = useState(false);
 
   useEffect(() => {
     readFocusMinutes().then(setFocusMinutes);
@@ -181,9 +185,15 @@ export default function HomeScreen() {
           </View>
         </View>
         <View style={styles.headerRight}>
-          <RoundButton label="FONT SIZE">
-            <Type size={16} color={colors.text} />
-          </RoundButton>
+          <Touchable
+            onPress={() => setTextSizeOpen(true)}
+            label="Text size"
+            hint={`Currently ${textSize}`}
+            scaleTo={0.9}>
+            <RoundButton label="TEXT SIZE">
+              <Type size={16} color={colors.text} />
+            </RoundButton>
+          </Touchable>
           <Touchable
             onPress={toggleTheme}
             label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
@@ -209,7 +219,6 @@ export default function HomeScreen() {
           style={[styles.heroGlow, { backgroundColor: withAlpha(colors.fuchsia, 0.12) }]}
           pointerEvents="none"
         />
-        <Text style={[styles.heroKicker, { color: colors.textMuted }]}>Welcome to</Text>
         <Animated.View style={{ opacity: heroFade }}>
           <Text
             accessibilityRole="header"
@@ -326,6 +335,56 @@ export default function HomeScreen() {
           <ChevronRight size={16} color={colors.primary} />
         </Touchable>
       </View>
+
+      <Sheet
+        visible={textSizeOpen}
+        onClose={() => setTextSizeOpen(false)}
+        title="Text size">
+        <Text style={[styles.sheetSub, { color: colors.textMuted }]}>
+          Applies across the app. Your phone's own display size still works too.
+        </Text>
+        <View style={styles.textSizeRow}>
+          {TEXT_SIZE_OPTIONS.map(option => {
+            const active = option.key === textSize;
+            return (
+              <Touchable
+                key={option.key}
+                onPress={() => setTextSize(option.key)}
+                role="radio"
+                label={option.label}
+                state={{ checked: active }}
+                scaleTo={0.96}
+                style={[
+                  styles.textSizeChip,
+                  {
+                    backgroundColor: active ? colors.primary : colors.cardElevated,
+                    borderColor: active ? colors.primary : colors.border,
+                  },
+                ]}>
+                {/* Each sample is set at the size it selects, so the choice is
+                    shown rather than described. */}
+                <Text
+                  style={[
+                    styles.textSizeSample,
+                    {
+                      color: active ? colors.primaryText : colors.text,
+                      fontSize: Math.round(15 * TEXT_SIZE_SCALE[option.key]),
+                    },
+                  ]}>
+                  Aa
+                </Text>
+                <Text
+                  style={[
+                    styles.textSizeLabel,
+                    { color: active ? colors.primaryText : colors.textMuted },
+                  ]}>
+                  {option.label}
+                </Text>
+              </Touchable>
+            );
+          })}
+        </View>
+      </Sheet>
 
       <YearPickerSheet
         visible={yearPickerOpen}
@@ -537,19 +596,20 @@ function QuickAction({
     <Touchable
       onPress={onPress}
       label={label}
+      // The description survives here rather than on screen: TalkBack has room
+      // for it, a quarter of a 390dp row does not.
       hint={sub}
       style={[
         styles.quickAction,
         { backgroundColor: colors.card, borderColor: colors.border },
       ]}>
       {icon}
-      <View>
-        <Text style={[styles.quickLabel, { color }]}>{label}</Text>
-        <Text style={[styles.quickSub, { color: colors.textMuted }]} numberOfLines={2}>
-          {sub}
-        </Text>
-        <ArrowRight size={12} color={color} style={styles.quickArrow} />
-      </View>
+      {/* No arrow. Four identical chevrons on four obviously-tappable cards is
+          decoration that costs the label its width — "Progress" was rendering
+          as "Prog…" to make room for it. */}
+      <Text style={[styles.quickLabel, { color }]} numberOfLines={1}>
+        {label}
+      </Text>
     </Touchable>
   );
 }
@@ -602,15 +662,38 @@ const SubjectFill = React.memo(function SubjectFillBar({
 });
 
 const styles = StyleSheet.create({
+  textSizeRow: {
+    flexDirection: 'row',
+    gap: space.sm,
+    marginTop: space.lg,
+    marginBottom: space.sm,
+  },
+  textSizeChip: {
+    flex: 1,
+    gap: space.xs,
+    paddingVertical: space.md,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 72,
+  },
+  textSizeSample: {
+    fontWeight: '700',
+  },
+  textSizeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
   content: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingHorizontal: space.lg,
+    paddingBottom: space.xxl,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: space.xl,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -625,12 +708,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brand: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    ...typeScale.title3,
+    // The wordmark is the one place tighter-than-ramp tracking is right: it is
+    // read as a shape, not as text.
+    letterSpacing: -0.4,
   },
   tagline: {
-    fontSize: 10,
+    ...typeScale.overline,
+    fontWeight: '500',
+    letterSpacing: 0.4,
     marginTop: 1,
   },
   headerRight: {
@@ -643,9 +729,11 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   roundButtonLabel: {
-    fontSize: 7,
-    letterSpacing: 1,
-    fontWeight: '600',
+    // 7pt was below the legibility floor. 9 with generous tracking reads as a
+    // label rather than as dirt on the screen.
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '700',
   },
   roundButton: {
     height: 40,
@@ -656,11 +744,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hero: {
-    borderRadius: 16,
+    borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
+    padding: space.xl,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: space.xl,
   },
   heroGlow: {
     position: 'absolute',
@@ -670,18 +758,10 @@ const styles = StyleSheet.create({
     width: 160,
     borderRadius: 80,
   },
-  heroKicker: {
-    fontSize: 14,
-  },
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    marginTop: 2,
-  },
+  heroTitle: typeScale.title1,
   heroBody: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 12,
+    ...typeScale.callout,
+    marginTop: space.md,
   },
   credit: {
     alignSelf: 'flex-start',
@@ -694,13 +774,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginTop: 16,
   },
-  creditLabel: {
-    fontSize: 9,
-    letterSpacing: 1.5,
-    fontWeight: '600',
-  },
+  creditLabel: typeScale.overline,
   creditName: {
-    fontSize: 12,
+    ...typeScale.footnote,
     fontWeight: '700',
     marginTop: 2,
   },
@@ -715,25 +791,26 @@ const styles = StyleSheet.create({
   },
   quickRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
+    gap: space.sm,
+    marginBottom: space.xl,
   },
   quickAction: {
     flex: 1,
-    height: 120,
-    borderRadius: 16,
+    // Icon at the top, label at the bottom, nothing between them.
+    // Was a fixed 120 carrying a two-line description that truncated on every
+    // card. The descriptions said nothing the label did not — "Search / Find
+    // topics instantly" — so they moved to the accessibility hint and the card
+    // shrank to what it actually holds. minHeight, not height: fixed heights
+    // and growing text are the classic clipping pair.
+    minHeight: 92,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
+    padding: space.md,
     justifyContent: 'space-between',
   },
   quickLabel: {
-    fontSize: 13,
+    ...typeScale.footnote,
     fontWeight: '700',
-  },
-  quickSub: {
-    fontSize: 10,
-    lineHeight: 13,
-    marginTop: 1,
   },
   quickArrow: {
     marginTop: 4,
@@ -759,11 +836,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   whatsappTitle: {
-    fontSize: 14,
+    ...typeScale.callout,
     fontWeight: '600',
   },
   whatsappSub: {
-    fontSize: 11,
+    ...typeScale.caption,
     marginTop: 2,
   },
   whatsappJoin: {
@@ -776,10 +853,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  sectionTitle: typeScale.title3,
   viewAll: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -810,7 +884,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   sheetSub: {
-    fontSize: 14,
+    ...typeScale.callout,
     marginTop: 2,
   },
   sheetGrid: {
@@ -892,8 +966,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   subjectName: {
-    fontSize: 13,
+    ...typeScale.footnote,
     fontWeight: '700',
+    // Set in caps, which is exactly where letters need to be pushed apart to
+    // stay countable.
+    letterSpacing: 0.6,
   },
   subjectTrack: {
     height: 4,
@@ -914,8 +991,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   subjectPct: {
-    fontSize: 11,
-    fontWeight: '500',
+    ...typeScale.caption,
+    fontWeight: '600',
   },
   subjectArrow: {
     height: 24,
@@ -950,12 +1027,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statLabel: {
-    fontSize: 12,
-  },
+  statLabel: typeScale.caption,
   statValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...typeScale.title3,
     marginTop: 1,
   },
   statValueSmall: {

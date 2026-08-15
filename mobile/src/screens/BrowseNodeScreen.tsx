@@ -10,6 +10,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ArrowLeft, ChevronRight, Search } from 'lucide-react-native';
+import { typeScale } from '@/theme/typography';
 import { useTheme } from '@/theme';
 import { LIST_TUNING } from '@/components/listTuning';
 import { Touchable } from '@/components/Touchable';
@@ -395,6 +396,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   paperTitle: {
+    ...typeScale.title2,
     fontSize: 20,
     fontWeight: '700',
   },

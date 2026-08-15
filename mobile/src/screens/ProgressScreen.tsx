@@ -23,6 +23,7 @@ import {
   Sun,
   Trophy,
 } from 'lucide-react-native';
+import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha, type ThemePreference } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
 import { ProgressRing, ThinBar } from '@/components/ProgressRing';
@@ -584,10 +585,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  name: {
-    fontSize: 26,
-    fontWeight: '800',
-  },
+  name: typeScale.title1,
   year: {
     fontSize: 14,
     marginTop: 2,
@@ -722,6 +720,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   streakText: {
+    ...typeScale.title3,
     fontSize: 18,
     fontWeight: '800',
   },

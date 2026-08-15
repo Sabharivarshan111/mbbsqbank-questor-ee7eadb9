@@ -93,6 +93,18 @@ were deliberately not taken (no backdrop blur, no haptics, no stagger) so nobody
 Reduced motion is not optional. `useReducedMotion()` is wired into every
 primitive; new motion must handle it in the same commit, not as a follow-up.
 
+## Design tokens
+
+`src/theme/tokens.ts` holds the spacing and radius scales; `typeScale` in
+`src/theme/typography.ts` holds the type ramp. Use them instead of raw numbers.
+A size written as a bare `fontSize` ships without the tracking and leading that
+belong to it, which is the whole reason the ramp exists.
+
+`src/theme/textScale.tsx` is the in-app text size. It multiplies the ramp and
+is applied centrally in `components/Text.tsx`, which takes a **zero-cost fast
+path when the size is Default** — do not move that work anywhere it would run
+per row.
+
 ## Accessibility is part of the component contract
 
 `Touchable` **requires** a `label`. That is deliberate — an unlabelled control

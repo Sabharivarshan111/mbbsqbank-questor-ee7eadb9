@@ -13,6 +13,7 @@ import { Touchable } from '@/components/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';
+import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
 import { supabase } from '@/lib/supabase';
@@ -227,10 +228,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-  },
+  title: typeScale.title1,
   subtitle: {
     fontSize: 14,
     marginTop: 2,

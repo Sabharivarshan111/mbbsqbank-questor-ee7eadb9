@@ -6,6 +6,7 @@ import { Sheet } from '@/components/Sheet';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Coffee, Pencil, Play, Pause, RotateCcw, SlidersHorizontal, Sparkles, Timer as TimerIcon, Users } from 'lucide-react-native';
+import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
 import { formatClock, PomodoroMode, usePomodoro } from '@/hooks/usePomodoro';
 import { formatFocusTime } from '@/lib/focusStats';
@@ -248,10 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 18,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-  },
+  title: typeScale.title1,
   subtitle: {
     fontSize: 14,
     marginTop: 2,
@@ -418,6 +416,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sheetTitle: {
+    ...typeScale.title2,
     fontSize: 20,
     fontWeight: '800',
   },

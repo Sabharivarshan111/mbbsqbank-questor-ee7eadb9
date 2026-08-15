@@ -9,6 +9,7 @@ import React, {
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
+import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
 
 export type ThemeName = 'light' | 'dark';
 export type ThemePreference = ThemeName | 'system';
@@ -85,6 +86,7 @@ const LIGHT: Palette = {
 };
 
 const STORAGE_KEY = 'orbit:theme-preference';
+const TEXT_SIZE_KEY = 'orbit:text-size';
 
 interface ThemeContextValue {
   theme: ThemeName;
@@ -92,6 +94,8 @@ interface ThemeContextValue {
   preference: ThemePreference;
   setPreference: (p: ThemePreference) => void;
   toggleTheme: () => void;
+  textSize: TextSize;
+  setTextSize: (size: TextSize) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -100,12 +104,15 @@ const ThemeContext = createContext<ThemeContextValue>({
   preference: 'dark',
   setPreference: () => {},
   toggleTheme: () => {},
+  textSize: 'default',
+  setTextSize: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
   // The web app ships dark by default; keep that rather than following the OS.
   const [preference, setPreferenceState] = useState<ThemePreference>('dark');
+  const [textSize, setTextSizeState] = useState<TextSize>('default');
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -115,6 +122,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {});
+    AsyncStorage.getItem(TEXT_SIZE_KEY)
+      .then(value => {
+        if (value === 'default' || value === 'large' || value === 'larger') {
+          setTextSizeState(value);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setTextSize = useCallback((next: TextSize) => {
+    setTextSizeState(next);
+    AsyncStorage.setItem(TEXT_SIZE_KEY, next).catch(() => {});
+    // No ad here. Text size is an accessibility setting, and gating one behind
+    // an ad is not a trade anybody should be asked to make.
   }, []);
 
   const setPreference = useCallback((next: ThemePreference) => {
@@ -138,11 +159,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       preference,
       setPreference,
       toggleTheme,
+      textSize,
+      setTextSize,
     }),
-    [theme, preference, setPreference, toggleTheme],
+    [theme, preference, setPreference, toggleTheme, textSize, setTextSize],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      <TextScaleContext.Provider value={TEXT_SIZE_SCALE[textSize]}>
+        {children}
+      </TextScaleContext.Provider>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
