@@ -14,6 +14,7 @@ import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
+import { hydratePremium } from '@/lib/premium';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -71,6 +72,7 @@ function Shell() {
   React.useEffect(() => {
     hydrateProgress();
     hydrateProfile().catch(() => {});
+    hydratePremium().catch(() => {});
   }, []);
 
   const base = theme === 'dark' ? DarkTheme : DefaultTheme;

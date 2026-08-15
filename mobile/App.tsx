@@ -7,10 +7,13 @@ import RootNavigator from '@/navigation/RootNavigator';
 import { hydrateProgress, reconcileProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
 import { initializeAds } from '@/lib/ads';
+import { hydratePremium, usePremiumSync } from '@/lib/premium';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 
 function Shell() {
   const { theme, colors } = useTheme();
+  // Keeps the ad layer's synchronous premium check up to date.
+  usePremiumSync();
 
   useEffect(() => {
     // Load saved completion state before the first counts render, then try a
@@ -20,8 +23,9 @@ function Shell() {
     });
     // Profile, streak and XP; all cloud steps are best-effort.
     hydrateProfile().catch(() => {});
-    // Consent + SDK start, then preload so the first ad has no wait.
-    initializeAds().catch(() => {});
+    // Load the cached ad-free expiry before any ad decision is made, then
+    // start the SDK and preload so the first ad has no wait.
+    hydratePremium().then(() => initializeAds()).catch(() => {});
   }, []);
 
   const navTheme = {

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showRewardedAd } from './ads';
+import { isPremiumCached } from './premium';
 
 /**
  * Per-placement daily rewarded ads, ported from src/lib/daily-ad.ts.
@@ -75,12 +76,6 @@ export function setWalkthroughActive(active: boolean): void {
   walkthroughActive = active;
 }
 
-/** Paid ad-free users never see rewarded ads. */
-let premium = false;
-export function setPremiumCached(value: boolean): void {
-  premium = value;
-}
-
 export interface DailyAdPrompt {
   reason: DailyAdReason;
   title: string;
@@ -103,7 +98,8 @@ export function subscribeDailyAd(listener: Listener): () => void {
  * plays after the user accepts.
  */
 export async function requestDailyAd(reason: DailyAdReason): Promise<void> {
-  if (walkthroughActive || premium) {
+  // Paid ad-free users never see rewarded ads.
+  if (walkthroughActive || isPremiumCached()) {
     return;
   }
   const bucket = REASON_TO_BUCKET[reason];
