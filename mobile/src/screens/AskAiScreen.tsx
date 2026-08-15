@@ -25,6 +25,14 @@ interface ChatMessage {
   text: string;
 }
 
+/**
+ * Mirrors the zod schema in supabase/functions/ask-gemini/index.ts. If those
+ * limits change, change these — exceeding them is a 400, not a soft failure.
+ */
+const MAX_PROMPT = 4000;
+const MAX_HISTORY = 20;
+const MAX_HISTORY_CONTENT = 15000;
+
 let messageSeq = 0;
 function nextId() {
   messageSeq += 1;
@@ -47,8 +55,48 @@ export default function AskAiScreen() {
       if (!prompt || loading) {
         return;
       }
+      if (prompt.length > MAX_PROMPT) {
+        // Caught here rather than as a server 400, so the user gets a sentence
+        // they can act on instead of a validation failure.
+        setMessages(prev => [
+          ...prev,
+          { id: nextId(), role: 'user', text: prompt },
+          {
+            id: nextId(),
+            role: 'assistant',
+            text: `That question is a bit long — please shorten it to under ${MAX_PROMPT.toLocaleString()} characters and send again.`,
+          },
+        ]);
+        setInput('');
+        return;
+      }
       setInput('');
-      const history = messages.map(message => ({ role: message.role, content: message.text }));
+      /**
+       * Only the tail of the conversation goes to the server.
+       *
+       * The deployed ask-gemini function (checked against v110, not just the
+       * copy in supabase/functions) validates `conversationHistory` with
+       * `z.array(...).max(20)` and each `content` with `.max(15000)`. This was
+       * sending the whole transcript, so from the 21st message on, every
+       * request failed validation and the chat stayed broken for the rest of
+       * the session.
+       *
+       * The function answers validation failures with HTTP 200 and an `error`
+       * field rather than a 4xx, so this surfaced as a generic failure message
+       * instead of anything diagnosable.
+       *
+       * The most recent turns are the ones that carry the context anyway, and
+       * the function itself only ever uses the last 10.
+       */
+      const history = messages
+        .slice(-MAX_HISTORY)
+        .map(message => ({
+          role: message.role,
+          content:
+            message.text.length > MAX_HISTORY_CONTENT
+              ? message.text.slice(0, MAX_HISTORY_CONTENT)
+              : message.text,
+        }));
       setMessages(prev => [...prev, { id: nextId(), role: 'user', text: prompt }]);
       setLoading(true);
 
@@ -61,7 +109,14 @@ export default function AskAiScreen() {
           throw new Error(error.message);
         }
         if (data?.error) {
-          throw new Error(String(data.error));
+          // The function rate-limits to 5 requests/minute per IP and reports
+          // it in the body with a 200. Say so plainly — "could not reach the
+          // service" is wrong and unhelpful when the service answered.
+          throw new Error(
+            data.isRateLimit
+              ? `Too many questions at once. Try again in ${data.retryAfter ?? 30} seconds.`
+              : String(data.error),
+          );
         }
         setMessages(prev => [
           ...prev,
@@ -77,9 +132,7 @@ export default function AskAiScreen() {
           {
             id: nextId(),
             role: 'assistant',
-            text: `Could not reach the AI service.\n\n${
-              err instanceof Error ? err.message : String(err)
-            }`,
+            text: err instanceof Error ? err.message : String(err),
           },
         ]);
       } finally {
