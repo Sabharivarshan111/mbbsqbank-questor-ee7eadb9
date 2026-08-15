@@ -177,11 +177,15 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    rowGap: 10,
   },
   yearCard: {
-    width: '47%',
-    flexGrow: 1,
+    // Was `width: '47%'` with `flexGrow: 1`, which let each card expand into
+    // whatever space was left — so the two cards in a row ended up different
+    // widths. A fixed half-width with space-between is symmetric by
+    // construction.
+    width: '48.5%',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,

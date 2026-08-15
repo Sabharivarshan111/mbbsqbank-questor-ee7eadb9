@@ -687,9 +687,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: space.lg,
-    // Clears the tab bar. Its raised centre disc overhangs its own strip, so
-    // the content needs more room than the bar's height suggests.
-    paddingBottom: 96,
+    paddingBottom: space.xxl,
   },
   header: {
     flexDirection: 'row',

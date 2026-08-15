@@ -624,11 +624,15 @@ const styles = StyleSheet.create({
   yearGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    // Flush on both edges, like the subject grid on Home. `gap` plus a 48%
+    // width left a couple of points dangling on the right, which is why the
+    // left card read as narrower than the right one.
+    justifyContent: 'space-between',
+    rowGap: 12,
     marginBottom: 22,
   },
   yearCard: {
-    width: '48%',
+    width: '48.5%',
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,

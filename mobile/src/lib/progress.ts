@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
+import { warn } from '@/lib/log';
 
 /**
  * Completion state for individual questions.
@@ -79,7 +80,7 @@ export async function hydrateProgress(): Promise<void> {
       );
     }
   } catch (error) {
-    console.warn('hydrateProgress failed:', error);
+    warn('hydrateProgress failed:', error);
   } finally {
     hydrated = true;
     emit();
@@ -96,7 +97,7 @@ export function setQuestionDone(question: string, done: boolean): void {
   emit();
 
   AsyncStorage.setItem(id, done ? 'true' : 'false').catch(error =>
-    console.warn('setQuestionDone persist failed:', error),
+    warn('setQuestionDone persist failed:', error),
   );
 
   // The RPCs are idempotent, so an un-tick always lowers XP even if this
@@ -106,10 +107,10 @@ export function setQuestionDone(question: string, done: boolean): void {
     try {
       const { error } = await supabase.rpc(rpc, { _question_id: id });
       if (error) {
-        console.warn(`${rpc} failed:`, error);
+        warn(`${rpc} failed:`, error);
       }
     } catch (error) {
-      console.warn(`${rpc} threw:`, error);
+      warn(`${rpc} threw:`, error);
     }
   })();
 }
@@ -139,7 +140,7 @@ export async function pushProgressToCloud(): Promise<void> {
       await supabase.rpc('record_questions_done', { _question_ids: ids.slice(i, i + CHUNK) });
     }
   } catch (error) {
-    console.warn('pushProgressToCloud failed:', error);
+    warn('pushProgressToCloud failed:', error);
   } finally {
     pushing = false;
   }
@@ -158,7 +159,7 @@ export async function pullProgressFromCloud(): Promise<void> {
       .select('question_id')
       .eq('user_id', userId);
     if (error) {
-      console.warn('pullProgressFromCloud failed:', error);
+      warn('pullProgressFromCloud failed:', error);
       return;
     }
     const incoming: Record<string, string> = {};
@@ -175,7 +176,7 @@ export async function pullProgressFromCloud(): Promise<void> {
       emit();
     }
   } catch (error) {
-    console.warn('pullProgressFromCloud threw:', error);
+    warn('pullProgressFromCloud threw:', error);
   }
 }
 

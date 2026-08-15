@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { validateDisplayName } from '@shared/profanity';
 import { supabase } from './supabase';
 import type { YearKey } from './questionBank';
+import { warn } from '@/lib/log';
 
 /**
  * Study profile.
@@ -115,7 +116,7 @@ export async function saveProfile(profile: LocalProfile): Promise<CloudProfile |
     if (!sessionData.session?.user) {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) {
-        console.warn('Anonymous auth unavailable:', error.message);
+        warn('Anonymous auth unavailable:', error.message);
         return null;
       }
       sessionData = (await supabase.auth.getSession()).data;
@@ -144,7 +145,7 @@ export async function saveProfile(profile: LocalProfile): Promise<CloudProfile |
 
     return (merged as CloudProfile | null) ?? (await fetchCloudProfile());
   } catch (error) {
-    console.warn('saveProfile cloud sync failed:', error);
+    warn('saveProfile cloud sync failed:', error);
     return null;
   }
 }

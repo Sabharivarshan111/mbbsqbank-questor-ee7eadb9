@@ -6,6 +6,7 @@ import mobileAds, {
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
+import { warn } from '@/lib/log';
 
 /**
  * AdMob wiring.
@@ -56,7 +57,7 @@ export async function initializeAds(): Promise<void> {
     }
   } catch (error) {
     // No consent form, or the user is outside a consent region.
-    console.warn('Ads consent flow skipped:', error);
+    warn('Ads consent flow skipped:', error);
   }
 
   try {
@@ -64,7 +65,7 @@ export async function initializeAds(): Promise<void> {
     preloadInterstitial();
     preloadRewarded();
   } catch (error) {
-    console.warn('Ads initialization failed:', error);
+    warn('Ads initialization failed:', error);
     initialized = false;
   }
 }
@@ -85,7 +86,7 @@ function preloadInterstitial(): void {
     });
     interstitial.load();
   } catch (error) {
-    console.warn('Interstitial preload failed:', error);
+    warn('Interstitial preload failed:', error);
   }
 }
 
@@ -101,7 +102,7 @@ function preloadRewarded(): void {
     });
     rewarded.load();
   } catch (error) {
-    console.warn('Rewarded preload failed:', error);
+    warn('Rewarded preload failed:', error);
   }
 }
 
@@ -152,7 +153,7 @@ export function showRewardedAd(): Promise<RewardedResult> {
     try {
       rewarded.show();
     } catch (error) {
-      console.warn('Rewarded show failed:', error);
+      warn('Rewarded show failed:', error);
       unsubscribeEarned();
       unsubscribeClosed();
       finish({ completed: false, amount: 0 });
@@ -169,7 +170,7 @@ export function showInterstitialAd(): void {
   try {
     interstitial.show();
   } catch (error) {
-    console.warn('Interstitial show failed:', error);
+    warn('Interstitial show failed:', error);
     preloadInterstitial();
   }
 }

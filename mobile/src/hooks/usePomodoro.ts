@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus, Vibration } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { warn } from '@/lib/log';
 
 export type PomodoroMode = 'focus' | 'short' | 'long';
 
@@ -123,7 +124,7 @@ export function usePomodoro() {
         setTotalSeconds(minutesFor('focus', active) * 60);
         setRemaining(minutesFor('focus', active) * 60);
       } catch (error) {
-        console.warn('pomodoro restore failed:', error);
+        warn('pomodoro restore failed:', error);
       }
     })();
     return () => {
