@@ -23,7 +23,7 @@ const PyqBadge = ({ years }: { years?: string[] }) => {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="text-[9px] font-extrabold tracking-widest px-2 py-1 rounded bg-amber-200 text-amber-900 dark:bg-amber-500/25 dark:text-amber-200">
-        {years.length}\u00d7 ASKED
+        {years.length}× ASKED
       </span>
       {years.map((y) => (
         <span key={y} className="text-[9px] font-bold tracking-wider px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300 uppercase">
@@ -36,10 +36,10 @@ const PyqBadge = ({ years }: { years?: string[] }) => {
 
 const StarsChip = ({ count }: { count: number }) => {
   if (!count) return null;
-  const stars = "\u2605".repeat(Math.min(3, count));
+  const stars = "★".repeat(Math.min(3, count));
   return (
     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white">
-      {stars} asked {count}\u00d7
+      {stars} asked {count}×
     </span>
   );
 };
@@ -83,7 +83,7 @@ const SectionShell = ({
 const DefinitionSection = ({ text }: { text: string }) => (
   <div className="border-l-[3px] border-rose-500 bg-rose-50 dark:bg-rose-950/25 px-3.5 py-3 rounded-r-lg">
     <p className="text-[9px] font-extrabold tracking-widest text-rose-600 dark:text-rose-300 mb-1.5">
-      DEFINITION \u2014 VERBATIM, LEARN BOTH
+      DEFINITION — VERBATIM, LEARN BOTH
     </p>
     <p className="text-[13px] leading-relaxed text-rose-900 dark:text-rose-100 font-medium">{text}</p>
   </div>
@@ -258,7 +258,7 @@ const OutcomeSection = ({ text }: { text: string }) => (
 const RevisionSection = ({ items }: { items: string[] }) => (
   <div className="rounded-xl border-2 border-dashed border-violet-400 dark:border-violet-500/60 bg-violet-50 dark:bg-violet-950/25 p-3.5">
     <p className="text-[9px] font-extrabold tracking-widest text-violet-500 dark:text-violet-300 mb-1">
-      MNEMONIC \u2014 MUST-WRITE POINTS
+      MNEMONIC — MUST-WRITE POINTS
     </p>
     <ol className="space-y-1.5 mt-2">
       {items.map((it, i) => (
@@ -284,7 +284,7 @@ export default function HandwrittenNotesView({
       <div className="rounded-xl overflow-hidden shadow-sm">
         <div className="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-3.5 text-white">
           <p className="text-[9px] tracking-[0.18em] uppercase text-white/80 mb-1">
-            Handwritten Notes {askedCount > 0 ? "\u00b7 High Yield" : ""}
+            Handwritten Notes {askedCount > 0 ? "· High Yield" : ""}
           </p>
           <h2 className="text-[19px] font-extrabold leading-tight tracking-tight uppercase">{subtopicName}</h2>
           {askedCount > 0 && (
@@ -306,7 +306,7 @@ export default function HandwrittenNotesView({
           <div className="flex items-start gap-2">
             <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-300 mt-0.5 flex-shrink-0" />
             <p className="text-[12.5px] leading-relaxed text-amber-900 dark:text-amber-100">
-              <span className="font-extrabold text-amber-700 dark:text-amber-300">Read this first \u2014 </span>
+              <span className="font-extrabold text-amber-700 dark:text-amber-300">Read this first — </span>
               {content.highYieldTip}
             </p>
           </div>
