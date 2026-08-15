@@ -4,12 +4,12 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 import { Text } from '@/components/Text';
+import { Touchable } from '@/components/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';
@@ -200,16 +200,15 @@ export default function AskAiScreen() {
               style={[styles.input, { color: colors.text }]}
               multiline
             />
-            <Pressable
+            <Touchable
               onPress={() => send(input)}
               disabled={!canSend}
-              style={[
-                styles.sendButton,
-                { backgroundColor: colors.fuchsia, opacity: canSend ? 1 : 0.45 },
-              ]}>
+              label="Send"
+              scaleTo={0.9}
+              style={[styles.sendButton, { backgroundColor: colors.fuchsia }]}>
               <GradientFill from="#F5D0FE" to={colors.fuchsia} borderRadius={12} />
               <Send size={18} color="#3B0764" style={styles.sendIcon} />
-            </Pressable>
+            </Touchable>
           </View>
           <View style={styles.disclaimer}>
             <Sparkles size={12} color={colors.textMuted} />

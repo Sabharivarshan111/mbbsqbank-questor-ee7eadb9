@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   FlatList,
-  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
@@ -12,6 +11,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ArrowLeft, ChevronRight, Search } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { LIST_TUNING } from '@/components/listTuning';
+import { Touchable } from '@/components/Touchable';
 import { EmptyState, Muted, SegmentedControl } from '@/components/ui';
 import { GradientText } from '@/components/GradientText';
 import { ThinBar } from '@/components/ProgressRing';
@@ -98,13 +99,15 @@ export default function BrowseNodeScreen() {
 
   const back = useCallback(() => navigation.goBack(), [navigation]);
 
-  const BackButton = (
-    <Pressable
+  const backControl = (
+    <Touchable
       onPress={back}
-      hitSlop={8}
+      label="Back"
+      hitSlop={12}
+      scaleTo={0.88}
       style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <ArrowLeft size={20} color={colors.text} />
-    </Pressable>
+    </Touchable>
   );
 
   if (!node) {
@@ -119,6 +122,7 @@ export default function BrowseNodeScreen() {
   if (isPaperLevel) {
     return (
       <FlatList
+        {...LIST_TUNING}
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 8 }]}
         data={children}
@@ -126,7 +130,7 @@ export default function BrowseNodeScreen() {
         ListHeaderComponent={
           <View style={styles.paperHeader}>
             <View style={styles.headerRow}>
-              {BackButton}
+              {backControl}
               <View
                 style={[
                   styles.avatar,
@@ -149,7 +153,12 @@ export default function BrowseNodeScreen() {
           return (
             <View
               style={[styles.paperCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Pressable onPress={() => openChild(item.key, item.name)} style={styles.paperTop}>
+              <Touchable
+                onPress={() => openChild(item.key, item.name)}
+                label={item.name}
+                scale={false}
+                dim
+                style={styles.paperTop}>
                 <View style={[styles.badge, { borderColor: colors.border }]}>
                   <Text style={[styles.badgeText, { color: colors.text }]}>{ordinal(index)}</Text>
                 </View>
@@ -158,7 +167,7 @@ export default function BrowseNodeScreen() {
                   <View style={[styles.titleRule, { backgroundColor: colors.text }]} />
                 </View>
                 <ChevronRight size={22} color={colors.textMuted} />
-              </Pressable>
+              </Touchable>
 
               {topics.length > 0 ? (
                 <Text style={[styles.paperTopics, { color: colors.textMuted }]}>
@@ -166,13 +175,16 @@ export default function BrowseNodeScreen() {
                 </Text>
               ) : null}
 
-              <Pressable
+              <Touchable
                 onPress={() => openChild(item.key, item.name)}
+                label={`Explore ${item.name} questions`}
+                scale={false}
+                dim
                 style={[styles.exploreRow, { borderTopColor: colors.border }]}>
                 <Search size={18} color={colors.text} />
                 <Text style={[styles.exploreText, { color: colors.text }]}>Explore Questions</Text>
                 <ChevronRight size={20} color={colors.textMuted} />
-              </Pressable>
+              </Touchable>
             </View>
           );
         }}
@@ -184,6 +196,7 @@ export default function BrowseNodeScreen() {
   if (children.length > 0) {
     return (
       <FlatList
+        {...LIST_TUNING}
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 8 }]}
         data={children}
@@ -191,7 +204,7 @@ export default function BrowseNodeScreen() {
         ListHeaderComponent={
           <View style={styles.topicHeader}>
             <View style={styles.headerRow}>
-              {BackButton}
+              {backControl}
               <View style={styles.topicTitleWrap}>
                 <Text style={[styles.kicker, { color: colors.textMuted }]}>
                   {children.length} TOPICS
@@ -207,15 +220,13 @@ export default function BrowseNodeScreen() {
           const done = countDone(all);
           const pct = all.length ? (done / all.length) * 100 : 0;
           return (
-            <Pressable
+            <Touchable
               onPress={() => openChild(item.key, item.name)}
-              style={({ pressed }) => [
+              label={`${item.name}, ${done} of ${all.length} questions done`}
+              scaleTo={0.985}
+              style={[
                 styles.topicCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.8 : 1,
-                },
+                { backgroundColor: colors.card, borderColor: colors.border },
               ]}>
               <View style={[styles.badge, { borderColor: colors.border }]}>
                 <Text style={[styles.badgeText, { color: colors.text }]}>{ordinal(index)}</Text>
@@ -230,7 +241,7 @@ export default function BrowseNodeScreen() {
                 </Text>
               </View>
               <ChevronRight size={22} color={colors.textMuted} />
-            </Pressable>
+            </Touchable>
           );
         }}
         ListFooterComponent={
@@ -256,6 +267,7 @@ export default function BrowseNodeScreen() {
   const doneHere = countDone(questions);
   return (
     <FlatList
+      {...LIST_TUNING}
       style={{ backgroundColor: colors.background }}
       contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 8 }]}
       data={questions}
@@ -266,7 +278,7 @@ export default function BrowseNodeScreen() {
       ListHeaderComponent={
         <View style={styles.questionHeader}>
           <View style={styles.headerRow}>
-            {BackButton}
+            {backControl}
             <View style={styles.topicTitleWrap}>
               <Text style={[styles.kicker, { color: colors.textMuted }]}>
                 {collectQuestions(node, type).length} QUESTIONS

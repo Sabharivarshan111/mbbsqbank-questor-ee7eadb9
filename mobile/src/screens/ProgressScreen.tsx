@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { Text } from '@/components/Text';
+import { Touchable } from '@/components/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Check,
@@ -185,9 +185,13 @@ export default function ProgressScreen() {
           </Text>
           <Text style={[styles.year, { color: colors.textMuted }]}>{YEAR_LABEL[year]}</Text>
         </View>
-        <Pressable hitSlop={10} onPress={() => setEditOpen(true)}>
+        <Touchable
+          onPress={() => setEditOpen(true)}
+          label="Edit profile"
+          hitSlop={14}
+          scaleTo={0.85}>
           <Pencil size={20} color={colors.text} />
-        </Pressable>
+        </Touchable>
       </View>
 
       {/* Sync state */}
@@ -211,14 +215,24 @@ export default function ProgressScreen() {
               {email}
             </Text>
           </View>
-          <Pressable onPress={signOut} hitSlop={10} disabled={authBusy}>
+          <Touchable
+            onPress={signOut}
+            label="Sign out"
+            hint={`Signed in as ${email}`}
+            disabled={authBusy}
+            hitSlop={14}
+            scaleTo={0.85}>
             <LogOut size={20} color={colors.textMuted} />
-          </Pressable>
+          </Touchable>
         </View>
       ) : (
-        <Pressable
+        <Touchable
           onPress={signIn}
           disabled={authBusy}
+          state={{ busy: authBusy }}
+          label="Sign in with Google"
+          hint="Syncs your progress across devices"
+          scaleTo={0.985}
           style={[styles.syncCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.syncIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
             {authBusy ? (
@@ -235,37 +249,45 @@ export default function ProgressScreen() {
               Sign in with Google to sync across devices
             </Text>
           </View>
-        </Pressable>
+        </Touchable>
       )}
 
       {authError ? (
-        <Text style={[styles.authError, { color: colors.danger }]}>{authError}</Text>
+        <Text accessibilityLiveRegion="polite" style={[styles.authError, { color: colors.danger }]}>
+          {authError}
+        </Text>
       ) : null}
 
-      <Pressable
+      <Touchable
         onPress={sync}
-        style={[styles.syncRow, { borderColor: colors.border }]}
-        disabled={syncing}>
+        label="Merge this device with the cloud"
+        disabled={syncing}
+        state={{ busy: syncing }}
+        style={[styles.syncRow, { borderColor: colors.border }]}>
         <RefreshCw size={15} color={colors.textMuted} />
         <Text style={[styles.syncRowText, { color: colors.textMuted }]}>
           {syncing ? 'Syncing…' : 'Merge this device with the cloud'}
         </Text>
-      </Pressable>
+      </Touchable>
 
       {/* Tabs */}
       <View style={[styles.tabs, { backgroundColor: colors.cardElevated }]}>
         {TABS.map(item => {
           const active = item.key === tab;
           return (
-            <Pressable
+            <Touchable
               key={item.key}
               onPress={() => setTab(item.key)}
+              role="tab"
+              label={item.label}
+              state={{ selected: active }}
+              scale={false}
               style={[styles.tab, active && { backgroundColor: colors.background }]}>
               <Text
                 style={[styles.tabText, { color: active ? colors.text : colors.textMuted }]}>
                 {item.label}
               </Text>
-            </Pressable>
+            </Touchable>
           );
         })}
       </View>
@@ -359,7 +381,14 @@ export default function ProgressScreen() {
 
           {/* Rewards */}
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Pressable style={styles.cardHeader} onPress={() => setRewardsOpen(open => !open)}>
+            <Touchable
+              style={styles.cardHeader}
+              onPress={() => setRewardsOpen(open => !open)}
+              label="Rewards"
+              hint={rewardsOpen ? 'Collapses the rewards list' : 'Expands the rewards list'}
+              state={{ expanded: rewardsOpen }}
+              scale={false}
+              dim>
               <Trophy size={20} color={colors.warning} />
               <Text style={[styles.cardTitle, { color: colors.text }]}>Rewards</Text>
               <Text style={[styles.cardCount, { color: colors.fuchsia }]}>
@@ -372,7 +401,7 @@ export default function ProgressScreen() {
                 color={colors.textMuted}
                 style={rewardsOpen ? undefined : styles.flip}
               />
-            </Pressable>
+            </Touchable>
 
             {rewardsOpen ? (
               <>
@@ -505,9 +534,13 @@ export default function ProgressScreen() {
               {THEME_OPTIONS.map(option => {
                 const active = option.key === preference;
                 return (
-                  <Pressable
+                  <Touchable
                     key={option.key}
                     onPress={() => setPreference(option.key)}
+                    role="radio"
+                    label={`${option.label} theme`}
+                    state={{ checked: active }}
+                    scaleTo={0.95}
                     style={[
                       styles.themeChip,
                       {
@@ -522,7 +555,7 @@ export default function ProgressScreen() {
                       ]}>
                       {option.label}
                     </Text>
-                  </Pressable>
+                  </Touchable>
                 );
               })}
             </View>

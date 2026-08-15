@@ -1,13 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Linking,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
+import { Touchable } from '@/components/Touchable';
+import { Sheet } from '@/components/Sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -27,9 +22,9 @@ import {
   TrendingUp,
   Trophy,
   Type,
-  X,
 } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
+import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
 import { GradientFill } from '@/components/Gradient';
 import {
   collectAllQuestions,
@@ -95,10 +90,36 @@ export default function HomeScreen() {
     readFocusMinutes().then(setFocusMinutes);
   }, []);
 
+  const reduceMotion = useReducedMotion();
+  const heroFade = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
+    // A 6-second loop is a ~0.17 Hz oscillation, which is exactly the kind of
+    // slow repeating motion reduced-motion users ask to be spared (SKILL §14).
+    // The dots stay tappable, so nothing becomes unreachable — the carousel
+    // simply stops driving itself.
+    if (reduceMotion) {
+      return;
+    }
     const id = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 6000);
     return () => clearInterval(id);
-  }, []);
+  }, [reduceMotion]);
+
+  // Cross-fade between slides. A hard cut mid-sentence reads as a glitch; the
+  // fade is what tells you the text was replaced deliberately.
+  useEffect(() => {
+    if (reduceMotion) {
+      heroFade.setValue(1);
+      return;
+    }
+    heroFade.setValue(0);
+    Animated.timing(heroFade, {
+      toValue: 1,
+      duration: DURATION.base,
+      easing: EASE.out,
+      useNativeDriver: true,
+    }).start();
+  }, [slide, heroFade, reduceMotion]);
 
   const { yearKey: year, streak, setYear } = useProfile();
 
@@ -149,9 +170,9 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Pressable style={styles.iconButton} accessibilityLabel="Menu">
+          <View style={styles.iconButton}>
             <Menu size={20} color={colors.text} />
-          </Pressable>
+          </View>
           <View>
             <Text style={[styles.brand, { color: colors.text }]}>ORBIT</Text>
             <Text style={[styles.tagline, { color: colors.textMuted }]}>
@@ -163,7 +184,10 @@ export default function HomeScreen() {
           <RoundButton label="FONT SIZE">
             <Type size={16} color={colors.text} />
           </RoundButton>
-          <Pressable onPress={toggleTheme}>
+          <Touchable
+            onPress={toggleTheme}
+            label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            scaleTo={0.9}>
             <RoundButton label="THEME">
               {theme === 'dark' ? (
                 <Moon size={16} color={colors.text} />
@@ -171,7 +195,7 @@ export default function HomeScreen() {
                 <Sun size={16} color={colors.text} />
               )}
             </RoundButton>
-          </Pressable>
+          </Touchable>
         </View>
       </View>
 
@@ -186,8 +210,14 @@ export default function HomeScreen() {
           pointerEvents="none"
         />
         <Text style={[styles.heroKicker, { color: colors.textMuted }]}>Welcome to</Text>
-        <Text style={[styles.heroTitle, { color: colors.fuchsia }]}>{hero.title}</Text>
-        <Text style={[styles.heroBody, { color: colors.textMuted }]}>{hero.body}</Text>
+        <Animated.View style={{ opacity: heroFade }}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.heroTitle, { color: colors.fuchsia }]}>
+            {hero.title}
+          </Text>
+          <Text style={[styles.heroBody, { color: colors.textMuted }]}>{hero.body}</Text>
+        </Animated.View>
 
         <View style={[styles.credit, { borderColor: colors.border }]}>
           <View>
@@ -197,17 +227,27 @@ export default function HomeScreen() {
           <Flag size={16} color={colors.textMuted} />
         </View>
 
+        {/* Tappable, so the carousel is something the reader controls rather
+            than something that happens to them (SKILL §16 Agency). */}
         <View style={styles.dots}>
-          {HERO_SLIDES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === slide
-                  ? { width: 20, backgroundColor: colors.primary }
-                  : { width: 6, backgroundColor: colors.cardElevated },
-              ]}
-            />
+          {HERO_SLIDES.map((item, index) => (
+            <Touchable
+              key={item.title}
+              onPress={() => setSlide(index)}
+              label={item.title}
+              role="tab"
+              state={{ selected: index === slide }}
+              hitSlop={12}
+              scale={false}>
+              <View
+                style={[
+                  styles.dot,
+                  index === slide
+                    ? { width: 20, backgroundColor: colors.primary }
+                    : { width: 6, backgroundColor: colors.cardElevated },
+                ]}
+              />
+            </Touchable>
           ))}
         </View>
       </View>
@@ -245,8 +285,11 @@ export default function HomeScreen() {
       </View>
 
       {/* WhatsApp community */}
-      <Pressable
+      <Touchable
         onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
+        label="Join our WhatsApp community"
+        hint="Opens WhatsApp"
+        scaleTo={0.985}
         style={[
           styles.whatsapp,
           {
@@ -266,15 +309,22 @@ export default function HomeScreen() {
           </Text>
         </View>
         <Text style={[styles.whatsappJoin, { color: colors.green }]}>Join</Text>
-      </Pressable>
+      </Touchable>
 
       {/* Your Subjects */}
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Subjects</Text>
-        <Pressable onPress={() => setYearPickerOpen(open => !open)} style={styles.viewAll}>
+        <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.text }]}>
+          Your Subjects
+        </Text>
+        <Touchable
+          onPress={() => setYearPickerOpen(open => !open)}
+          label="View all years"
+          hint="Opens the year picker"
+          state={{ expanded: yearPickerOpen }}
+          style={styles.viewAll}>
           <Text style={[styles.viewAllText, { color: colors.primary }]}>View all</Text>
           <ChevronRight size={16} color={colors.primary} />
-        </Pressable>
+        </Touchable>
       </View>
 
       <YearPickerSheet
@@ -292,13 +342,14 @@ export default function HomeScreen() {
 
       <View style={styles.subjectGrid}>
         {subjects.map(subject => (
-          <Pressable
+          <Touchable
             key={subject.key}
             onPress={() => openSubject(subject.key, subject.name)}
-            style={({ pressed }) => [
-              styles.subjectCard,
-              { borderColor: colors.border, transform: [{ scale: pressed ? 0.98 : 1 }] },
-            ]}>
+            // One spoken sentence beats four fragments; TalkBack reads the
+            // card as a whole, not as name / bar / percent / arrow.
+            label={`${subject.name}, ${subject.pct}% complete`}
+            scaleTo={0.975}
+            style={[styles.subjectCard, { borderColor: colors.border }]}>
             <GradientFill
               from={subject.gradient[0]}
               to={subject.gradient[1]}
@@ -310,12 +361,7 @@ export default function HomeScreen() {
                 {subject.name.toUpperCase()}
               </Text>
               <View style={[styles.subjectTrack, { backgroundColor: withAlpha('#000000', 0.4) }]}>
-                <View
-                  style={[
-                    styles.subjectFill,
-                    { width: `${subject.pct}%`, backgroundColor: colors.primary },
-                  ]}
-                />
+                <SubjectFill pct={subject.pct} color={colors.primary} />
               </View>
               <View style={styles.subjectMeta}>
                 <Text style={[styles.subjectPct, { color: colors.primary }]}>
@@ -327,7 +373,7 @@ export default function HomeScreen() {
                 </View>
               </View>
             </View>
-          </Pressable>
+          </Touchable>
         ))}
       </View>
 
@@ -376,7 +422,6 @@ function YearPickerSheet({
   onBrowse: (year: YearKey, makeDefault: boolean) => void;
 }) {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const [picked, setPicked] = useState<YearKey>(currentYear);
   const [makeDefault, setMakeDefault] = useState(false);
 
@@ -389,83 +434,72 @@ function YearPickerSheet({
   }, [visible, currentYear]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable
-        style={[styles.backdrop, { backgroundColor: withAlpha('#000000', 0.7) }]}
-        onPress={onClose}
-      />
-      <View
-        style={[
-          styles.sheet,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            paddingBottom: insets.bottom + 20,
-          },
-        ]}>
-        <View style={styles.sheetHeader}>
-          <View>
-            <Text style={[styles.sheetTitle, { color: colors.text }]}>Select Year</Text>
-            <Text style={[styles.sheetSub, { color: colors.textMuted }]}>
-              Choose the year you want to browse
-            </Text>
-          </View>
-          <Pressable onPress={onClose} hitSlop={10}>
-            <X size={22} color={colors.text} />
-          </Pressable>
-        </View>
+    <Sheet visible={visible} onClose={onClose} title="Select Year">
+      <Text style={[styles.sheetSub, { color: colors.textMuted }]}>
+        Choose the year you want to browse
+      </Text>
 
-        <View style={styles.sheetGrid}>
-          {YEAR_KEYS.map(key => {
-            const active = key === picked;
-            const isDefault = key === currentYear;
-            return (
-              <Pressable
-                key={key}
-                onPress={() => setPicked(key)}
-                style={[
-                  styles.sheetYear,
-                  {
-                    backgroundColor: colors.cardElevated,
-                    borderColor: active ? colors.text : colors.border,
-                    borderWidth: active ? 1.5 : StyleSheet.hairlineWidth,
-                  },
-                ]}>
-                <Text style={[styles.sheetYearName, { color: colors.text }]}>
-                  {YEAR_LABEL[key]}
+      <View style={styles.sheetGrid}>
+        {YEAR_KEYS.map(key => {
+          const active = key === picked;
+          const isDefault = key === currentYear;
+          return (
+            <Touchable
+              key={key}
+              onPress={() => setPicked(key)}
+              role="radio"
+              label={isDefault ? `${YEAR_LABEL[key]}, current default` : YEAR_LABEL[key]}
+              state={{ checked: active }}
+              scaleTo={0.97}
+              style={[
+                styles.sheetYear,
+                {
+                  backgroundColor: colors.cardElevated,
+                  borderColor: active ? colors.text : colors.border,
+                  borderWidth: active ? 1.5 : StyleSheet.hairlineWidth,
+                },
+              ]}>
+              <Text style={[styles.sheetYearName, { color: colors.text }]}>
+                {YEAR_LABEL[key]}
+              </Text>
+              {isDefault ? (
+                <Text style={[styles.sheetYearHint, { color: colors.textMuted }]}>
+                  Current default
                 </Text>
-                {isDefault ? (
-                  <Text style={[styles.sheetYearHint, { color: colors.textMuted }]}>
-                    Current default
-                  </Text>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Pressable style={styles.checkRow} onPress={() => setMakeDefault(v => !v)}>
-          <View
-            style={[
-              styles.checkbox,
-              {
-                borderColor: makeDefault ? colors.primary : colors.border,
-                backgroundColor: makeDefault ? colors.primary : 'transparent',
-              },
-            ]}>
-            {makeDefault ? <Check size={14} color={colors.primaryText} strokeWidth={3} /> : null}
-          </View>
-          <Text style={[styles.checkLabel, { color: colors.text }]}>Set as my default year</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => onBrowse(picked, makeDefault)}
-          style={({ pressed }) => [styles.browseButton, { opacity: pressed ? 0.9 : 1 }]}>
-          <GradientFill from="#FFFFFF" to={colors.fuchsia} borderRadius={14} />
-          <Text style={styles.browseText}>Browse {YEAR_LABEL[picked]}</Text>
-        </Pressable>
+              ) : null}
+            </Touchable>
+          );
+        })}
       </View>
-    </Modal>
+
+      <Touchable
+        style={styles.checkRow}
+        onPress={() => setMakeDefault(v => !v)}
+        role="checkbox"
+        label="Set as my default year"
+        state={{ checked: makeDefault }}
+        scale={false}>
+        <View
+          style={[
+            styles.checkbox,
+            {
+              borderColor: makeDefault ? colors.primary : colors.border,
+              backgroundColor: makeDefault ? colors.primary : 'transparent',
+            },
+          ]}>
+          {makeDefault ? <Check size={14} color={colors.primaryText} strokeWidth={3} /> : null}
+        </View>
+        <Text style={[styles.checkLabel, { color: colors.text }]}>Set as my default year</Text>
+      </Touchable>
+
+      <Touchable
+        onPress={() => onBrowse(picked, makeDefault)}
+        label={`Browse ${YEAR_LABEL[picked]}`}
+        style={styles.browseButton}>
+        <GradientFill from="#FFFFFF" to={colors.fuchsia} borderRadius={14} />
+        <Text style={styles.browseText}>Browse {YEAR_LABEL[picked]}</Text>
+      </Touchable>
+    </Sheet>
   );
 }
 
@@ -500,15 +534,13 @@ function QuickAction({
 }) {
   const { colors } = useTheme();
   return (
-    <Pressable
+    <Touchable
       onPress={onPress}
-      style={({ pressed }) => [
+      label={label}
+      hint={sub}
+      style={[
         styles.quickAction,
-        {
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-          transform: [{ scale: pressed ? 0.97 : 1 }],
-        },
+        { backgroundColor: colors.card, borderColor: colors.border },
       ]}>
       {icon}
       <View>
@@ -518,9 +550,56 @@ function QuickAction({
         </Text>
         <ArrowRight size={12} color={color} style={styles.quickArrow} />
       </View>
-    </Pressable>
+    </Touchable>
   );
 }
+
+/**
+ * The completion bar on a subject card. Split out so only this sliver
+ * re-renders when a question is ticked, rather than the whole grid.
+ *
+ * Squeezed with scaleX from the left edge rather than having its width
+ * animated: width is a layout property and would force layout+paint every
+ * frame, for every card in the grid, on the JS thread. See ui.tsx ProgressBar.
+ */
+const SubjectFill = React.memo(function SubjectFillBar({
+  pct,
+  color,
+}: {
+  pct: number;
+  color: string;
+}) {
+  const reduceMotion = useReducedMotion();
+  const scale = useRef(new Animated.Value(pct / 100)).current;
+  const firstRun = useRef(true);
+
+  useEffect(() => {
+    if (firstRun.current || reduceMotion) {
+      firstRun.current = false;
+      scale.setValue(pct / 100);
+      return;
+    }
+    Animated.timing(scale, {
+      toValue: pct / 100,
+      duration: DURATION.base,
+      easing: EASE.out,
+      useNativeDriver: true,
+    }).start();
+  }, [pct, reduceMotion, scale]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.subjectFill,
+        {
+          backgroundColor: color,
+          transformOrigin: 'left',
+          transform: [{ scaleX: scale }],
+        },
+      ]}
+    />
+  );
+});
 
 const styles = StyleSheet.create({
   content: {
@@ -824,6 +903,8 @@ const styles = StyleSheet.create({
   },
   subjectFill: {
     height: '100%',
+    // Full width in layout; scaleX does the work.
+    width: '100%',
     borderRadius: 2,
   },
   subjectMeta: {

@@ -1,61 +1,124 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
+  Animated,
   StyleSheet,
   TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
 import { Text } from '@/components/Text';
+import { Touchable } from '@/components/Touchable';
 import { useTheme } from '@/theme';
+import { typeScale } from '@/theme/typography';
+import { DURATION, EASE, SPRING, springConfig, useReducedMotion } from '@/theme/motion';
 
 export function Card({
   children,
   style,
   onPress,
+  label,
+  hint,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
+  /** Required once the card is tappable — TalkBack has nothing else to read. */
+  label?: string;
+  hint?: string;
 }) {
   const { colors } = useTheme();
-  const body = (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.card, borderColor: colors.border },
-        style,
-      ]}>
-      {children}
-    </View>
-  );
+  const cardStyle = [
+    styles.card,
+    { backgroundColor: colors.card, borderColor: colors.border },
+    style,
+  ];
+
   if (!onPress) {
-    return body;
+    return <View style={cardStyle}>{children}</View>;
   }
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
-      {body}
-    </Pressable>
+    <Touchable
+      onPress={onPress}
+      label={label ?? 'Open'}
+      hint={hint}
+      // Large surfaces need less shrink than small ones to read as the same
+      // amount of press.
+      scaleTo={0.985}
+      style={cardStyle}>
+      {children}
+    </Touchable>
   );
 }
 
 export function SectionTitle({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
   const { colors } = useTheme();
-  return <Text style={[styles.sectionTitle, { color: colors.text }, style]}>{children}</Text>;
+  return (
+    <Text
+      accessibilityRole="header"
+      style={[typeScale.title3, styles.sectionTitle, { color: colors.text }, style]}>
+      {children}
+    </Text>
+  );
 }
 
 export function Muted({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
   const { colors } = useTheme();
-  return <Text style={[styles.muted, { color: colors.textMuted }, style]}>{children}</Text>;
+  return <Text style={[typeScale.footnote, { color: colors.textMuted }, style]}>{children}</Text>;
 }
 
+/**
+ * Progress bars grow to their value rather than jumping.
+ *
+ * The fill is laid out at full width and squeezed with `scaleX` from its left
+ * edge, rather than having its `width` animated. Width is a layout property:
+ * animating it forces layout + paint + composite every frame, on the JS
+ * thread, for every bar on screen. `scaleX` is a transform, so it composites
+ * on the GPU and runs on the native driver — the difference between a smooth
+ * bar and a stuttering one on a cheap phone.
+ *
+ * Timing rather than a spring: several bars can animate at once, and overshoot
+ * on a measurement reads as an error, not as physics.
+ */
 export function ProgressBar({ value, total }: { value: number; total: number }) {
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
   const pct = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
+
+  const scale = useRef(new Animated.Value(pct / 100)).current;
+  const firstRun = useRef(true);
+
+  useEffect(() => {
+    if (firstRun.current || reduceMotion) {
+      firstRun.current = false;
+      scale.setValue(pct / 100);
+      return;
+    }
+    Animated.timing(scale, {
+      toValue: pct / 100,
+      duration: DURATION.base,
+      easing: EASE.out,
+      useNativeDriver: true,
+    }).start();
+  }, [pct, reduceMotion, scale]);
+
   return (
-    <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
-      <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: colors.primary }]} />
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: pct }}
+      style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+      <Animated.View
+        style={[
+          styles.progressFill,
+          {
+            backgroundColor: colors.primary,
+            // Anchored left, so the bar grows from its start rather than from
+            // its middle.
+            transformOrigin: 'left',
+            transform: [{ scaleX: scale }],
+          },
+        ]}
+      />
     </View>
   );
 }
@@ -82,6 +145,12 @@ export function Pill({
   );
 }
 
+/**
+ * Segmented control. The selection indicator slides between segments on a
+ * spring instead of the highlight teleporting — the movement is what tells
+ * you which way you just travelled (SKILL §8, hint in the direction of the
+ * change).
+ */
 export function SegmentedControl<T extends string>({
   options,
   value,
@@ -92,18 +161,69 @@ export function SegmentedControl<T extends string>({
   onChange: (key: T) => void;
 }) {
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
+  const [trackWidth, setTrackWidth] = React.useState(0);
+
+  const index = Math.max(
+    0,
+    options.findIndex(option => option.key === value),
+  );
+  const slot = useRef(new Animated.Value(index)).current;
+  const firstRun = useRef(true);
+
+  useEffect(() => {
+    if (firstRun.current || reduceMotion) {
+      firstRun.current = false;
+      slot.setValue(index);
+      return;
+    }
+    Animated.spring(slot, { toValue: index, ...springConfig(SPRING.default) }).start();
+  }, [index, reduceMotion, slot]);
+
+  const count = Math.max(1, options.length);
+  // 3dp padding each side, 3dp gaps between segments.
+  const innerWidth = Math.max(0, trackWidth - 6 - 3 * (count - 1));
+  const segmentWidth = innerWidth / count;
+
   return (
-    <View style={[styles.segment, { backgroundColor: colors.cardElevated, borderColor: colors.border }]}>
+    <View
+      onLayout={event => setTrackWidth(event.nativeEvent.layout.width)}
+      style={[
+        styles.segment,
+        { backgroundColor: colors.cardElevated, borderColor: colors.border },
+      ]}>
+      {trackWidth > 0 ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.segmentIndicator,
+            {
+              backgroundColor: colors.primary,
+              width: segmentWidth,
+              transform: [
+                {
+                  translateX: slot.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, segmentWidth + 3],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+      ) : null}
+
       {options.map(option => {
         const active = option.key === value;
         return (
-          <Pressable
+          <Touchable
             key={option.key}
             onPress={() => onChange(option.key)}
-            style={[
-              styles.segmentItem,
-              active && { backgroundColor: colors.primary },
-            ]}>
+            role="tab"
+            label={option.label}
+            state={{ selected: active }}
+            scale={false}
+            style={styles.segmentItem}>
             <Text
               style={[
                 styles.segmentText,
@@ -111,7 +231,7 @@ export function SegmentedControl<T extends string>({
               ]}>
               {option.label}
             </Text>
-          </Pressable>
+          </Touchable>
         );
       })}
     </View>
@@ -124,38 +244,60 @@ export function PrimaryButton({
   disabled,
   loading,
   style,
+  hint,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  hint?: string;
 }) {
   const { colors } = useTheme();
   return (
-    <Pressable
+    <Touchable
       onPress={onPress}
+      label={label}
+      hint={hint}
       disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.button,
-        { backgroundColor: colors.primary, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
-        style,
-      ]}>
+      state={{ busy: loading }}
+      style={[styles.button, { backgroundColor: colors.primary }, style]}>
       {loading ? (
         <ActivityIndicator color={colors.primaryText} />
       ) : (
-        <Text style={[styles.buttonText, { color: colors.primaryText }]}>{label}</Text>
+        <Text style={[typeScale.bodyStrong, { color: colors.primaryText }]}>{label}</Text>
       )}
-    </Pressable>
+    </Touchable>
   );
 }
 
-export function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
+/**
+ * Empty states answer "what's here and what do I do" rather than just
+ * reporting absence (SKILL §16 Wayfinding). `action` gives the user a way out
+ * instead of a dead end.
+ */
+export function EmptyState({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: { label: string; onPress: () => void };
+}) {
   const { colors } = useTheme();
   return (
-    <View style={styles.empty}>
-      <Text style={[styles.emptyTitle, { color: colors.text }]}>{title}</Text>
+    <View style={styles.empty} accessibilityRole="summary">
+      <Text style={[typeScale.title3, styles.emptyTitle, { color: colors.text }]}>{title}</Text>
       {subtitle ? <Muted style={styles.emptySubtitle}>{subtitle}</Muted> : null}
+      {action ? (
+        <Touchable
+          onPress={action.onPress}
+          label={action.label}
+          style={[styles.emptyAction, { borderColor: colors.border }]}>
+          <Text style={[typeScale.bodyStrong, { color: colors.text }]}>{action.label}</Text>
+        </Touchable>
+      ) : null}
     </View>
   );
 }
@@ -166,16 +308,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,
   },
-  pressed: {
-    opacity: 0.75,
-  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
     marginBottom: 10,
-  },
-  muted: {
-    fontSize: 13,
   },
   progressTrack: {
     height: 6,
@@ -184,6 +318,8 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
+    // Full width in layout; scaleX does the work.
+    width: '100%',
     borderRadius: 3,
   },
   pill: {
@@ -203,11 +339,20 @@ const styles = StyleSheet.create({
     padding: 3,
     gap: 3,
   },
+  segmentIndicator: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    bottom: 3,
+    borderRadius: 9,
+  },
   segmentItem: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 9,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 36,
   },
   segmentText: {
     fontSize: 13,
@@ -216,12 +361,9 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 12,
     paddingVertical: 14,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '700',
   },
   empty: {
     paddingVertical: 48,
@@ -229,12 +371,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
     textAlign: 'center',
   },
   emptySubtitle: {
     marginTop: 6,
     textAlign: 'center',
+  },
+  emptyAction: {
+    marginTop: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    minHeight: 44,
+    justifyContent: 'center',
   },
 });

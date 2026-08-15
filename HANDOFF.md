@@ -197,10 +197,67 @@ device.
 - Notes generation end-to-end (sandbox blocks Supabase)
 - Leaderboard with real rows (only the error path was exercised)
 - Font weight rendering on real Android
+- **How any of the new motion actually feels.** The springs, the sheet drag,
+  the velocity handoff and the press feedback were all built to the values in
+  `.claude/skills/review-animations/STANDARDS.md`, and they compile and render —
+  but feel cannot be judged from code or from a react-native-web screenshot.
+  The standards themselves say to check motion in slow motion, frame by frame,
+  and on a real device for gestures. None of that has happened. Treat the
+  timings as a starting point to tune on hardware, not as finished.
+- **TalkBack.** Every control now carries a label, role and state, but no
+  screen reader has actually been run over the app.
+- **Reduced motion.** The `AccessibilityInfo` wiring is in place and the
+  branches are written, but "Remove animations" has not been switched on on a
+  real device to confirm the app degrades the way it is supposed to.
 
 Do not describe any of the above as working until someone runs it on a phone.
 
 ---
+
+## 7a. Design system (added after the first handoff)
+
+The app previously had **zero animation** — no `Animated`, no
+`LayoutAnimation`, every transition an instant cut — and 5 accessibility props
+across 122 touchables. That is what this pass addressed.
+
+Vendored, unmodified, from https://github.com/emilkowalski/skills:
+
+```
+.claude/skills/
+  apple-design/      SKILL.md + README.md   ← README is the index; read it first
+  animate/           SKILL.md + RECIPES.md
+  review-animations/ SKILL.md + STANDARDS.md ← exact curves/durations/springs
+  improve-animations/, find-animation-opportunities/,
+  animation-vocabulary/, emil-design-eng/
+```
+
+`apple-design/README.md` maps every web technique in those skills to its React
+Native equivalent, lists the rules that bind and where each is honoured, and
+records the deliberate departures (no backdrop blur, no haptics, no stagger,
+one JS-driven animation) with the reasoning. Read it before touching motion.
+
+New code:
+
+| File | What |
+|---|---|
+| `src/theme/motion.ts` | Apple spring params → RN physics, `EASE` curves, `DURATION`, momentum projection, rubber-banding, `useReducedMotion()` |
+| `src/theme/typography.ts` | Type ramp with size-specific tracking and leading; font-scale cap |
+| `src/components/Touchable.tsx` | The press target. Required `label`, press-down spring, hit slop |
+| `src/components/Sheet.tsx` | Bottom sheet: 1:1 drag, rubber-band, momentum projection, velocity handoff, `dismissable` gate |
+| `src/components/Dialog.tsx` | Centred either/or dialog |
+| `src/components/BackButton.tsx` | One back control, one place |
+| `src/components/listTuning.ts` | `FlatList` virtualization for long question lists |
+| `preview/shoot.mjs` | The screenshot harness (was previously untracked) |
+
+Performance work in the same pass:
+
+- `collectQuestions` / `collectAllQuestions` are now `WeakMap`-cached per node.
+  They were being re-walked on **every** ticked question, across 14 subjects, on
+  three screens, because the memo key included the progress store's version.
+- `searchQuestions` builds a lazy flat index with pre-folded lowercase strings
+  instead of re-walking all four years and calling `.toLowerCase()` on ~11,000
+  strings per keystroke. `warmSearchIndex()` builds it while the user is still
+  reading the browse screen.
 
 ## 8. Suggested next steps
 
@@ -209,5 +266,10 @@ Do not describe any of the above as working until someone runs it on a phone.
 3. Sideload the APK and walk the checklist in `BUILD-FROM-PHONE.md` §Step 4.
 4. Upload to **internal testing** — the first build signed by Google, and so
    the first real test of sign-in against the deployment certificate.
-5. Then, in rough value order: Razorpay, the Calendar/saved-notes tabs,
+5. **Tune the motion on hardware.** Play each transition at 2–5x, step the
+   sheet drag frame by frame, and try the gestures with a thumb. The values are
+   defensible but unproven on a device.
+6. Run TalkBack over every screen, and switch on "Remove animations" to confirm
+   the reduced-motion branches behave.
+7. Then, in rough value order: Razorpay, the Calendar/saved-notes tabs,
    local notifications.

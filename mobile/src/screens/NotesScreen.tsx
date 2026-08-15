@@ -4,7 +4,6 @@ import {
   BackHandler,
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -22,6 +21,7 @@ import {
   Wand2,
 } from 'lucide-react-native';
 import { Text } from '@/components/Text';
+import { Touchable } from '@/components/Touchable';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
 import { NotesContentView } from '@/components/NotesContentView';
@@ -155,12 +155,14 @@ function BackHeader({
   const { colors } = useTheme();
   return (
     <View style={styles.backHeader}>
-      <Pressable
+      <Touchable
         onPress={onBack}
-        hitSlop={8}
+        label="Back"
+        hitSlop={12}
+        scaleTo={0.88}
         style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <ArrowLeft size={20} color={colors.text} />
-      </Pressable>
+      </Touchable>
       <View style={styles.flex}>
         <Text style={[styles.backTitle, { color: colors.text }]}>{title}</Text>
         {subtitle ? (
@@ -198,15 +200,17 @@ function YearsView({ currentYear, onPick }: { currentYear: Year; onPick: (year: 
       <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>SELECT YEAR</Text>
       <View style={styles.yearGrid}>
         {YEARS.map(year => (
-          <Pressable
+          <Touchable
             key={year}
             onPress={() => onPick(year)}
-            style={({ pressed }) => [
+            label={`${YEAR_LABEL[YEAR_TO_KEY[year]]}, browse subjects`}
+            state={{ selected: year === currentYear }}
+            scaleTo={0.97}
+            style={[
               styles.yearCard,
               {
                 backgroundColor: colors.card,
                 borderColor: year === currentYear ? colors.text : colors.border,
-                opacity: pressed ? 0.8 : 1,
               },
             ]}>
             <Text style={styles.yearEmoji}>{YEAR_EMOJI[year]}</Text>
@@ -216,7 +220,7 @@ function YearsView({ currentYear, onPick }: { currentYear: Year; onPick: (year: 
             <Text style={[styles.yearHint, { color: colors.textMuted }]}>
               Tap to browse subjects
             </Text>
-          </Pressable>
+          </Touchable>
         ))}
       </View>
 
@@ -241,17 +245,12 @@ function SubjectsView({
     <>
       <BackHeader onBack={onBack} title={`${YEAR_LABEL[YEAR_TO_KEY[year]]} • Subjects`} />
       {subjects.map(subject => (
-        <Pressable
+        <Touchable
           key={subject.key}
           onPress={() => onPick(subject.key, subject.name, subject.node)}
-          style={({ pressed }) => [
-            styles.row,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}>
+          label={`${subject.name}, see topics`}
+          scaleTo={0.985}
+          style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.rowIcon, { backgroundColor: withAlpha(colors.fuchsia, 0.15) }]}>
             <GraduationCap size={20} color={colors.text} />
           </View>
@@ -260,7 +259,7 @@ function SubjectsView({
             <Text style={[styles.rowHint, { color: colors.textMuted }]}>Tap to see topics</Text>
           </View>
           <ChevronRight size={18} color={colors.textMuted} />
-        </Pressable>
+        </Touchable>
       ))}
     </>
   );
@@ -297,17 +296,12 @@ function TopicsView({
         </Text>
       ) : null}
       {topics.map(topic => (
-        <Pressable
+        <Touchable
           key={topic.key}
           onPress={() => onPick(topic)}
-          style={({ pressed }) => [
-            styles.row,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              opacity: pressed ? 0.8 : 1,
-            },
-          ]}>
+          label={`${topic.name}, ${topic.questions.length} questions`}
+          scaleTo={0.985}
+          style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.flex}>
             <Text style={[styles.rowTitle, { color: colors.text }]}>{topic.name}</Text>
             <Text style={[styles.rowHint, { color: colors.textMuted }]} numberOfLines={1}>
@@ -315,7 +309,7 @@ function TopicsView({
             </Text>
           </View>
           <ChevronRight size={18} color={colors.textMuted} />
-        </Pressable>
+        </Touchable>
       ))}
     </>
   );
@@ -454,8 +448,12 @@ function NotesDetailView({
       ) : null}
 
       {error ? (
-        <Pressable
+        // An error the user can act on, not just a report. Failures announce
+        // themselves so a screen-reader user is not left waiting on silence.
+        <Touchable
           onPress={() => generate(false)}
+          label={`${error} Tap to retry.`}
+          scaleTo={0.985}
           style={[
             styles.status,
             {
@@ -463,9 +461,11 @@ function NotesDetailView({
               borderColor: withAlpha(colors.danger, 0.4),
             },
           ]}>
-          <Text style={[styles.statusText, { color: colors.text }]}>{error}</Text>
+          <Text accessibilityLiveRegion="polite" style={[styles.statusText, { color: colors.text }]}>
+            {error}
+          </Text>
           <Text style={[styles.statusSub, { color: colors.fuchsia }]}>Tap to retry</Text>
-        </Pressable>
+        </Touchable>
       ) : null}
 
       {content ? <NotesContentView content={content} /> : null}
@@ -493,32 +493,31 @@ function NotesDetailView({
                 },
               ]}
             />
-            <Pressable
+            <Touchable
               onPress={submitEdit}
               disabled={editing || instruction.trim().length === 0}
-              style={[
-                styles.editButton,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: editing || instruction.trim().length === 0 ? 0.45 : 1,
-                },
-              ]}>
+              state={{ busy: editing }}
+              label="Apply refinement"
+              hint="Rewrites the notes using your instruction"
+              style={[styles.editButton, { backgroundColor: colors.primary }]}>
               {editing ? (
                 <ActivityIndicator color={colors.primaryText} />
               ) : (
                 <Text style={[styles.editButtonText, { color: colors.primaryText }]}>Apply</Text>
               )}
-            </Pressable>
+            </Touchable>
           </View>
 
-          <Pressable
+          <Touchable
             onPress={() => generate(true)}
+            label="Regenerate notes"
+            hint="Discards these notes and writes them again"
             style={[styles.regenerate, { borderColor: colors.border }]}>
             <RotateCw size={16} color={colors.textMuted} />
             <Text style={[styles.regenerateText, { color: colors.textMuted }]}>
               Regenerate notes
             </Text>
-          </Pressable>
+          </Touchable>
         </>
       ) : null}
     </>
@@ -544,12 +543,14 @@ function WhatsAppBlock({ year }: { year: YearKey }) {
         </View>
       </View>
 
-      <Pressable
+      <Touchable
         onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
-        style={({ pressed }) => [styles.joinButton, { opacity: pressed ? 0.85 : 1 }]}>
+        label="Join our WhatsApp group"
+        hint="Opens WhatsApp"
+        style={styles.joinButton}>
         <GradientFill from="#22C55E" to="#16A34A" borderRadius={12} />
         <Text style={styles.joinText}>Tap here to join our WhatsApp group</Text>
-      </Pressable>
+      </Touchable>
 
       <View
         style={[

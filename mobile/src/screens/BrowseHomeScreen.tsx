@@ -1,23 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, StyleSheet, TextInput, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { ArrowLeft, ChevronRight, Search } from 'lucide-react-native';
+import { ChevronRight, Search } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { Card, EmptyState, Muted, ProgressBar } from '@/components/ui';
+import { BackButton } from '@/components/BackButton';
+import { LIST_TUNING } from '@/components/listTuning';
 import {
   collectAllQuestions,
   getSubjects,
   searchQuestions,
+  warmSearchIndex,
   SUBJECT_ICON,
   YEAR_KEYS,
   YEAR_LABEL,
@@ -53,6 +50,12 @@ export default function BrowseHomeScreen() {
     }
   }, [route.params?.year, profileYear]);
 
+  // Build the search index while the user is still reading the screen, so the
+  // first keystroke does not pay for it.
+  useEffect(() => {
+    warmSearchIndex();
+  }, []);
+
   // The bank is large; debounce so the walk does not run on every keystroke.
   useEffect(() => {
     if (query === debounced) {
@@ -84,10 +87,10 @@ export default function BrowseHomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backButton}>
-          <ArrowLeft size={20} color={colors.text} />
-        </Pressable>
-        <Text style={[styles.title, { color: colors.text }]}>Question Bank</Text>
+        <BackButton onPress={() => navigation.goBack()} />
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>
+          Question Bank
+        </Text>
       </View>
 
       <View
@@ -107,6 +110,7 @@ export default function BrowseHomeScreen() {
 
       {isSearching ? (
         <FlatList
+          {...LIST_TUNING}
           data={results}
           keyExtractor={(item, index) => `${item.subjectKey}-${index}`}
           keyboardShouldPersistTaps="handled"
@@ -151,6 +155,7 @@ export default function BrowseHomeScreen() {
           renderItem={({ item }) => (
             <Card
               style={styles.subjectCard}
+              label={`${item.name}, ${item.done} of ${item.total} done`}
               onPress={() =>
                 navigation.navigate('BrowseNode', {
                   year,

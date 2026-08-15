@@ -44,6 +44,21 @@ Do not "fix" these without reading the reasoning:
 6. **`versionCode` must increase on every Play upload.** 13 is already live; the
    repo carries 14.
 
+7. **Progress bars use `scaleX` + `transformOrigin: 'left'`, never an animated
+   `width`.** Width is a layout property: animating it forces layout, paint and
+   composite every frame, on the JS thread, for every bar on screen. `scaleX`
+   is a transform and composites on the GPU. This looks like an over-complicated
+   way to draw a bar; it is the difference between a smooth one and a stuttering
+   one on a cheap phone.
+
+8. **Nothing scales from 0.** The checkbox fill starts at `0.6`, the tab dot at
+   `0.4`. A `scale(0)` entrance reads as materialising out of nowhere.
+
+9. **Every `Animated.timing` names an `easing` from `EASE`.** React Native's
+   default is `Easing.inOut(Easing.ease)` — an ease-in-out that starts slow,
+   delaying the exact moment the user is watching. Omitting `easing` is the bug,
+   not the default.
+
 ## The question bank is shared, not copied
 
 `src/data/` (~750 KB of pure TypeScript) is consumed by the native app through
@@ -52,6 +67,39 @@ a `@data` alias; `src/lib/profanity.ts` through `@shared`. Wired in
 `mobile/preview/vite.config.ts` — all four must agree.
 
 Never duplicate these files into `mobile/`. A second copy will drift.
+
+## Motion goes through `src/theme/motion.ts`
+
+Do not hand-roll an animation. The house springs, easing curves, duration scale,
+momentum projection and rubber-banding all live in `mobile/src/theme/motion.ts`,
+and the primitives that use them are:
+
+| Use | Component |
+|---|---|
+| Anything tappable | `components/Touchable.tsx` — press-down spring, hit slop, required a11y label |
+| Bottom sheets | `components/Sheet.tsx` — drag-to-dismiss with velocity handoff |
+| Either/or decisions | `components/Dialog.tsx` |
+| Back navigation | `components/BackButton.tsx` |
+| Long lists | spread `components/listTuning.ts` onto the `FlatList` |
+
+The rules those files obey come from the vendored skills in
+`.claude/skills/` — `apple-design` for the principles, `animate` and
+`review-animations/STANDARDS.md` for the exact curves, durations and the
+"never ship" list. **`.claude/skills/apple-design/README.md` is the index**: it
+maps each web technique to its React Native equivalent and records which ones
+were deliberately not taken (no backdrop blur, no haptics, no stagger) so nobody
+"fixes" them by accident.
+
+Reduced motion is not optional. `useReducedMotion()` is wired into every
+primitive; new motion must handle it in the same commit, not as a follow-up.
+
+## Accessibility is part of the component contract
+
+`Touchable` **requires** a `label`. That is deliberate — an unlabelled control
+is unusable with TalkBack, and making it a required prop is the only way that
+stays true as screens get added. Give lists one spoken sentence per row rather
+than four fragments, and keep every target at 44dp (use `hitSlop`, not padding
+that changes the design).
 
 ## Storage keys are shared with the web app
 
@@ -86,5 +134,13 @@ npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed
 ```
 
+Screenshots:
+
+```sh
+cd mobile && node preview/shoot.mjs [outDir]   # writes one PNG per screen
+```
+
 There is no emulator in most sandboxes, so a green bundle is the strongest
-available signal. Do not claim device behaviour was verified when it was not.
+available signal. Do not claim device behaviour was verified when it was not —
+and note the preview harness is react-native-web, so it checks layout, not
+native rendering, gestures or animation timing.

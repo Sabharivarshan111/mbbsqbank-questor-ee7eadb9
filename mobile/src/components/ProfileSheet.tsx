@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { Text } from '@/components/Text';
+import { Sheet } from '@/components/Sheet';
+import { Touchable } from '@/components/Touchable';
 import { GradientFill } from '@/components/Gradient';
-import { useTheme, withAlpha } from '@/theme';
+import { useTheme } from '@/theme';
 import { DisplayNameError, type LocalProfile, type Year } from '@/lib/profile';
 import { YEAR_LABEL } from '@/lib/questionBank';
 import { YEAR_TO_KEY } from '@/lib/profile';
@@ -29,7 +29,6 @@ export function ProfileSheet({
   dismissable?: boolean;
 }) {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [year, setYear] = useState<Year>('second');
@@ -63,127 +62,100 @@ export function ProfileSheet({
     }
   };
 
+  const isOnboarding = !profile;
+
   return (
-    <Modal
+    <Sheet
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={dismissable ? onClose : undefined}>
-      <Pressable
-        style={[styles.backdrop, { backgroundColor: withAlpha('#000000', 0.7) }]}
-        onPress={dismissable ? onClose : undefined}
-      />
-      <View
+      onClose={onClose}
+      // First run has no "cancel": there is nothing behind it to go back to,
+      // so no stray tap, swipe or back press may strand the user on an empty
+      // app.
+      dismissable={dismissable}
+      title={isOnboarding ? 'Welcome to Orbit' : 'Edit profile'}>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+        {isOnboarding
+          ? 'Pick a name and your year to get started.'
+          : 'Your name appears on the leaderboard.'}
+      </Text>
+
+      <Text nativeID="profile-name-label" style={[styles.label, { color: colors.textMuted }]}>
+        DISPLAY NAME
+      </Text>
+      <TextInput
+        value={name}
+        onChangeText={setName}
+        placeholder="e.g. Phantom"
+        placeholderTextColor={colors.textMuted}
+        maxLength={40}
+        autoCorrect={false}
+        accessibilityLabel="Display name"
+        // Validation is announced inline, not saved up for the submit button
+        // (SKILL §16 — validate inline, not on submit).
+        accessibilityHint={error ?? undefined}
         style={[
-          styles.sheet,
+          styles.input,
           {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            paddingBottom: insets.bottom + 20,
+            color: colors.text,
+            backgroundColor: colors.cardElevated,
+            borderColor: error ? colors.danger : colors.border,
           },
-        ]}>
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              {profile ? 'Edit profile' : 'Welcome to Orbit'}
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-              {profile
-                ? 'Your name appears on the leaderboard.'
-                : 'Pick a name and your year to get started.'}
-            </Text>
-          </View>
-          {dismissable ? (
-            <Pressable onPress={onClose} hitSlop={10}>
-              <X size={22} color={colors.text} />
-            </Pressable>
-          ) : null}
-        </View>
+        ]}
+      />
 
-        <Text style={[styles.label, { color: colors.textMuted }]}>DISPLAY NAME</Text>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g. Phantom"
-          placeholderTextColor={colors.textMuted}
-          maxLength={40}
-          autoCorrect={false}
-          style={[
-            styles.input,
-            {
-              color: colors.text,
-              backgroundColor: colors.cardElevated,
-              borderColor: error ? colors.danger : colors.border,
-            },
-          ]}
-        />
-
-        <Text style={[styles.label, { color: colors.textMuted }]}>YEAR</Text>
-        <View style={styles.grid}>
-          {YEARS.map(option => {
-            const active = option === year;
-            return (
-              <Pressable
-                key={option}
-                onPress={() => setYear(option)}
-                style={[
-                  styles.yearCard,
-                  {
-                    backgroundColor: colors.cardElevated,
-                    borderColor: active ? colors.text : colors.border,
-                    borderWidth: active ? 1.5 : StyleSheet.hairlineWidth,
-                  },
-                ]}>
-                <Text style={[styles.yearName, { color: colors.text }]}>
-                  {YEAR_LABEL[YEAR_TO_KEY[option]]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
-
-        <Pressable
-          onPress={submit}
-          disabled={saving}
-          style={({ pressed }) => [styles.saveButton, { opacity: pressed || saving ? 0.85 : 1 }]}>
-          <GradientFill from="#FFFFFF" to={colors.fuchsia} borderRadius={14} />
-          {saving ? (
-            <ActivityIndicator color="#1A0A1F" />
-          ) : (
-            <Text style={styles.saveText}>{profile ? 'Save' : 'Start studying'}</Text>
-          )}
-        </Pressable>
+      <Text style={[styles.label, { color: colors.textMuted }]}>YEAR</Text>
+      <View style={styles.grid}>
+        {YEARS.map(option => {
+          const active = option === year;
+          const optionLabel = YEAR_LABEL[YEAR_TO_KEY[option]];
+          return (
+            <Touchable
+              key={option}
+              onPress={() => setYear(option)}
+              role="radio"
+              label={optionLabel}
+              state={{ checked: active }}
+              scaleTo={0.97}
+              style={[
+                styles.yearCard,
+                {
+                  backgroundColor: colors.cardElevated,
+                  borderColor: active ? colors.text : colors.border,
+                  borderWidth: active ? 1.5 : StyleSheet.hairlineWidth,
+                },
+              ]}>
+              <Text style={[styles.yearName, { color: colors.text }]}>{optionLabel}</Text>
+            </Touchable>
+          );
+        })}
       </View>
-    </Modal>
+
+      {error ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.error, { color: colors.danger }]}>
+          {error}
+        </Text>
+      ) : null}
+
+      <Touchable
+        onPress={submit}
+        disabled={saving}
+        state={{ busy: saving }}
+        label={isOnboarding ? 'Start studying' : 'Save'}
+        style={styles.saveButton}>
+        <GradientFill from="#FFFFFF" to={colors.fuchsia} borderRadius={14} />
+        {saving ? (
+          <ActivityIndicator color="#1A0A1F" />
+        ) : (
+          <Text style={styles.saveText}>{isOnboarding ? 'Start studying' : 'Save'}</Text>
+        )}
+      </Touchable>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-  },
-  sheet: {
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 20,
-    paddingTop: 22,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-  },
   subtitle: {
     fontSize: 14,
     marginTop: 2,

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Touchable } from '@/components/Touchable';
 import { Flame, Trophy } from 'lucide-react-native';
 import { Text } from '@/components/Text';
 import { useTheme, withAlpha } from '@/theme';
@@ -69,9 +70,13 @@ export function Leaderboard({ year, selfName }: { year: Year; selfName: string }
           {(['weekly', 'lifetime'] as Scope[]).map(option => {
             const active = option === scope;
             return (
-              <Pressable
+              <Touchable
                 key={option}
                 onPress={() => setScope(option)}
+                role="tab"
+                label={option === 'weekly' ? 'Weekly' : 'Lifetime'}
+                state={{ selected: active }}
+                scale={false}
                 style={[styles.scopeItem, active && { backgroundColor: colors.background }]}>
                 <Text
                   style={[
@@ -80,7 +85,7 @@ export function Leaderboard({ year, selfName }: { year: Year; selfName: string }
                   ]}>
                   {option === 'weekly' ? 'Weekly' : 'Lifetime'}
                 </Text>
-              </Pressable>
+              </Touchable>
             );
           })}
         </View>
@@ -97,10 +102,14 @@ export function Leaderboard({ year, selfName }: { year: Year; selfName: string }
           <ActivityIndicator color={colors.fuchsia} />
         </View>
       ) : error ? (
-        <Pressable onPress={load} style={styles.state}>
-          <Text style={[styles.stateText, { color: colors.textMuted }]}>{error}</Text>
+        <Touchable onPress={load} label={`${error} Tap to retry.`} style={styles.state}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[styles.stateText, { color: colors.textMuted }]}>
+            {error}
+          </Text>
           <Text style={[styles.retry, { color: colors.fuchsia }]}>Tap to retry</Text>
-        </Pressable>
+        </Touchable>
       ) : rows.length === 0 ? (
         <View style={styles.state}>
           <Text style={[styles.stateText, { color: colors.textMuted }]}>

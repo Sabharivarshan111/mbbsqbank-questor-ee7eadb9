@@ -109,12 +109,54 @@ export function getTopicChildren(node: BankNode | undefined) {
 }
 
 /**
+ * Memo tables for the recursive walks below.
+ *
+ * These walks are pure — the question bank is a frozen TypeScript literal that
+ * never changes at runtime — but they were being re-run constantly. Home,
+ * Browse and My Progress each map over every subject calling
+ * collectAllQuestions, inside a useMemo keyed on the progress store's version.
+ * That version bumps on *every* ticked question, so marking one question done
+ * re-walked ~5,500 questions across 14 subjects, three times over, allocating
+ * a fresh array and Set each time. On a low-end phone that is a visible stall
+ * between the tap and the checkbox filling in.
+ *
+ * A WeakMap keyed on the node object collapses all of that to one walk per
+ * node for the life of the process. WeakMap rather than Map so nothing pins
+ * the bank in memory if it is ever loaded dynamically.
+ *
+ * The returned arrays are shared, so treat them as read-only. Every caller
+ * either counts them or spreads them into a new array.
+ */
+const essayCache = new WeakMap<object, string[]>();
+const shortNotesCache = new WeakMap<object, string[]>();
+const allCache = new WeakMap<object, string[]>();
+
+const EMPTY: string[] = [];
+
+/**
  * Every question string under a node for one type. Mirrors
  * src/lib/question-progress.ts:collectQuestions so counts match the web app.
+ *
+ * Result is cached per node — see the note above. Do not mutate what you get
+ * back.
  */
 export function collectQuestions(node: unknown, type: QuestionType): string[] {
   if (!node || typeof node !== 'object') {
-    return [];
+    return EMPTY;
+  }
+  const cache = type === 'essay' ? essayCache : shortNotesCache;
+  const cached = cache.get(node as object);
+  if (cached) {
+    return cached;
+  }
+  const computed = walkQuestions(node, type);
+  cache.set(node as object, computed);
+  return computed;
+}
+
+function walkQuestions(node: unknown, type: QuestionType): string[] {
+  if (!node || typeof node !== 'object') {
+    return EMPTY;
   }
   const record = node as Record<string, unknown>;
   if (Array.isArray(record.questions)) {
@@ -145,11 +187,20 @@ export function collectQuestions(node: unknown, type: QuestionType): string[] {
   return out;
 }
 
-/** Both types, de-duplicated. */
+/** Both types, de-duplicated. Cached per node; do not mutate the result. */
 export function collectAllQuestions(node: unknown): string[] {
-  return Array.from(
+  if (!node || typeof node !== 'object') {
+    return EMPTY;
+  }
+  const cached = allCache.get(node as object);
+  if (cached) {
+    return cached;
+  }
+  const computed = Array.from(
     new Set([...collectQuestions(node, 'essay'), ...collectQuestions(node, 'short-notes')]),
   );
+  allCache.set(node as object, computed);
+  return computed;
 }
 
 export function countQuestions(node: unknown, type: QuestionType): number {
@@ -165,33 +216,74 @@ export interface SearchHit {
   type: QuestionType;
 }
 
-/** Walk the whole bank for questions containing `query`. */
+/**
+ * Flat search index, built once on the first search.
+ *
+ * The previous version re-walked all four years on every keystroke and called
+ * .toLowerCase() on ~11,000 question strings each time. Lowercasing once and
+ * keeping the result is the whole optimisation: subsequent searches are a
+ * linear scan over strings that are already folded.
+ *
+ * It is built lazily rather than at import time so it never delays app start —
+ * the cost lands on the first search, behind the search box's debounce, on a
+ * screen the user has just opened.
+ */
+interface IndexEntry extends SearchHit {
+  haystack: string;
+}
+
+let searchIndex: IndexEntry[] | null = null;
+
+function buildSearchIndex(): IndexEntry[] {
+  const entries: IndexEntry[] = [];
+  for (const year of YEAR_KEYS) {
+    const yearLabel = YEAR_LABEL[year];
+    for (const subject of getSubjects(year)) {
+      for (const type of ['essay', 'short-notes'] as QuestionType[]) {
+        for (const question of collectQuestions(subject.node, type)) {
+          entries.push({
+            question,
+            haystack: question.toLowerCase(),
+            year,
+            yearLabel,
+            subjectKey: subject.key,
+            subjectName: subject.name,
+            type,
+          });
+        }
+      }
+    }
+  }
+  return entries;
+}
+
+/** Search the whole bank for questions containing `query`. */
 export function searchQuestions(query: string, limit = 60): SearchHit[] {
   const needle = query.trim().toLowerCase();
   if (needle.length < 2) {
     return [];
   }
+  if (!searchIndex) {
+    searchIndex = buildSearchIndex();
+  }
   const hits: SearchHit[] = [];
-  for (const year of YEAR_KEYS) {
-    for (const subject of getSubjects(year)) {
-      for (const type of ['essay', 'short-notes'] as QuestionType[]) {
-        for (const question of collectQuestions(subject.node, type)) {
-          if (question.toLowerCase().includes(needle)) {
-            hits.push({
-              question,
-              year,
-              yearLabel: YEAR_LABEL[year],
-              subjectKey: subject.key,
-              subjectName: subject.name,
-              type,
-            });
-            if (hits.length >= limit) {
-              return hits;
-            }
-          }
-        }
+  for (const entry of searchIndex) {
+    if (entry.haystack.includes(needle)) {
+      hits.push(entry);
+      if (hits.length >= limit) {
+        break;
       }
     }
   }
   return hits;
+}
+
+/**
+ * Warm the search index off the critical path. Called when the browse screen
+ * mounts, so the first keystroke does not pay for the build.
+ */
+export function warmSearchIndex(): void {
+  if (!searchIndex) {
+    searchIndex = buildSearchIndex();
+  }
 }
