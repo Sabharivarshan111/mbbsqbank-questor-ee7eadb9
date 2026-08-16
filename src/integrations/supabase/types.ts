@@ -224,6 +224,69 @@ export type Database = {
         }
         Relationships: []
       }
+      question_diagrams: {
+        Row: {
+          created_at: string
+          diagram_kind: Database["public"]["Enums"]["diagram_kind"]
+          error_log: string | null
+          id: string
+          needs_ai_raster: boolean
+          public_url: string | null
+          question_id: string
+          question_text: string
+          question_type: string
+          render_prompt: string
+          reviewed: boolean
+          status: Database["public"]["Enums"]["diagram_status"]
+          storage_path: string | null
+          subject: string
+          subtopic_key: string
+          svg_code: string | null
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          diagram_kind?: Database["public"]["Enums"]["diagram_kind"]
+          error_log?: string | null
+          id?: string
+          needs_ai_raster?: boolean
+          public_url?: string | null
+          question_id: string
+          question_text: string
+          question_type: string
+          render_prompt: string
+          reviewed?: boolean
+          status?: Database["public"]["Enums"]["diagram_status"]
+          storage_path?: string | null
+          subject: string
+          subtopic_key: string
+          svg_code?: string | null
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          diagram_kind?: Database["public"]["Enums"]["diagram_kind"]
+          error_log?: string | null
+          id?: string
+          needs_ai_raster?: boolean
+          public_url?: string | null
+          question_id?: string
+          question_text?: string
+          question_type?: string
+          render_prompt?: string
+          reviewed?: boolean
+          status?: Database["public"]["Enums"]["diagram_status"]
+          storage_path?: string | null
+          subject?: string
+          subtopic_key?: string
+          svg_code?: string | null
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
       question_progress: {
         Row: {
           completed_at: string
@@ -565,6 +628,23 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       app_year: "first" | "second" | "third" | "final"
+      diagram_kind:
+        | "flowchart"
+        | "table"
+        | "histology_plate"
+        | "anatomy"
+        | "lifecycle"
+        | "algorithm"
+        | "comparison"
+        | "other"
+      diagram_status:
+        | "pending"
+        | "prompt_ready"
+        | "generated"
+        | "optimized"
+        | "uploaded"
+        | "failed"
+        | "approved"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -694,6 +774,25 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       app_year: ["first", "second", "third", "final"],
+      diagram_kind: [
+        "flowchart",
+        "table",
+        "histology_plate",
+        "anatomy",
+        "lifecycle",
+        "algorithm",
+        "comparison",
+        "other",
+      ],
+      diagram_status: [
+        "pending",
+        "prompt_ready",
+        "generated",
+        "optimized",
+        "uploaded",
+        "failed",
+        "approved",
+      ],
     },
   },
 } as const
