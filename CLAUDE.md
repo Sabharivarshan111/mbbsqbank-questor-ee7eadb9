@@ -90,6 +90,11 @@ maps each web technique to its React Native equivalent and records which ones
 were deliberately not taken (no backdrop blur, no haptics, no stagger) so nobody
 "fixes" them by accident.
 
+Question rows subscribe to **one question** (`useQuestionDone`), never to the
+store's global version. Using `useProgressVersion` in anything rendered per row
+makes one tick re-render every mounted row; `npm run check:fanout` fails if that
+regresses.
+
 Reduced motion is not optional. `useReducedMotion()` is wired into every
 primitive; new motion must handle it in the same commit, not as a follow-up.
 
@@ -142,6 +147,7 @@ bugs have come from the two drifting.
 cd mobile
 npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
+npm run check:fanout             # per-question subscriptions still isolated
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed
 ```

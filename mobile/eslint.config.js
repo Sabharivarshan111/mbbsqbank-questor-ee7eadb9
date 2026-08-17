@@ -24,6 +24,8 @@ module.exports = [
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2022,
+      // Node globals: these scripts run under node, not React Native.
+      globals: { Buffer: 'readonly', process: 'readonly', console: 'readonly' },
       parserOptions: { ecmaVersion: 2022, sourceType: 'module' },
     },
   },

@@ -9,7 +9,8 @@
     "preview": "vite --config preview/vite.config.ts",
     "preview:build": "vite build --config preview/vite.config.ts",
     "preview:shoot": "node preview/shoot.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:fanout": "node scripts/progress-fanout-check.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",
@@ -44,6 +45,7 @@
     "@types/react": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
     "babel-plugin-module-resolver": "^5.0.3",
+    "esbuild": "^0.28.2",
     "eslint": "^8.19.0",
     "lucide-react": "^1.31.0",
     "playwright-core": "^1.62.1",

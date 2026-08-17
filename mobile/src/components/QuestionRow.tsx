@@ -6,14 +6,14 @@ import { Check, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { typeScale } from '@/theme/typography';
 import { SPRING, springConfig, useReducedMotion } from '@/theme/motion';
-import { isQuestionDone, toggleQuestionDone } from '@/lib/progress';
+import { toggleQuestionDone } from '@/lib/progress';
 import {
   countStars,
   extractPageNumber,
   getCleanQuestionText,
   importanceLabel,
 } from '@/lib/questionText';
-import { useProgressVersion } from '@/hooks/useProgress';
+import { useQuestionDone } from '@/hooks/useProgress';
 
 interface Props {
   question: string;
@@ -29,10 +29,9 @@ interface Props {
 function QuestionRowBase({ question, index, onAskAi }: Props) {
   const { colors } = useTheme();
   const reduceMotion = useReducedMotion();
-  // Subscribing keeps this row in sync when progress is pulled from the cloud.
-  useProgressVersion();
-
-  const done = isQuestionDone(question);
+  // Subscribes to *this* question only, so ticking one row does not re-render
+  // every other row mounted in the list.
+  const done = useQuestionDone(question);
   const stars = countStars(question);
   const page = extractPageNumber(question);
   const importance = importanceLabel(stars);
