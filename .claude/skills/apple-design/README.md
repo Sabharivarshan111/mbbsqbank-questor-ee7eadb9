@@ -91,14 +91,23 @@ From `review-animations/STANDARDS.md` and `animate/SKILL.md`'s "Never Ship":
   Purpose: spend the budget where it pays off). Hierarchy is carried by material
   *weight* — background, card, elevated card — plus a bright hairline top edge
   on floating chrome.
-- **Haptics only where a moment earns one.** This file previously claimed the
-  app had none — that was wrong: the focus timer has always buzzed on session
-  completion via React Native's core `Vibration` API, which needs no extra
-  native module. That is the correct use of it under §13: a real completion
-  event, with a visual flourish on the dial fired from the same signal so the
-  two land together (Harmony). Nothing else vibrates, and nothing should
-  without clearing the same bar — §13 Utility is explicit that unearned
-  feedback trains people to ignore all of it.
+- **Haptics only where a moment earns one**, and on the core `Vibration` API
+  rather than `react-native-haptic-feedback`. Android's HapticFeedbackConstants
+  give a nicer tick, but that is another native module to compile, shim and
+  carry on every cheap phone for a refinement most users cannot name.
+  `src/lib/haptics.ts` is the only place that vibrates, and there are exactly
+  two callers, each clearing the §13 Utility bar of *commit* or *completion*:
+  switching theme (10ms tick) and a focus session ending (two short pulses,
+  paired with the dial's flourish so both land together — Harmony). Navigation,
+  scrolling and ordinary taps get nothing.
+
+  Two things worth knowing. The `VIBRATE` permission was missing from the
+  manifest until this was wired up, so the timer's completion buzz had never
+  actually fired on a device despite the code being there since it was written.
+  And `Vibration.vibrate` ignores Android's system-wide touch-feedback setting —
+  reading that needs the native module this avoids — so the mitigation is
+  restraint rather than a check. `haptics.ts` is the one place to gate if a
+  user-facing switch is ever wanted.
 - **No motion blur** (§11) — not expressible in RN's animation system without a
   shader.
 - **No stagger on list entrances.** The long lists are `FlatList`s whose rows

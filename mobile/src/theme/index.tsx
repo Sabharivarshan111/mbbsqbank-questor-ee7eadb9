@@ -9,6 +9,7 @@ import React, {
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
+import { tick } from '@/lib/haptics';
 import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
 
 export type ThemeName = 'light' | 'dark';
@@ -167,6 +168,12 @@ export function ThemeProvider({
   }, []);
 
   const setPreference = useCallback((next: ThemePreference) => {
+    // One light tap on the commit. This lives here rather than on the header
+    // button so the chips on My Progress feel identical — the same action
+    // should feel the same wherever it is started (SKILL §16 Familiarity).
+    // Hydration uses setPreferenceState directly, so restoring a saved theme
+    // at launch stays silent.
+    tick();
     setPreferenceState(next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
     // Once-a-day rewarded ad for the "theme" bucket.

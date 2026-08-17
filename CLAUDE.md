@@ -98,6 +98,14 @@ regresses.
 Reduced motion is not optional. `useReducedMotion()` is wired into every
 primitive; new motion must handle it in the same commit, not as a follow-up.
 
+## Haptics are two calls, and both are earned
+
+`mobile/src/lib/haptics.ts` is the only thing in the app that vibrates:
+switching theme, and a focus session ending. Adding a third caller means
+clearing the same bar — a commit or a completion, never navigation or an
+ordinary tap. The `VIBRATE` permission in `AndroidManifest.xml` is what makes
+any of it work; without it every call is a silent no-op.
+
 ## Design tokens
 
 `src/theme/tokens.ts` holds the spacing and radius scales; `typeScale` in

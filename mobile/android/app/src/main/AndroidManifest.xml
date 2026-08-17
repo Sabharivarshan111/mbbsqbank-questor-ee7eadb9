@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Without this every Vibration.vibrate() call is a silent no-op. The
+         focus timer has been calling it since it was written, so its
+         completion buzz has never actually fired on a device. Normal-level
+         permission: no runtime prompt, it just has to be declared. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
       android:name=".MainApplication"

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus, Vibration } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { complete } from '@/lib/haptics';
 import { warn } from '@/lib/log';
 
 export type PomodoroMode = 'focus' | 'short' | 'long';
@@ -146,7 +147,7 @@ export function usePomodoro() {
     // Haptic and visual have to land together — feedback split across senses
     // reads as two events rather than one (apple-design §13 Harmony). The
     // screen's flourish keys off the same nonce set here.
-    Vibration.vibrate([0, 400, 200, 400]);
+    complete();
     setCompletionNonce(n => n + 1);
 
     setMode(current => {
