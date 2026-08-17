@@ -91,8 +91,14 @@ From `review-animations/STANDARDS.md` and `animate/SKILL.md`'s "Never Ship":
   Purpose: spend the budget where it pays off). Hierarchy is carried by material
   *weight* — background, card, elevated card — plus a bright hairline top edge
   on floating chrome.
-- **No haptics.** Another native module, and §13 Utility says feedback that is
-  not earned trains users to ignore it. Left as a documented gap.
+- **Haptics only where a moment earns one.** This file previously claimed the
+  app had none — that was wrong: the focus timer has always buzzed on session
+  completion via React Native's core `Vibration` API, which needs no extra
+  native module. That is the correct use of it under §13: a real completion
+  event, with a visual flourish on the dial fired from the same signal so the
+  two land together (Harmony). Nothing else vibrates, and nothing should
+  without clearing the same bar — §13 Utility is explicit that unearned
+  feedback trains people to ignore all of it.
 - **No motion blur** (§11) — not expressible in RN's animation system without a
   shader.
 - **No stagger on list entrances.** The long lists are `FlatList`s whose rows

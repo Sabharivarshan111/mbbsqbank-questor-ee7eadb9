@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Coffee, Pencil, Play, Pause, RotateCcw, SlidersHorizontal, Sparkles, Timer as TimerIcon, Users } from 'lucide-react-native';
 import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
+import { SPRING, springConfig, useReducedMotion } from '@/theme/motion';
 import { formatClock, PomodoroMode, usePomodoro } from '@/hooks/usePomodoro';
 import { formatFocusTime } from '@/lib/focusStats';
 
@@ -29,6 +30,45 @@ export default function TimerScreen() {
   // How much of this session is still to come, for the dial ring.
   const remainingPercent =
     timer.totalSeconds > 0 ? (timer.remaining / timer.totalSeconds) * 100 : 100;
+
+  /**
+   * Finishing a session is acknowledged, not just silently reset.
+   *
+   * The timer already vibrated on completion, but nothing on screen changed
+   * except the dial snapping back to full for the next mode — so the buzz had
+   * no visible partner, and finishing a 25-minute session felt like nothing had
+   * happened. One quick swell of the dial, fired from the same signal as the
+   * vibration so the two land together (SKILL §13 Causality + Harmony).
+   *
+   * This is the rare tier — a pomodoro ends every 25 minutes — which is exactly
+   * where a moment of delight is affordable (animate/SKILL.md frequency table).
+   * It plays once and stops; a looping celebration would be the wrong trade.
+   */
+  const reduceMotion = useReducedMotion();
+  const swell = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (timer.completionNonce === 0) {
+      return;
+    }
+    // Screen-reader users get the same information as the buzz.
+    AccessibilityInfo.announceForAccessibility(
+      `Session complete. Next up: ${
+        MODES.find(m => m.key === timer.mode)?.label ?? 'Focus'
+      }.`,
+    );
+    if (reduceMotion) {
+      return;
+    }
+    swell.setValue(0);
+    Animated.sequence([
+      Animated.spring(swell, { toValue: 1, ...springConfig(SPRING.momentum) }),
+      Animated.spring(swell, { toValue: 0, ...springConfig(SPRING.default) }),
+    ]).start();
+    // `mode` is read for the announcement only; re-running on a mode change
+    // would fire the flourish when the user switches tabs by hand.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timer.completionNonce]);
 
   return (
     <ScrollView
@@ -77,7 +117,15 @@ export default function TimerScreen() {
       </View>
 
       {/* Dial */}
-      <View style={styles.dialWrap}>
+      <Animated.View
+        style={[
+          styles.dialWrap,
+          {
+            transform: [
+              { scale: swell.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) },
+            ],
+          },
+        ]}>
         {/* The published design's thick white ring, now carrying the session
             state: it starts full and drains as time is spent. At rest it looks
             exactly as it always has, so nothing about the identity changes —
@@ -118,7 +166,7 @@ export default function TimerScreen() {
             </Text>
           </View>
         </ProgressRing>
-      </View>
+      </Animated.View>
 
       {/* Controls */}
       <View style={styles.controls}>

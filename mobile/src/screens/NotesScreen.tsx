@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
+import { ProgressBar } from '@/components/ui';
 import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
@@ -437,13 +438,27 @@ function NotesDetailView({
       {busy ? (
         <View style={[styles.status, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <ActivityIndicator color={colors.fuchsia} />
-          <Text style={[styles.statusText, { color: colors.text }]}>
+          <Text
+            // Generating a big topic runs for minutes with 25-second pauses
+            // between batches. Announce each change of state, or a screen-reader
+            // user has no way to tell a long wait from a hang.
+            accessibilityLiveRegion="polite"
+            style={[styles.statusText, { color: colors.text }]}>
             {phase === 'waiting' ? `Pacing the next batch — ${waitSecs}s` : 'Writing your notes…'}
           </Text>
           {totalBatches > 1 ? (
-            <Text style={[styles.statusSub, { color: colors.textMuted }]}>
-              Batch {completedBatches} of {totalBatches}
-            </Text>
+            <>
+              <Text style={[styles.statusSub, { color: colors.textMuted }]}>
+                Batch {completedBatches} of {totalBatches}
+              </Text>
+              {/* "Batch 2 of 5" is a fact; a bar is a shape you can read at a
+                  glance. On a wait this long that difference is the whole
+                  point of showing status at all (SKILL §16 — expose ongoing
+                  status). */}
+              <View style={styles.statusBar}>
+                <ProgressBar value={completedBatches} total={totalBatches} />
+              </View>
+            </>
           ) : null}
         </View>
       ) : null}
@@ -702,6 +717,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 24,
+  },
+  statusBar: {
+    alignSelf: 'stretch',
+    marginTop: 10,
   },
   status: {
     borderRadius: 14,

@@ -55,6 +55,13 @@ export function usePomodoro() {
   const [remaining, setRemaining] = useState(DEFAULT_SETTINGS.focusMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [completedFocus, setCompletedFocus] = useState(0);
+  /**
+   * Bumped every time a session ends, so the screen can acknowledge it.
+   *
+   * A counter rather than a boolean: two sessions in a row have to be
+   * distinguishable, and a boolean that has to be reset invites a stuck flag.
+   */
+  const [completionNonce, setCompletionNonce] = useState(0);
   const [focusMinutesTotal, setFocusMinutesTotal] = useState(0);
   const [focusMinutesToday, setFocusMinutesToday] = useState(0);
 
@@ -136,7 +143,11 @@ export function usePomodoro() {
     setIsRunning(false);
     endsAtRef.current = null;
     AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
+    // Haptic and visual have to land together — feedback split across senses
+    // reads as two events rather than one (apple-design §13 Harmony). The
+    // screen's flourish keys off the same nonce set here.
     Vibration.vibrate([0, 400, 200, 400]);
+    setCompletionNonce(n => n + 1);
 
     setMode(current => {
       if (current !== 'focus') {
@@ -279,6 +290,7 @@ export function usePomodoro() {
     totalSeconds,
     isRunning,
     completedFocus,
+    completionNonce,
     focusMinutesTotal,
     focusMinutesToday,
     settings,
