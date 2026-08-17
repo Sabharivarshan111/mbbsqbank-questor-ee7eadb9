@@ -123,6 +123,26 @@ android {
     }
     buildTypes {
         debug {
+            // Installs alongside the Play Store build instead of colliding with
+            // it. Same package + a different signing key is a refused install,
+            // and the only way out of that is uninstalling the published app —
+            // which is not something a test build should ever ask for.
+            //
+            // This does NOT touch the release applicationId, which must stay
+            // com.aistudio.mbbsqbank.aycxvd to remain an update of the existing
+            // listing.
+            //
+            // Two consequences, both intended:
+            //   • Google Sign-In will not work in a debug build unless an OAuth
+            //     client exists for ...aycxvd.debug with the debug key's SHA-1.
+            //     Everything else — the question bank, progress, timer, notes —
+            //     works normally.
+            //   • Ads are Google's test units in debug regardless (src/lib/ads.ts),
+            //     so a debug install can never serve a live ad to you.
+            applicationIdSuffix ".debug"
+            // Keep the OAuth redirect scheme matched to this build's id, so two
+            // installed builds do not both claim the same scheme.
+            manifestPlaceholders["appAuthRedirectScheme"] = "com.aistudio.mbbsqbank.aycxvd.debug"
             signingConfig signingConfigs.debug
         }
         release {
