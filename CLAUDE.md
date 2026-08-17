@@ -156,9 +156,14 @@ cd mobile
 npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
+npm run check:smoke              # drives the real screens; 11 flows, 0 crashes
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed
 ```
+
+`check:smoke` selects controls by accessibility label, so a control it cannot
+find is one TalkBack cannot announce either. It needs the sandbox's Chromium and
+is not wired into CI.
 
 Screenshots:
 

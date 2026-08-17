@@ -38,6 +38,33 @@ const BUCKET_STORAGE_KEY: Record<Bucket, string> = {
   questions: 'orbit:daily-ad:questions',
 };
 
+/**
+ * When the user last said "Not now" to each bucket.
+ *
+ * Only a confirmed ad marks the day's slot, so declining left nothing behind
+ * and the very next theme change — or the next time you opened My Progress —
+ * asked again. Toggling the theme twice was enough to be asked twice. (The web
+ * app has the same hole; src/lib/daily-ad.ts only calls markShownFor from
+ * onConfirm.)
+ *
+ * Consuming the whole day's slot on a decline would fix the nagging by giving
+ * up the impression entirely, which is not a trade worth making with someone
+ * else's revenue. A short cooldown fixes the actual complaint — being asked
+ * again seconds later — while still allowing the day's one ad to happen later.
+ *
+ * These keys are native-only. The web app does not read them, and adding them
+ * cannot change its behaviour.
+ */
+const DECLINE_STORAGE_KEY: Record<Bucket, string> = {
+  progress: 'orbit:daily-ad-declined:progress',
+  theme: 'orbit:daily-ad-declined:theme',
+  questions: 'orbit:daily-ad-declined:questions',
+};
+
+/** Long enough to not be nagged while changing settings; short enough that the
+ *  day's impression is still very likely to happen later. */
+const DECLINE_COOLDOWN_MS = 10 * 60 * 1000;
+
 const REASON_TEXT: Record<DailyAdReason, { title: string; message: string }> = {
   'short-notes': {
     title: 'Sorry for the inconvenience',
@@ -108,6 +135,12 @@ export async function requestDailyAd(reason: DailyAdReason): Promise<void> {
     if (last === today()) {
       return;
     }
+    const declinedAt = await AsyncStorage.getItem(DECLINE_STORAGE_KEY[bucket]);
+    if (declinedAt && Date.now() - Number(declinedAt) < DECLINE_COOLDOWN_MS) {
+      // They already said no. Asking again immediately is nagging, not a
+      // second chance.
+      return;
+    }
   } catch {
     // Unreadable storage should not spam ads; treat as already shown.
     return;
@@ -116,6 +149,17 @@ export async function requestDailyAd(reason: DailyAdReason): Promise<void> {
   const { title, message } = REASON_TEXT[reason];
   for (const listener of listeners) {
     listener({ reason, title, message });
+  }
+}
+
+/** Called when the user declines. Starts the cooldown; the day's slot stays
+ *  unused, so the ad can still be offered later. */
+export async function declineDailyAd(reason: DailyAdReason): Promise<void> {
+  const bucket = REASON_TO_BUCKET[reason];
+  try {
+    await AsyncStorage.setItem(DECLINE_STORAGE_KEY[bucket], String(Date.now()));
+  } catch {
+    // Non-fatal: worst case they are asked again sooner.
   }
 }
 

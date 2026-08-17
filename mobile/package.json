@@ -10,7 +10,8 @@
     "preview:build": "vite build --config preview/vite.config.ts",
     "preview:shoot": "node preview/shoot.mjs",
     "typecheck": "tsc --noEmit",
-    "check:fanout": "node scripts/progress-fanout-check.mjs"
+    "check:fanout": "node scripts/progress-fanout-check.mjs",
+    "check:smoke": "node preview/smoke.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",

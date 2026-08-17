@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Dialog } from '@/components/Dialog';
 import {
   confirmDailyAd,
+  declineDailyAd,
   subscribeDailyAd,
   type DailyAdPrompt,
 } from '@/lib/dailyAd';
@@ -26,7 +27,14 @@ export function DailyAdConsent() {
     }
   }, [prompt]);
 
-  const decline = useCallback(() => setPrompt(null), []);
+  const decline = useCallback(() => {
+    const current = prompt;
+    setPrompt(null);
+    if (current) {
+      // Starts a short cooldown so the next theme change does not ask again.
+      declineDailyAd(current.reason).catch(() => undefined);
+    }
+  }, [prompt]);
 
   const accept = useCallback(() => {
     const current = prompt;
