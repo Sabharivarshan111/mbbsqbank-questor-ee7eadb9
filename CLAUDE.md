@@ -94,6 +94,23 @@ item without four options or with an out-of-range `correct`; a half-valid quiz
 teaches wrong answers, so the fallback is showing the prose instead.
 `npm run check:mcq` covers all of that.
 
+## `generate-handwritten-notes` rejects the whole request, not the bad item
+
+Its zod schema is `questions: z.array(z.string().max(1000)).min(1).max(400)`,
+and a violation is a **400 for the entire request**. One over-long question
+therefore breaks Notes for its whole topic, with no symptom anywhere else in the
+app — you have to open the one topic that is too big to see it.
+
+Three questions in the shipped bank are over (Pharmacology → CNS 1463 chars,
+Pathology → Heart 1477, General Medicine → Cardiology 1061). They are real
+multi-part essay questions with a "Probable Cases" list, not corrupt data, so
+`src/lib/notesLimits.ts` clamps on the way out instead.
+
+Clamp from the **head**: the importance stars and PYQ year markers are at the
+start of a question string, and the model reads them to fill `pyqYears`.
+Trimming the front to fit would empty the year badges instead.
+`npm run check:notes-limits` walks all 413 topic groups.
+
 ## Motion goes through `src/theme/motion.ts`
 
 Do not hand-roll an animation. The house springs, easing curves, duration scale,
@@ -191,6 +208,7 @@ npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
 npm run check:mcq                # MCQ response parsing + the ask-gemini markers
+npm run check:notes-limits       # every topic still fits the notes function's schema
 npm run check:smoke              # drives the real screens; 11 flows, 0 crashes
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed

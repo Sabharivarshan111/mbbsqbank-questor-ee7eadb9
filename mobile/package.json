@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "check:fanout": "node scripts/progress-fanout-check.mjs",
     "check:smoke": "node preview/smoke.mjs",
-    "check:mcq": "node scripts/mcq-parse-check.mjs"
+    "check:mcq": "node scripts/mcq-parse-check.mjs",
+    "check:notes-limits": "node scripts/notes-limits-check.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",

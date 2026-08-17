@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { collectQuestions, type BankNode } from './questionBank';
+import { clampQuestions } from './notesLimits';
 
 /**
  * Handwritten-notes generation, ported from
@@ -200,7 +201,7 @@ function baseBody({ topic, yearLabel, subject }: TopicRequest) {
     year: yearLabel,
     subject,
     subtopicName: topic.name,
-    questions: topic.questions,
+    questions: clampQuestions(topic.questions),
   };
 }
 
