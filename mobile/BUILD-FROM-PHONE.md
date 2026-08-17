@@ -26,6 +26,64 @@ shipping; it is painful for designing.
 
 ---
 
+## Expo Go cannot run this app
+
+Worth stating plainly, because the advice is everywhere online and it does not
+apply here. Expo Go is a pre-built container app. Its native code is fixed at
+the moment Expo compiles and ships it to the Play Store, and you cannot add to
+it from your project. It runs *your JavaScript* inside *their native binary*.
+
+Three separate blockers, any one of which is fatal:
+
+1. **This is bare React Native, not Expo.** There is no `expo` dependency, no
+   `app.config`, no `expo-modules-core`. There is nothing for Expo Go to open.
+2. **Two native modules Expo Go does not contain** —
+   `@react-native-google-signin/google-signin` and
+   `react-native-google-mobile-ads`. Sign-in and every ad path would throw at
+   the first call. Native code cannot be added to Expo Go from JS.
+3. **Version mismatch.** This app is React Native 0.87 / React 19.2.3. Each
+   Expo Go release embeds exactly one RN and React version, and the JS
+   engine, renderer and native modules have to match the bundle.
+
+What people mean when they say "Expo can run any app" is the **Expo Dev
+Client** — a build of the Expo Go shell that includes *your* native modules.
+That is real, but producing one is a full native Android build, the same build
+this repo already does in Actions. It would add an Expo migration and buy
+nothing.
+
+**The equivalent for this project is the debug APK below.** Install it once and
+it behaves like Expo Go in the way that matters: it has the dev menu (shake the
+phone), the error overlay, and it can connect to Metro for Fast Refresh if you
+ever plug into a computer.
+
+### Getting it: Actions → "Android debug APK" → Run workflow
+
+No secrets, no keystore, no computer. Download the artifact, unzip, tap the
+`.apk`, allow "install unknown apps" once.
+
+It installs as `com.aistudio.mbbsqbank.aycxvd.debug`, **alongside** your Play
+Store copy rather than replacing it, so you can compare the two side by side
+and your real progress is never at risk.
+
+Two things to expect:
+
+- **Google sign-in will fail** unless you add an Android OAuth client for
+  `...aycxvd.debug` with the debug keystore's SHA-1. Everything else — the
+  question bank, progress, timer, Ask AI, notes, the leaderboard via anonymous
+  auth — works normally. This is the intended trade for installing alongside
+  the real app rather than over it.
+- **Ads are Google's test units**, always, and cannot be otherwise in this
+  build. That is deliberate: clicking your own live ads is what gets an AdMob
+  account suspended.
+
+The APK carries its own JS bundle, so it opens with no computer attached. That
+bundle is built in dev mode (`--dev true`), which is what keeps `__DEV__` true
+and therefore keeps ads on test units — so it is unminified and carries its
+dev-time checks. **Do not judge scrolling smoothness or startup time from it.**
+For that, build a release APK; the release bundle is the one that ships.
+
+---
+
 ## Before anything else: the signing key
 
 Your app is on Play as `com.aistudio.mbbsqbank.aycxvd`. An update must be

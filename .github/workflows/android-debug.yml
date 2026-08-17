@@ -15,6 +15,26 @@ name: Android debug APK
 # Note: Expo Go cannot run this app — it is bare React Native with native
 # modules (Google Sign-In, AdMob) that Expo Go does not contain. This APK is
 # the way to get it on a phone.
+#
+# Why the JS bundle is built by hand below, rather than left to Gradle:
+#
+# The React Native Gradle plugin registers no bundle task at all for a
+# debuggable variant (TaskConfiguration.kt: `if (!isDebuggableVariant)`), on
+# the assumption that a debug app loads its JS from Metro over USB. An APK
+# built that way and opened on a phone with no computer attached shows the red
+# "Unable to load script" screen and nothing else — which is exactly how this
+# artifact is meant to be used, so it has to carry its own bundle.
+#
+# `--dev true` is deliberate and load-bearing. The same plugin hardcodes
+# `devEnabled = false` for every variant it does bundle, and `__DEV__` false is
+# what switches src/lib/ads.ts from Google's test ad units to the live ones.
+# Serving yourself live ads is an AdMob policy violation that can get the
+# account suspended, so a build meant for self-testing must keep __DEV__ true.
+# That is also why this cannot simply be `assembleRelease` with the debug key.
+#
+# The cost: a dev bundle is unminified and keeps its dev-time checks, so it is
+# bigger and slower than what ships. Fine for "does this work?" — not a fair
+# measurement of performance on a low-end phone.
 
 on:
   workflow_dispatch:
@@ -49,6 +69,17 @@ jobs:
       - name: Progress fan-out check
         working-directory: mobile
         run: npm run check:fanout
+
+      - name: Embed the JS bundle so the APK runs without Metro
+        working-directory: mobile
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev true \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
 
       - name: Build debug APK
         working-directory: mobile/android

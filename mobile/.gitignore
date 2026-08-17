@@ -80,3 +80,9 @@ preview/dist/
 # Release signing — keep keystore secrets out of git
 android/gradle.properties.local
 *.jks
+
+# JS bundle + assets embedded into a sideloadable debug APK by CI. Generated,
+# never committed: a stale copy here would silently override the real bundle.
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/res/drawable-*/
+android/app/src/main/res/raw/
