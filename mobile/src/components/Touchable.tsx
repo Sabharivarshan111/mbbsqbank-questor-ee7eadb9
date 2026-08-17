@@ -60,6 +60,13 @@ export interface TouchableProps {
   /** Dim as well as shrink. Useful on flat rows with no card behind them. */
   dim?: boolean;
   hitSlop?: number | Insets;
+  /**
+   * Extra actions for assistive tech. Anything reachable only by a gesture a
+   * screen-reader user cannot perform — a multi-tap, a drag — belongs here as
+   * well, or it is simply unavailable to them.
+   */
+  accessibilityActions?: { name: string; label: string }[];
+  onAccessibilityAction?: (name: string) => void;
   testID?: string;
 }
 
@@ -88,6 +95,8 @@ export function Touchable({
   scale = true,
   dim = false,
   hitSlop = DEFAULT_HIT_SLOP,
+  accessibilityActions,
+  onAccessibilityAction,
   testID,
 }: TouchableProps) {
   const reduceMotion = useReducedMotion();
@@ -150,6 +159,12 @@ export function Touchable({
       accessibilityLabel={label}
       accessibilityHint={hint}
       accessibilityState={{ ...state, disabled: isDisabled }}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={
+        onAccessibilityAction
+          ? event => onAccessibilityAction(event.nativeEvent.actionName)
+          : undefined
+      }
       style={[style, animatedStyle, isDisabled && styles.disabled]}>
       {children}
     </AnimatedPressable>

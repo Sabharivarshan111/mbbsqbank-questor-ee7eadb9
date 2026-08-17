@@ -16,6 +16,9 @@ import { hydrateProfile } from '@/hooks/useProfile';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 import { hydratePremium } from '@/lib/premium';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ScrollView } from 'react-native';
+import { NotesContentView } from '@/components/NotesContentView';
+import { SAMPLE_NOTES } from './notesSample';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -69,6 +72,24 @@ const METRICS = {
   ...initialWindowMetrics,
 };
 
+/**
+ * ?screen=notesdemo — the handwritten-notes renderer with a fixture.
+ *
+ * The real notes come from an edge function that costs AI quota and takes
+ * minutes; this shows the same component with fixed content so layout work can
+ * be reviewed instantly. Preview only — see notesSample.ts.
+ */
+function NotesRendererDemo() {
+  const { colors } = useTheme();
+  return (
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      <NotesContentView content={SAMPLE_NOTES} />
+    </ScrollView>
+  );
+}
+
 function Shell() {
   const { theme, colors } = useTheme();
   React.useEffect(() => {
@@ -89,6 +110,10 @@ function Shell() {
       primary: colors.primary,
     },
   };
+
+  if (screen === 'notesdemo') {
+    return <NotesRendererDemo />;
+  }
 
   return (
     <NavigationContainer theme={navTheme} initialState={buildInitialState()}>

@@ -195,8 +195,11 @@ await step('a question row toggles done and back', async () => {
     await page.waitForTimeout(700);
   }
 
-  const row = page.locator('[role="checkbox"]').first();
-  await row.waitFor({ timeout: 5000 });
+  // The checkbox is its own control now — the row itself counts taps for
+  // MCQs (2) and the written answer (3), matching the published app.
+  const box = page.locator('[role="checkbox"]').first();
+  await box.waitFor({ timeout: 5000 });
+  const row = page.locator('[aria-label][role="button"]').filter({ has: box }).first();
 
   /**
    * Asserted on the strikethrough, not on aria-checked.
@@ -207,20 +210,21 @@ await step('a question row toggles done and back', async () => {
    * in the harness, not in the app, and it is not worth contorting app code to
    * satisfy a shim. The line-through is the same state, rendered.
    */
+  const rowText = page.locator('[role="checkbox"]').first().locator('xpath=../../..');
   const struck = () =>
-    row.evaluate(node =>
+    rowText.evaluate(node =>
       [...node.querySelectorAll('*')].some(child =>
         getComputedStyle(child).textDecorationLine.includes('line-through'),
       ),
     );
 
   const before = await struck();
-  await row.click();
+  await box.click();
   await page.waitForTimeout(500);
   if ((await struck()) === before) {
-    throw new Error(`tapping the row did not change its done state (stayed ${before})`);
+    throw new Error(`tapping the checkbox did not change its done state (stayed ${before})`);
   }
-  await row.click();
+  await box.click();
   await page.waitForTimeout(500);
   if ((await struck()) !== before) {
     throw new Error('second tap did not restore the original state');

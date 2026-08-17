@@ -34,11 +34,6 @@ import type { HomeStackParamList, RootTabParamList } from '@/navigation/types';
 type Nav = NativeStackNavigationProp<HomeStackParamList, 'BrowseNode'>;
 type Route = RouteProp<HomeStackParamList, 'BrowseNode'>;
 
-const TYPE_OPTIONS: { key: QuestionType; label: string }[] = [
-  { key: 'essay', label: 'Essays' },
-  { key: 'short-notes', label: 'Short Notes' },
-];
-
 /** "01", "02", … as shown in the numbered badges. */
 function ordinal(index: number): string {
   return String(index + 1).padStart(2, '0');
@@ -77,6 +72,8 @@ export default function BrowseNodeScreen() {
   const node = useMemo(() => resolveNode(year, path), [year, path]);
   const children = useMemo(() => getTopicChildren(node), [node]);
   const questions = useMemo(() => findTypeQuestions(node, type), [node, type]);
+  const essayCount = useMemo(() => findTypeQuestions(node, 'essay').length, [node]);
+  const shortNoteCount = useMemo(() => findTypeQuestions(node, 'short-notes').length, [node]);
 
   // A subject page listing exam papers looks different from a topic list.
   const isPaperLevel =
@@ -288,7 +285,16 @@ export default function BrowseNodeScreen() {
             </View>
             <View style={styles.backSpacer} />
           </View>
-          <SegmentedControl options={TYPE_OPTIONS} value={type} onChange={setType} />
+          {/* Counts on the tabs, as the published app shows them: you can see
+              a topic has no essays before tapping into an empty list. */}
+          <SegmentedControl
+            options={[
+              { key: 'essay' as const, label: `Essays  ${essayCount}` },
+              { key: 'short-notes' as const, label: `Short Notes  ${shortNoteCount}` },
+            ]}
+            value={type}
+            onChange={setType}
+          />
           {questions.length > 0 ? (
             <View style={styles.questionStats}>
               <Muted>
