@@ -19,6 +19,9 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ScrollView } from 'react-native';
 import { NotesContentView } from '@/components/NotesContentView';
 import { SAMPLE_NOTES } from './notesSample';
+import { McqCard } from '@/components/McqCard';
+import { parseMcqs } from '@/lib/askAi';
+import { SAMPLE_MCQ_RESPONSE } from './mcqSample';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -90,6 +93,27 @@ function NotesRendererDemo() {
   );
 }
 
+/**
+ * ?screen=mcqdemo — the MCQ cards a double tap produces.
+ *
+ * Same reason as notesdemo: the real ones come from ask-gemini, which costs
+ * quota and needs a key. This renders the parser's output for a fixed response,
+ * so the card layout and the answered/unanswered states can be reviewed.
+ */
+function McqDemo() {
+  const { colors } = useTheme();
+  const items = parseMcqs(SAMPLE_MCQ_RESPONSE) ?? [];
+  return (
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 48, gap: 10 }}>
+      {items.map((item, i) => (
+        <McqCard key={i} item={item} index={i} />
+      ))}
+    </ScrollView>
+  );
+}
+
 function Shell() {
   const { theme, colors } = useTheme();
   React.useEffect(() => {
@@ -113,6 +137,10 @@ function Shell() {
 
   if (screen === 'notesdemo') {
     return <NotesRendererDemo />;
+  }
+
+  if (screen === 'mcqdemo') {
+    return <McqDemo />;
   }
 
   return (

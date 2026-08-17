@@ -68,6 +68,32 @@ a `@data` alias; `src/lib/profanity.ts` through `@shared`. Wired in
 
 Never duplicate these files into `mobile/`. A second copy will drift.
 
+## `ask-gemini` is told the intent, it does not infer it
+
+`mobile/src/lib/askAi.ts` owns every request to that function, and nothing else
+should build one. The function picks its system prompt from **flags in the
+request body** — `isMCQRequest` selects the MCQ branch (3000 tokens, temp 0.6,
+strict formatting rules); without it you get "You are ACEV, a helpful and
+knowledgeable assistant" at 2000 tokens. Sending prose that *describes* wanting
+MCQs does nothing; `isMCQsRequest = explicitMCQRequest` and that is its only
+source.
+
+Two consequences that look like trivia and are not:
+
+- The `Triple-tapped:` / `Double-tapped:` prefixes are load-bearing markers,
+  and `displayText()` strips them before anything reaches a chat bubble.
+- The medical-vs-generic system prompt is chosen by **keyword match on the
+  prompt** (`index.ts` line 363: 'medical', 'disease', 'pathology', 'symptom',
+  'treatment', 'diagnosis'…). "Discuss the aetiology of jaundice" hits none of
+  them, so `tripleTapPrompt()` says "MBBS medical exam question" on purpose.
+  Reword it and the answer quietly comes from a general-purpose chatbot.
+
+MCQ responses come back as JSON inside markdown fences with a preamble, whatever
+the prompt demands. `parseMcqs()` takes the outermost bracket pair and drops any
+item without four options or with an out-of-range `correct`; a half-valid quiz
+teaches wrong answers, so the fallback is showing the prose instead.
+`npm run check:mcq` covers all of that.
+
 ## Motion goes through `src/theme/motion.ts`
 
 Do not hand-roll an animation. The house springs, easing curves, duration scale,
@@ -164,6 +190,7 @@ cd mobile
 npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
+npm run check:mcq                # MCQ response parsing + the ask-gemini markers
 npm run check:smoke              # drives the real screens; 11 flows, 0 crashes
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed

@@ -16,22 +16,24 @@ import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';
 import { typeScale } from '@/theme/typography';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
-import { supabase } from '@/lib/supabase';
+import { McqCard } from '@/components/McqCard';
+import {
+  askAi,
+  displayText,
+  MAX_HISTORY,
+  MAX_HISTORY_CONTENT,
+  MAX_PROMPT,
+  type Mcq,
+} from '@/lib/askAi';
 import type { RootTabParamList } from '@/navigation/types';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   text: string;
+  /** Present when this turn produced answerable practice questions. */
+  mcqs?: Mcq[];
 }
-
-/**
- * Mirrors the zod schema in supabase/functions/ask-gemini/index.ts. If those
- * limits change, change these — exceeding them is a 400, not a soft failure.
- */
-const MAX_PROMPT = 4000;
-const MAX_HISTORY = 20;
-const MAX_HISTORY_CONTENT = 15000;
 
 let messageSeq = 0;
 function nextId() {
@@ -71,6 +73,11 @@ export default function AskAiScreen() {
         return;
       }
       setInput('');
+      // A tap-triggered prompt carries a "Triple-tapped:"/"Double-tapped:"
+      // marker the function needs but the user should never see, and an MCQ
+      // request is rewritten into a page of JSON instructions before it is
+      // sent. The bubble shows the question, not the machinery.
+      const shown = displayText(prompt);
       /**
        * Only the tail of the conversation goes to the server.
        *
@@ -97,34 +104,16 @@ export default function AskAiScreen() {
               ? message.text.slice(0, MAX_HISTORY_CONTENT)
               : message.text,
         }));
-      setMessages(prev => [...prev, { id: nextId(), role: 'user', text: prompt }]);
+      setMessages(prev => [...prev, { id: nextId(), role: 'user', text: shown }]);
       setLoading(true);
 
       try {
-        // Same edge function the web app calls.
-        const { data, error } = await supabase.functions.invoke('ask-gemini', {
-          body: { prompt, conversationHistory: history },
-        });
-        if (error) {
-          throw new Error(error.message);
-        }
-        if (data?.error) {
-          // The function rate-limits to 5 requests/minute per IP and reports
-          // it in the body with a 200. Say so plainly — "could not reach the
-          // service" is wrong and unhelpful when the service answered.
-          throw new Error(
-            data.isRateLimit
-              ? `Too many questions at once. Try again in ${data.retryAfter ?? 30} seconds.`
-              : String(data.error),
-          );
-        }
+        // src/lib/askAi.ts owns the request shape — which intent flags the
+        // function needs, and how an MCQ response is parsed back into cards.
+        const result = await askAi(prompt, history);
         setMessages(prev => [
           ...prev,
-          {
-            id: nextId(),
-            role: 'assistant',
-            text: data?.response ?? 'No answer came back. Try rephrasing the question.',
-          },
+          { id: nextId(), role: 'assistant', text: result.text, mcqs: result.mcqs },
         ]);
       } catch (err) {
         setMessages(prev => [
@@ -207,6 +196,21 @@ export default function AskAiScreen() {
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => {
               const mine = item.role === 'user';
+              // A quiz is not a chat bubble. Cards get the full width, because
+              // four tappable options squeezed into 88% of it would either wrap
+              // badly or drop below the 44dp touch minimum.
+              if (item.mcqs) {
+                return (
+                  <View style={styles.mcqGroup}>
+                    <Text style={[styles.mcqHeading, { color: colors.textMuted }]}>
+                      {item.text}
+                    </Text>
+                    {item.mcqs.map((mcq, i) => (
+                      <McqCard key={`${item.id}-${i}`} item={mcq} index={i} />
+                    ))}
+                  </View>
+                );
+              }
               return (
                 <View
                   style={[
@@ -361,6 +365,15 @@ const styles = StyleSheet.create({
   bubbleText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  mcqGroup: {
+    gap: 10,
+  },
+  mcqHeading: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   typing: {
     flexDirection: 'row',

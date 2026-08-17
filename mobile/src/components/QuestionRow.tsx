@@ -14,6 +14,7 @@ import {
   importanceLabel,
 } from '@/lib/questionText';
 import { useQuestionDone } from '@/hooks/useProgress';
+import { doubleTapPrompt, tripleTapPrompt } from '@/lib/askAi';
 
 interface Props {
   question: string;
@@ -77,19 +78,16 @@ function QuestionRowBase({ question, index, onAskAi, onAskMcq }: Props) {
     toggleQuestionDone(question);
   }, [question]);
 
+  // Both prompts are built in src/lib/askAi.ts, which owns the markers and
+  // intent flags the edge function needs. Hand-writing the prose here is what
+  // previously sent MCQ requests down the generic-chatbot path.
   const askAnswer = useCallback(() => {
-    onAskAi(
-      `Write a handwritten-style exam note answering this question in full, with headings and key points:\n\n${getCleanQuestionText(question)}`,
-    );
+    onAskAi(tripleTapPrompt(getCleanQuestionText(question)));
   }, [onAskAi, question]);
 
   const askMcq = useCallback(() => {
-    const clean = getCleanQuestionText(question);
-    if (onAskMcq) {
-      onAskMcq(clean);
-      return;
-    }
-    onAskAi(`Generate 10 NEET-PG style MCQs with answers and explanations on:\n\n${clean}`);
+    const prompt = doubleTapPrompt(getCleanQuestionText(question));
+    (onAskMcq ?? onAskAi)(prompt);
   }, [onAskAi, onAskMcq, question]);
 
   // ---- tap disambiguation --------------------------------------------------
