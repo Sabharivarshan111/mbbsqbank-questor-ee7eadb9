@@ -209,7 +209,7 @@ npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
 npm run check:mcq                # MCQ response parsing + the ask-gemini markers
 npm run check:notes-limits       # every topic still fits the notes function's schema
-npm run check:smoke              # drives the real screens; 11 flows, 0 crashes
+npm run check:smoke              # drives the real screens; 12 flows, 0 crashes
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed
 ```

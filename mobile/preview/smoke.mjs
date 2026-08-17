@@ -231,6 +231,71 @@ await step('a question row toggles done and back', async () => {
   }
 });
 
+await step('double tap a question opens Ask AI with the question text', async () => {
+  // Same three levels as the step above. Re-navigating rather than reusing the
+  // previous position keeps this step independent — a failure there should not
+  // turn into a confusing failure here.
+  await open('screen=browse&year=second-year&node=pathology&title=Pathology');
+  await page.getByText('Explore Questions').first().click({ timeout: 5000 });
+  await page.waitForTimeout(800);
+  await page.locator('[aria-label^="The Cell as a Unit"]').first().click({ timeout: 5000 });
+  await page.waitForTimeout(900);
+  await declineAdPromptIfShown();
+  if (await page.getByText('No essays here').first().isVisible().catch(() => false)) {
+    await page.getByText('Short Notes').first().click({ timeout: 4000 });
+    await page.waitForTimeout(700);
+  }
+
+  const box = page.locator('[role="checkbox"]').first();
+  await box.waitFor({ timeout: 5000 });
+  const row = page.locator('[aria-label][role="button"]').filter({ has: box }).first();
+  const question = (await row.getAttribute('aria-label')) ?? '';
+
+  // Two taps inside the 280ms window. Driven through page.mouse with
+  // clickCount rather than two awaited .click() calls, because each awaited
+  // click costs more than the window and the second would start a new count.
+  const point = await row.boundingBox();
+  await page.mouse.click(point.x + point.width / 2, point.y + 12, { clickCount: 2, delay: 40 });
+
+  // The request itself cannot succeed here — the sandbox blocks Supabase — so
+  // this asserts the routing and the prompt, which is what the change touched.
+  // The failure bubble that follows is expected and is not what is checked.
+  //
+  // Keyed on the composer, not on the text "Ask AI": that string is also the
+  // bottom-nav tab label, so it is already on screen before the tap and would
+  // make this pass without ever navigating anywhere.
+  await page
+    .locator('[placeholder="Ask a medical question…"]')
+    .waitFor({ state: 'visible', timeout: 6000 });
+
+  // Only what is actually visible. React Navigation keeps the screens you came
+  // from mounted, so reading every text node would also read the browse screens
+  // still sitting behind this one.
+  const shown = await page.evaluate(() =>
+    [...document.querySelectorAll('div,span')]
+      .filter(node => node.children.length === 0 && node.textContent.trim() && node.offsetParent)
+      .map(node => node.textContent.trim()),
+  );
+  const joined = shown.join('   ');
+
+  // The markers are machinery for the edge function; a user must never see one.
+  if (/Triple-tapped:|Double-tapped:/.test(joined)) {
+    throw new Error('a tap marker leaked into the transcript');
+  }
+  // Nor the JSON-forcing MCQ instructions that replace the prompt on the wire.
+  if (/RESPOND WITH ONLY A VALID JSON ARRAY/.test(joined)) {
+    throw new Error('the raw MCQ prompt was shown instead of the question');
+  }
+  // The question itself should be there. Compared on the leading words before
+  // any bracket — the label carries PYQ markers ("Growth Factors (Feb 15;Feb
+  // 08)") and comparing a punctuation-stripped stem against unstripped screen
+  // text never matches.
+  const stem = question.split('(')[0].trim();
+  if (stem && !joined.includes(stem)) {
+    throw new Error(`the question ("${stem}") did not reach the Ask AI transcript`);
+  }
+});
+
 // ---- Timer -----------------------------------------------------------------
 await step('timer starts, pauses, resets, and opens its sheet', async () => {
   await open('screen=timer');
