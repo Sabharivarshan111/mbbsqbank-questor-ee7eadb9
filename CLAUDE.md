@@ -98,6 +98,14 @@ regresses.
 Reduced motion is not optional. `useReducedMotion()` is wired into every
 primitive; new motion must handle it in the same commit, not as a follow-up.
 
+## A render error must never blank the app
+
+`mobile/src/components/ErrorBoundary.tsx` wraps everything in `App.tsx` —
+**outside** the providers, so it still catches when the thing that threw is a
+provider. It deliberately uses plain React Native components and literal
+colours: a fallback that depends on the code that just failed is not a
+fallback. Keep it that way.
+
 ## Haptics are two calls, and both are earned
 
 `mobile/src/lib/haptics.ts` is the only thing in the app that vibrates:

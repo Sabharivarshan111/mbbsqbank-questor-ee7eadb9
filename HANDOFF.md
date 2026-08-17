@@ -180,6 +180,13 @@ key reset lands. Expect to debug it on first use.
 
 ## 7. What has and has not been verified
 
+**Verified by driving the app:** `npm run check:smoke` walks eleven flows in
+the preview — theme toggle, sheets, year picker, search, three levels into the
+question bank, ticking and un-ticking a question, the timer, every tab — and
+fails on any uncaught error. `npm run check:fanout` guards the per-question
+subscription. The error boundary was verified by forcing a render crash and
+confirming the recovery screen appears instead of a blank one.
+
 **Verified mechanically:** TypeScript clean, ESLint 0 errors, Android release
 bundle builds, live ad unit IDs present in the release bundle with the dev
 branch dead-code eliminated, shared blocklist strings present in the bundle,

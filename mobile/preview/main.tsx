@@ -15,6 +15,7 @@ import { hydrateProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 import { hydratePremium } from '@/lib/premium';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 /**
  * Preview entry point. Mirrors App.tsx, minus the cloud sync, and lets the
@@ -98,9 +99,12 @@ function Shell() {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <SafeAreaProvider initialMetrics={METRICS}>
-    <ThemeProvider initialPreference={themeParam}>
-      <Shell />
-    </ThemeProvider>
-  </SafeAreaProvider>,
+  // Mirrors App.tsx, including the boundary sitting outside the providers.
+  <ErrorBoundary>
+    <SafeAreaProvider initialMetrics={METRICS}>
+      <ThemeProvider initialPreference={themeParam}>
+        <Shell />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  </ErrorBoundary>,
 );

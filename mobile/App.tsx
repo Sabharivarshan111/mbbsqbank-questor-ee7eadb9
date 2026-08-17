@@ -9,6 +9,7 @@ import { hydrateProfile } from '@/hooks/useProfile';
 import { initializeAds } from '@/lib/ads';
 import { hydratePremium, usePremiumSync } from '@/lib/premium';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 function Shell() {
   const { theme, colors } = useTheme();
@@ -53,10 +54,14 @@ function Shell() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <Shell />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    // Outside the providers on purpose: if the thing that throws is a provider,
+    // a boundary nested inside it never runs.
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <Shell />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
