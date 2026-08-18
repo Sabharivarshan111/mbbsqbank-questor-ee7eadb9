@@ -1,126 +1,398 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
-import { AccentPicker, ThemePreview } from '@/components/AccentPicker';
-import { Moon, Smartphone, Sun } from 'lucide-react-native';
-import { useTheme, type ThemePreference } from '@/theme';
+import { ThemePreview } from '@/components/ThemePreview';
+import { ColorPicker } from '@/components/ColorPicker';
+import { Check, Palette, Smartphone } from 'lucide-react-native';
+import { useTheme } from '@/theme';
+import {
+  PRESETS,
+  QUICK_PRESETS,
+  presetByKey,
+  type CustomPalette,
+} from '@/theme/presets';
 import { radius, space } from '@/theme/tokens';
 
 /**
- * Appearance, in one place.
+ * Themes: the named ones, plus one you build yourself.
  *
- * Replaces a header button that toggled light/dark on tap. That was the right
- * control while a theme *was* a binary; with an accent to choose as well, a
- * button that silently flips one of several dimensions is the wrong
- * affordance, and an accent nobody can find is an accent nobody has.
+ * Four free colours can produce unreadable text — that is a real property of
+ * the design, not a reason to withhold it. Rather than narrowing the choice,
+ * the editor makes the consequence visible: the preview is the whole app in
+ * miniature, and the contrast figure under it turns red and says so when the
+ * combination drops below AA. The user is informed rather than restricted.
  *
- * The cost is one extra tap to switch mode, so mode is the first row and the
- * sheet opens directly onto it.
- *
- * Two choices, not four. The reference this was adapted from offers
- * background, text, accent and card as free colour pickers with a live preview
- * to check the result — which makes legibility the user's problem, and offers
- * them a preview that cannot show the one screen where their pick fails. Base
- * plus accent covers the same ground with every combination readable by
- * construction. See theme/accents.ts.
+ * Semantic colours are the one thing a theme cannot reach. Success, warning
+ * and danger stay green, amber and red in every theme, because a tick that
+ * means "done" and a bar that means "wrong" have to keep meaning that. Only
+ * the accent, surfaces and text move.
  */
 
-const MODES: { key: ThemePreference; label: string; hint: string }[] = [
-  { key: 'dark', label: 'Dark', hint: 'Always dark' },
-  { key: 'light', label: 'Light', hint: 'Always light' },
-  { key: 'system', label: 'System', hint: 'Follows your phone' },
-];
+/** Four swatches, the way the preset lists show a theme at a glance. */
+function Swatches({ palette }: { palette: CustomPalette }) {
+  return (
+    <View style={styles.swatches}>
+      {[palette.background, palette.text, palette.accent, palette.card].map((color, i) => (
+        <View key={i} style={[styles.swatch, { backgroundColor: color }]} />
+      ))}
+    </View>
+  );
+}
 
 export function ThemeSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { colors, preference, setPreference } = useTheme();
+  const { colors, preference, setPreference, custom, setCustom } = useTheme();
+  const [editing, setEditing] = useState(false);
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Appearance">
+    <Sheet visible={visible} onClose={onClose} title={editing ? 'Create your own' : 'Themes'}>
+      {editing ? (
+        <CustomEditor
+          initial={custom ?? presetByKey('dark')!.palette!}
+          onCancel={() => setEditing(false)}
+          onApply={next => {
+            setCustom(next);
+            setPreference('custom');
+            setEditing(false);
+          }}
+        />
+      ) : (
+        <View style={styles.list}>
+          {PRESETS.map(preset => (
+            <Row
+              key={preset.key}
+              name={preset.name}
+              active={preference === preset.key}
+              onPress={() => setPreference(preset.key)}
+              left={<Swatches palette={preset.palette!} />}
+            />
+          ))}
+
+          <Row
+            name="System"
+            hint="Follows your phone"
+            active={preference === 'system'}
+            onPress={() => setPreference('system')}
+            left={
+              <View style={styles.icon}>
+                <Smartphone size={17} color={colors.text} />
+              </View>
+            }
+          />
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          {custom ? (
+            <Row
+              name="My Theme"
+              active={preference === 'custom'}
+              onPress={() => setPreference('custom')}
+              left={<Swatches palette={custom} />}
+            />
+          ) : null}
+
+          <Row
+            name={custom ? 'Edit my theme…' : 'Create your own…'}
+            onPress={() => setEditing(true)}
+            left={
+              <View style={styles.icon}>
+                <Palette size={17} color={colors.accent} />
+              </View>
+            }
+          />
+
+          <View style={styles.previewWrap}>
+            <ThemePreview label="Current theme" />
+          </View>
+        </View>
+      )}
+    </Sheet>
+  );
+}
+
+function Row({
+  name,
+  hint,
+  active,
+  onPress,
+  left,
+}: {
+  name: string;
+  hint?: string;
+  active?: boolean;
+  onPress: () => void;
+  left: React.ReactNode;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Touchable
+      onPress={onPress}
+      role="radio"
+      label={name}
+      hint={hint}
+      state={{ selected: !!active }}
+      scale={false}
+      dim
+      style={styles.row}>
+      {left}
+      <View style={styles.rowBody}>
+        <Text style={[styles.rowName, { color: colors.text, fontWeight: active ? '700' : '600' }]}>
+          {name}
+        </Text>
+        {hint ? <Text style={[styles.rowHint, { color: colors.textMuted }]}>{hint}</Text> : null}
+      </View>
+      {active ? <Check size={17} color={colors.accent} strokeWidth={3} /> : null}
+    </Touchable>
+  );
+}
+
+/** Which of the four colours the picker is currently editing. */
+const SLOTS: { key: keyof CustomPalette; name: string; desc: string }[] = [
+  { key: 'background', name: 'Background', desc: 'Main page colour' },
+  { key: 'text', name: 'Text', desc: 'Main text colour' },
+  { key: 'accent', name: 'Accent', desc: 'Buttons & highlights' },
+  { key: 'card', name: 'Card', desc: 'Cards & panels' },
+];
+
+function CustomEditor({
+  initial,
+  onApply,
+  onCancel,
+}: {
+  initial: CustomPalette;
+  onApply: (palette: CustomPalette) => void;
+  onCancel: () => void;
+}) {
+  const { colors } = useTheme();
+  /**
+   * Edited as a draft rather than applied live.
+   *
+   * Dragging a hue slider passes through every colour on the way to the one
+   * you want. Applying each of those to the whole app would strobe the screen
+   * — including the sheet you are dragging in, which would change colour under
+   * your finger. The preview updates continuously; the app changes once.
+   */
+  const [draft, setDraft] = useState<CustomPalette>(initial);
+  const [slot, setSlot] = useState<keyof CustomPalette>('accent');
+
+  useEffect(() => {
+    setDraft(initial);
+  }, [initial]);
+
+  const setSlotColor = useCallback(
+    (hex: string) => setDraft(current => ({ ...current, [slot]: hex })),
+    [slot],
+  );
+
+  return (
+    <ScrollView
+      style={styles.editor}
+      contentContainerStyle={styles.editorContent}
+      keyboardShouldPersistTaps="handled">
       <Text style={[styles.sub, { color: colors.textMuted }]}>
-        Changes apply everywhere, straight away.
+        Pick a colour for each part. The preview below is the whole app.
       </Text>
 
-      <Text style={[styles.section, { color: colors.textMuted }]}>Mode</Text>
-      <View style={styles.modeRow}>
-        {MODES.map(mode => {
-          const active = preference === mode.key;
-          const Icon = mode.key === 'dark' ? Moon : mode.key === 'light' ? Sun : Smartphone;
+      <View style={styles.slotGrid}>
+        {SLOTS.map(item => {
+          const active = slot === item.key;
           return (
             <Touchable
-              key={mode.key}
-              onPress={() => setPreference(mode.key)}
+              key={item.key}
+              onPress={() => setSlot(item.key)}
               role="radio"
-              label={mode.label}
-              hint={mode.hint}
-              state={{ checked: active }}
-              scaleTo={0.96}
+              label={item.name}
+              hint={item.desc}
+              state={{ selected: active }}
+              scaleTo={0.97}
               style={[
-                styles.mode,
+                styles.slot,
                 {
-                  backgroundColor: active ? colors.primary : colors.cardElevated,
-                  borderColor: active ? colors.primary : colors.border,
+                  borderColor: active ? colors.text : colors.border,
+                  borderWidth: active ? 2 : StyleSheet.hairlineWidth,
                 },
               ]}>
-              <Icon size={16} color={active ? colors.primaryText : colors.text} />
-              <Text
+              <View
                 style={[
-                  styles.modeText,
-                  { color: active ? colors.primaryText : colors.text },
-                ]}>
-                {mode.label}
-              </Text>
+                  styles.slotSwatch,
+                  { backgroundColor: draft[item.key], borderColor: colors.border },
+                ]}
+              />
+              <Text style={[styles.slotName, { color: colors.text }]}>{item.name}</Text>
+              <Text style={[styles.slotDesc, { color: colors.textMuted }]}>{item.desc}</Text>
             </Touchable>
           );
         })}
       </View>
 
-      <Text style={[styles.section, { color: colors.textMuted }]}>Accent</Text>
-      <AccentPicker />
+      <ColorPicker
+        value={draft[slot]}
+        onChange={setSlotColor}
+        label={SLOTS.find(s => s.key === slot)!.name}
+      />
 
-      {/* The preview reads the live theme rather than a draft, so what is on
-          screen is already the answer — there is nothing to "apply", and so no
-          way to leave the sheet having changed something you did not want. */}
-      <View style={styles.previewWrap}>
-        <ThemePreview label="Preview" />
+      <Text style={[styles.section, { color: colors.textMuted }]}>Quick presets</Text>
+      <View style={styles.quickGrid}>
+        {QUICK_PRESETS.map(preset => (
+          <Touchable
+            key={preset.name}
+            onPress={() => setDraft(preset.palette)}
+            label={preset.name}
+            hint="Start from this colour set"
+            scaleTo={0.97}
+            style={[styles.quick, { borderColor: colors.border }]}>
+            <Swatches palette={preset.palette} />
+            <Text style={[styles.quickName, { color: colors.text }]}>{preset.name}</Text>
+          </Touchable>
+        ))}
       </View>
-    </Sheet>
+
+      <View style={styles.previewWrap}>
+        <ThemePreview palette={draft} />
+      </View>
+
+      <View style={styles.actions}>
+        <Touchable
+          onPress={onCancel}
+          label="Cancel"
+          scaleTo={0.97}
+          style={[styles.action, { borderColor: colors.border }]}>
+          <Text style={[styles.actionText, { color: colors.text }]}>Cancel</Text>
+        </Touchable>
+        <Touchable
+          onPress={() => onApply(draft)}
+          label="Apply theme"
+          scaleTo={0.97}
+          style={[
+            styles.action,
+            { backgroundColor: colors.primary, borderColor: colors.primary },
+          ]}>
+          <Text style={[styles.actionText, { color: colors.primaryText }]}>Apply theme</Text>
+        </Touchable>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  list: {
+    gap: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    minHeight: 52,
+  },
+  rowBody: {
+    flex: 1,
+  },
+  rowName: {
+    fontSize: 15,
+  },
+  rowHint: {
+    fontSize: 12,
+  },
+  icon: {
+    width: 44,
+    alignItems: 'center',
+  },
+  swatches: {
+    flexDirection: 'row',
+    width: 44,
+    height: 22,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  swatch: {
+    flex: 1,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: space.sm,
+  },
+  previewWrap: {
+    marginTop: space.md,
+  },
+  editor: {
+    // The editor is taller than the sheet on a small phone, so it scrolls
+    // inside it rather than pushing the actions off the bottom.
+    maxHeight: 560,
+  },
+  editorContent: {
+    gap: space.md,
+    paddingBottom: space.sm,
+  },
   sub: {
-    fontSize: 14,
-    marginBottom: space.md,
+    fontSize: 13.5,
   },
   section: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    marginTop: space.sm,
-    marginBottom: space.sm,
   },
-  modeRow: {
+  slotGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: space.sm,
   },
-  mode: {
-    flex: 1,
+  slot: {
+    width: '48.5%',
+    borderRadius: radius.md,
+    padding: space.md,
+    gap: 4,
+  },
+  slotSwatch: {
+    height: 34,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 4,
+  },
+  slotName: {
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  slotDesc: {
+    fontSize: 11.5,
+  },
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: space.sm,
+  },
+  quick: {
+    width: '48.5%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+    gap: space.sm,
     minHeight: 44,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: space.sm,
   },
-  modeText: {
+  quickName: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
   },
-  previewWrap: {
-    marginTop: space.md,
+  actions: {
+    flexDirection: 'row',
+    gap: space.sm,
+    marginTop: space.sm,
+  },
+  action: {
+    flex: 1,
+    minHeight: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

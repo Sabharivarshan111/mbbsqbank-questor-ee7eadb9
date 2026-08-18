@@ -127,22 +127,35 @@ cloud profile because that is the proof both the session and the row exist.
 
 `npm run check:sync` pins the ordering.
 
-## The theme is base + accent, and nothing else
+## Themes: four presets, plus one the user builds
 
-`src/theme/accents.ts` is the whole personalisation model: light or dark, plus
-one accent from a curated list. That is deliberately narrower than the web
-app's "Create Your Own Theme", which offers background, text, accent and card
-as free colour pickers — four independent choices is a space in which most
-points are unreadable, and a live preview only moves the problem onto the user.
+`src/theme/presets.ts` holds the named themes (Dark, Light, Black Pink, Liquid
+Glass) and the quick presets for the editor; `src/theme/color.ts` holds the
+maths. A theme is **four colours** — background, text, accent, card — and
+`paletteFrom()` derives the other fourteen from them, because those are
+relationships rather than choices: `cardElevated` is the card lifted towards
+the text, `border` sits between card and text, `textMuted` is text faded
+towards the background, `primary`/`primaryText` are the inverse of the page.
 
-An accent may touch `accent` and `fuchsia` (the brand hue, 42 call sites) and
-nothing else. **Never let it reach `success`, `warning` or `danger`**: those
-carry meaning, and a green chosen because somebody liked green is no longer
-information.
+Two things a theme may never reach:
 
-Text on a filled accent uses `colors.onAccent`, never a hardcoded white —
-amber and cyan need black. `npm run check:contrast` proves every accent × base
-combination clears 3:1 on the background and 4.5:1 for text on the accent.
+- **Semantic colours.** `success`, `warning` and `danger` stay green, amber and
+  red in every theme. A tick that means "done" and a bar that means "wrong"
+  have to keep meaning that.
+- **`onAccent`.** Text on a filled accent is computed from the accent's
+  luminance, never hardcoded white — amber and cyan need black.
+
+Four free colours *can* produce unreadable text. That is a property of the
+feature, not a bug to design away: the editor makes the consequence visible
+(the preview is the whole app, and the contrast figure turns red below AA)
+rather than restricting the choice. What ships must still be right, so
+`npm run check:contrast` walks all eight built-in themes — through
+`paletteFrom`, so the derived colours are checked too, not just the four
+picked ones.
+
+`theme` (light/dark) is derived from whether the background is dark, not from
+which preset is selected. That is what keeps the status bar, the navigator and
+the moon/sun icon correct for a custom theme.
 
 ## Motion goes through `src/theme/motion.ts`
 
@@ -241,7 +254,7 @@ npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
 npm run check:sync               # progress reaches the cloud once a session exists
-npm run check:contrast           # every accent stays readable on both bases
+npm run check:contrast           # every built-in theme stays readable
 npm run check:mcq                # MCQ response parsing + the ask-gemini markers
 npm run check:notes-limits       # every topic still fits the notes function's schema
 npm run check:smoke              # drives the real screens; 14 flows, 0 crashes

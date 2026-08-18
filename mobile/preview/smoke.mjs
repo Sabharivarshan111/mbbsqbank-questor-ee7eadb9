@@ -75,13 +75,77 @@ async function step(name, fn) {
     results.push(['FAIL', `${name} — ${String(error.message).split('\n')[0].slice(0, 110)}`]);
   }
   // A step that failed mid-dialog would block every step after it, turning one
-  // fault into a wall of red. Always leave the screen usable.
+  // fault into a wall of red. Always leave the screen usable — a sheet counts
+  // as well as a dialog, since its scrim blocks the header the next step needs.
   await declineAdPromptIfShown();
+  await closeSheetIfOpen();
+}
+
+/**
+ * Wait for a sheet to actually be gone.
+ *
+ * Its exit is a spring, not a fixed duration, and the scrim keeps swallowing
+ * taps until it has finished. A `waitForTimeout(900)` was racing it: the theme
+ * steps passed, then the next step's first tap reported "visible but blocked"
+ * on a header button the closing sheet was still covering.
+ */
+async function waitForSheetClosed() {
+  await page
+    .locator('[aria-label="Done"]')
+    .first()
+    .waitFor({ state: 'hidden', timeout: 5000 })
+    .catch(() => {});
+  await page.waitForTimeout(150);
+}
+
+/** Dismiss a sheet left open, so its scrim does not eat the next step. */
+async function closeSheetIfOpen() {
+  const done = page.locator('[aria-label="Done"]').first();
+  if (await done.isVisible().catch(() => false)) {
+    await done.click().catch(() => {});
+    await waitForSheetClosed();
+    await declineAdPromptIfShown();
+    return true;
+  }
+  return false;
 }
 
 const byLabel = label => page.locator(`[aria-label="${label}"]`).first();
+/**
+ * Names the control in the failure.
+ *
+ * Playwright's own message is "locator.click: Timeout 4000ms exceeded", which
+ * says a click failed but not which one — and a step that taps six controls
+ * then gives no clue where it stopped. It also reports whether the control was
+ * missing or merely unclickable, which are different bugs: absent means a
+ * label changed, present-but-blocked means something is covering it.
+ */
 const tap = async label => {
-  await byLabel(label).click({ timeout: 4000 });
+  try {
+    await byLabel(label).click({ timeout: 4000 });
+  } catch (error) {
+    const count = await byLabel(label).count();
+    const visible = count > 0 && (await byLabel(label).isVisible().catch(() => false));
+    if (process.env.SMOKE_DEBUG) {
+      await page.screenshot({ path: `/tmp/smoke-fail-${label.replace(/\W+/g, '-')}.png` });
+      const top = await page.evaluate(l => {
+        const el = document.querySelector(`[aria-label="${l}"]`);
+        if (!el) return 'missing';
+        const r = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        const path = [];
+        for (let n = hit; n && path.length < 5; n = n.parentElement) {
+          path.push(`${n.tagName}${n.getAttribute('aria-label') ? `[${n.getAttribute('aria-label')}]` : ''}`);
+        }
+        return path.join(' < ');
+      }, label);
+      process.stdout.write(`\nDEBUG hit-test at "${label}": ${top}\n`);
+    }
+    const why = String(error.message).split('\n').slice(0, 3).join(' | ');
+    throw new Error(
+      `could not tap "${label}" (${count === 0 ? 'no such label' : visible ? 'visible' : 'hidden'}) — ${why}`,
+    );
+  }
   await page.waitForTimeout(280);
 };
 const seesText = async (text, timeout = 4000) => {
@@ -115,81 +179,140 @@ await open('screen=home');
 await step('home renders the subject grid', () => seesText('Your Subjects'));
 
 /**
- * Mode now lives in the Appearance sheet rather than on a header button that
- * toggled on tap. Opening it each time is what a user does too — the sheet is
- * the control, and there is no longer a one-tap toggle to shortcut through.
+ * Themes live in a sheet now rather than on a header button that toggled on
+ * tap. Opening it each time is what a user does too.
  */
-async function setMode(label) {
-  await tap('Appearance');
-  await seesText('Mode');
+async function pickTheme(label) {
+  await tap('Themes');
+  await seesText('Current theme');
   await tap(label);
   await declineAdPromptIfShown();
   await tap('Done');
-  await page.waitForTimeout(900);
+  await waitForSheetClosed();
   return declineAdPromptIfShown();
 }
 
-await step('appearance sheet switches dark → light → dark', async () => {
+/**
+ * Probed on themed *text*, not on document.body.
+ *
+ * react-native-web paints its own colour on the body — rgb(11, 10, 20), which
+ * is in no palette — so reading it reported "no change" for a switch that had
+ * plainly worked.
+ */
+const taglineColor = () =>
+  page.evaluate(() => {
+    const node = [...document.querySelectorAll('div,span')].find(
+      n => n.children.length === 0 && n.textContent.trim() === 'Learn. Retain. Master.',
+    );
+    return node ? getComputedStyle(node).color : null;
+  });
+
+await step('theme sheet switches between presets', async () => {
+  await pickTheme('Light');
+  const light = await taglineColor();
+  await pickTheme('Dark');
+  const dark = await taglineColor();
+  if (!light || !dark || light === dark) {
+    throw new Error(`text colour did not change between presets (${light} → ${dark})`);
+  }
+});
+
+await step('Black Pink changes the accent but keeps the black base', async () => {
   /**
-   * Probed on themed *text*, not on document.body.
+   * Asserted on the two things that actually distinguish it from Dark.
    *
-   * react-native-web paints its own colour on the body — rgb(11, 10, 20),
-   * which is neither palette — so reading it reported "no change" for a switch
-   * that had plainly worked. A tagline rendered in colors.text flips from
-   * near-white to near-black and is unambiguous.
+   * The first version of this step read the same value twice and asserted the
+   * two were equal, which is true of any value and tested nothing. The claim
+   * worth checking is that Black Pink moves the accent while leaving the
+   * background where Dark had it.
    */
-  const taglineColor = () =>
+  const badge = () =>
     page.evaluate(() => {
       const node = [...document.querySelectorAll('div,span')].find(
-        n => n.children.length === 0 && n.textContent.trim() === 'Learn. Retain. Master.',
+        n => n.children.length === 0 && n.textContent.trim() === 'Badge',
       );
       return node ? getComputedStyle(node).color : null;
     });
 
-  await setMode('Light');
-  const light = await taglineColor();
-  await setMode('Dark');
-  const dark = await taglineColor();
-  if (!light || !dark || light === dark) {
-    throw new Error(`text colour did not change between modes (${light} → ${dark})`);
+  await tap('Themes');
+  await seesText('Current theme');
+  await tap('Dark');
+  await declineAdPromptIfShown();
+  const darkAccent = await badge();
+  const darkText = await taglineColor();
+
+  await tap('Black Pink');
+  await declineAdPromptIfShown();
+  const pinkAccent = await badge();
+  const pinkText = await taglineColor();
+
+  await tap('Done');
+  await waitForSheetClosed();
+  await declineAdPromptIfShown();
+
+  if (!darkAccent || !pinkAccent || darkAccent === pinkAccent) {
+    throw new Error(`accent did not change (${darkAccent} → ${pinkAccent})`);
   }
+  if (darkText !== pinkText) {
+    throw new Error(`text colour should be unchanged on a black base (${darkText} → ${pinkText})`);
+  }
+  await pickTheme('Dark');
 });
 
-await step('choosing an accent recolours the app', async () => {
-  await tap('Appearance');
-  await seesText('Accent');
-  await tap('Emerald');
-  await page.waitForTimeout(400);
-  // The preview badge is drawn in the accent, so it is the cheapest honest
-  // probe that the palette actually rebuilt.
-  const green = await page.evaluate(() => {
-    const badge = [...document.querySelectorAll('div,span')].find(
-      n => n.children.length === 0 && n.textContent.trim() === 'Badge',
-    );
-    return badge ? getComputedStyle(badge).color : null;
-  });
-  await tap('Fuchsia');
-  await page.waitForTimeout(400);
-  const pink = await page.evaluate(() => {
-    const badge = [...document.querySelectorAll('div,span')].find(
-      n => n.children.length === 0 && n.textContent.trim() === 'Badge',
-    );
-    return badge ? getComputedStyle(badge).color : null;
-  });
-  await tap('Done');
-  await page.waitForTimeout(900);
-  await declineAdPromptIfShown();
-  if (!green || !pink || green === pink) {
-    throw new Error(`accent did not change the palette (${green} → ${pink})`);
+await step('the custom editor applies a theme built by hand', async () => {
+  await tap('Themes');
+  await seesText('Current theme');
+  await tap('Create your own…');
+  await seesText('Quick presets');
+
+  // Every one of the four parts must be selectable, or the editor is not the
+  // thing the screenshots asked for.
+  for (const part of ['Background', 'Text', 'Accent', 'Card']) {
+    await tap(part);
   }
+
+  await tap('Forest');
+  await page.waitForTimeout(400);
+  await tap('Apply theme');
+  await declineAdPromptIfShown();
+  await waitForSheetClosed();
+  await declineAdPromptIfShown();
+
+  // Forest is a dark green background; the app should now be wearing it.
+  const bg = await page.evaluate(() => {
+    const node = [...document.querySelectorAll('div,span')].find(
+      n => n.children.length === 0 && n.textContent.trim() === 'Learn. Retain. Master.',
+    );
+    let el = node;
+    while (el && getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)') {
+      el = el.parentElement;
+    }
+    return el ? getComputedStyle(el).backgroundColor : null;
+  });
+  if (!bg || bg === 'rgb(0, 0, 0)') {
+    throw new Error(`custom theme did not reach the app (background ${bg})`);
+  }
+
+  /**
+   * Applying returns to the theme list with My Theme selected, rather than
+   * closing the sheet — you see the thing you just made take its place among
+   * the others. The first version of this step assumed a dismiss and tapped
+   * the header button again, which the open sheet's scrim correctly refused.
+   */
+  await seesText('My Theme');
+  await tap('Dark');
+  await declineAdPromptIfShown();
+  await tap('Done');
+  await waitForSheetClosed();
+  await declineAdPromptIfShown();
 });
 
 await step('declining the ad prompt stops it re-asking on the next change', async () => {
   // The change above was declined, which starts a cooldown. Being asked again
   // seconds later is nagging, and was the behaviour before that cooldown
   // existed — two changes were enough to be asked twice.
-  const askedAgain = await setMode('Light');
-  const askedThrice = await setMode('Dark');
+  const askedAgain = await pickTheme('Light');
+  const askedThrice = await pickTheme('Dark');
   if (askedAgain || askedThrice) {
     throw new Error('prompt returned during the decline cooldown');
   }

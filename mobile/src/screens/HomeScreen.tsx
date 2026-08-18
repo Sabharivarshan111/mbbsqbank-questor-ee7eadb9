@@ -198,8 +198,8 @@ export default function HomeScreen() {
           </Touchable>
           <Touchable
             onPress={() => setThemeOpen(true)}
-            label="Appearance"
-            hint="Choose light or dark, and an accent colour"
+            label="Themes"
+            hint="Pick a theme or build your own"
             scaleTo={0.9}>
             <RoundButton label="THEME">
               {theme === 'dark' ? (

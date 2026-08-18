@@ -7,14 +7,19 @@ import React, {
   useState,
 } from 'react';
 import { useColorScheme } from 'react-native';
+import { isDark } from '@/theme/color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
 import { tick } from '@/lib/haptics';
 import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
-import { accentColor, DEFAULT_ACCENT, onColor } from '@/theme/accents';
+import { paletteFrom, presetByKey, PRESETS, type CustomPalette, type PresetKey } from '@/theme/presets';
 
 export type ThemeName = 'light' | 'dark';
-export type ThemePreference = ThemeName | 'system';
+/**
+ * Which theme is chosen. Beyond light/dark/system there are the named presets
+ * and `custom`, which resolves to whatever is saved as My Theme.
+ */
+export type ThemePreference = PresetKey;
 
 export interface Palette {
   background: string;
@@ -90,30 +95,9 @@ const DARK: Palette = {
   onAccent: '#000000',
 };
 
-const LIGHT: Palette = {
-  background: '#FFFFFF',
-  card: '#F6F6F9', // was #FAFAFA — 98% on 100% was not a surface
-  cardElevated: '#ECECF1', // was #EBEBEB
-  muted: '#ECECF1',
-  border: '#DCDCE4', // was #D9D9D9
-  text: '#0A0A0B',
-  textMuted: '#6B6B78', // was #737373 — also lifts contrast on white
-  primary: '#171717',
-  primaryText: '#FAFAFA',
-  cyan: '#0891B2',
-  emerald: '#059669',
-  fuchsia: '#C026D3',
-  green: '#16A34A',
-  violet: '#7C3AED',
-  success: '#16A34A',
-  warning: '#D97706',
-  danger: '#DC2626',
-  accent: '#C026D3',
-  onAccent: '#FFFFFF',
-};
 
 const STORAGE_KEY = 'orbit:theme-preference';
-const ACCENT_KEY = 'orbit:theme-accent';
+const CUSTOM_KEY = 'orbit:theme-custom';
 const TEXT_SIZE_KEY = 'orbit:text-size';
 
 interface ThemeContextValue {
@@ -124,9 +108,10 @@ interface ThemeContextValue {
   toggleTheme: () => void;
   textSize: TextSize;
   setTextSize: (size: TextSize) => void;
-  /** Which accent is applied. See theme/accents.ts for why it is one choice. */
-  accent: string;
-  setAccent: (key: string) => void;
+  /** The saved My Theme, or null until one is created. */
+  custom: CustomPalette | null;
+  /** Save (or clear) My Theme. Saving does not switch to it. */
+  setCustom: (palette: CustomPalette | null) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -137,8 +122,8 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
   textSize: 'default',
   setTextSize: () => {},
-  accent: DEFAULT_ACCENT,
-  setAccent: () => {},
+  custom: null,
+  setCustom: () => {},
 });
 
 export function ThemeProvider({
@@ -157,20 +142,29 @@ export function ThemeProvider({
   // The web app ships dark by default; keep that rather than following the OS.
   const [preference, setPreferenceState] = useState<ThemePreference>(initialPreference);
   const [textSize, setTextSizeState] = useState<TextSize>('default');
-  const [accent, setAccentState] = useState<string>(DEFAULT_ACCENT);
+  const [custom, setCustomState] = useState<CustomPalette | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(value => {
-        if (value === 'light' || value === 'dark' || value === 'system') {
-          setPreferenceState(value);
+        const known: string[] = [...PRESETS.map(p => p.key), 'system', 'custom'];
+        if (value && known.includes(value)) {
+          setPreferenceState(value as ThemePreference);
         }
       })
       .catch(() => {});
-    AsyncStorage.getItem(ACCENT_KEY)
+    AsyncStorage.getItem(CUSTOM_KEY)
       .then(value => {
-        if (value) {
-          setAccentState(value);
+        if (!value) {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(value) as Partial<CustomPalette>;
+          if (parsed.background && parsed.text && parsed.accent && parsed.card) {
+            setCustomState(parsed as CustomPalette);
+          }
+        } catch {
+          // A corrupt entry should not stop the app theming itself.
         }
       })
       .catch(() => {});
@@ -190,15 +184,13 @@ export function ThemeProvider({
     // an ad is not a trade anybody should be asked to make.
   }, []);
 
-  const setAccent = useCallback((next: string) => {
-    // Same single tap as a theme change: it is the same kind of commit, and
-    // the same action should feel the same wherever it is started.
-    tick();
-    setAccentState(next);
-    AsyncStorage.setItem(ACCENT_KEY, next).catch(() => {});
-    // No ad. The theme bucket is spent by switching light/dark; charging twice
-    // for one visit to the same sheet is the kind of thing that makes people
-    // stop opening it.
+  const setCustom = useCallback((next: CustomPalette | null) => {
+    setCustomState(next);
+    if (next) {
+      AsyncStorage.setItem(CUSTOM_KEY, JSON.stringify(next)).catch(() => {});
+    } else {
+      AsyncStorage.removeItem(CUSTOM_KEY).catch(() => {});
+    }
   }, []);
 
   const setPreference = useCallback((next: ThemePreference) => {
@@ -214,27 +206,38 @@ export function ThemeProvider({
     requestDailyAd('theme').catch(() => undefined);
   }, []);
 
-  const theme: ThemeName =
-    preference === 'system' ? (systemScheme === 'light' ? 'light' : 'dark') : preference;
+  /**
+   * The four chosen colours for whatever is selected.
+   *
+   * `system` follows the OS between the light and dark presets. `custom`
+   * resolves to My Theme, falling back to dark if the preference was somehow
+   * saved before a theme was — a stored preference pointing at nothing should
+   * not leave the app unstyled.
+   */
+  const chosen: CustomPalette = useMemo(() => {
+    if (preference === 'system') {
+      return presetByKey(systemScheme === 'light' ? 'light' : 'dark')!.palette!;
+    }
+    if (preference === 'custom') {
+      return custom ?? presetByKey('dark')!.palette!;
+    }
+    return presetByKey(preference)?.palette ?? presetByKey('dark')!.palette!;
+  }, [preference, systemScheme, custom]);
+
+  /**
+   * Light or dark is now a *property* of the chosen colours rather than the
+   * choice itself: it is whether the background is dark. Everything that keys
+   * off `theme` — the status bar, the navigation container, the moon/sun icon
+   * — then stays right for a custom theme too, which it would not if this were
+   * still the name of a preset.
+   */
+  const theme: ThemeName = isDark(chosen.background) ? 'dark' : 'light';
 
   const toggleTheme = useCallback(() => {
     setPreference(theme === 'dark' ? 'light' : 'dark');
   }, [theme, setPreference]);
 
-  /**
-   * The accent is folded into both `accent` and `fuchsia`.
-   *
-   * `fuchsia` is the brand hue at 42 call sites — the gradients, the highlight
-   * rules, the AI marks. Leaving it fixed while `accent` moved would mean
-   * choosing "Emerald" and getting a green button on a pink screen. Everything
-   * else in the palette, and every semantic colour, is untouched on purpose:
-   * see theme/accents.ts.
-   */
-  const colors = useMemo<Palette>(() => {
-    const base = theme === 'dark' ? DARK : LIGHT;
-    const hue = accentColor(accent, theme);
-    return { ...base, accent: hue, fuchsia: hue, onAccent: onColor(hue) };
-  }, [theme, accent]);
+  const colors = useMemo<Palette>(() => paletteFrom(chosen), [chosen]);
 
   const value = useMemo(
     () => ({
@@ -245,10 +248,10 @@ export function ThemeProvider({
       toggleTheme,
       textSize,
       setTextSize,
-      accent,
-      setAccent,
+      custom,
+      setCustom,
     }),
-    [theme, colors, preference, setPreference, toggleTheme, textSize, setTextSize, accent, setAccent],
+    [theme, colors, preference, setPreference, toggleTheme, textSize, setTextSize, custom, setCustom],
   );
 
   return (

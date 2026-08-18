@@ -1,53 +1,83 @@
-// Every accent, on both bases, has to stay readable.
+// Every theme the app ships has to be readable.
 //
-// This is the guarantee that replaces the reference design's four free colour
-// pickers with a live preview. A preview makes legibility the user's problem
-// and can only show them one screen; this proves the property for every
-// combination the app can be in, before it ships.
+// Custom themes are the user's business — four free colours can produce
+// unreadable text, and the editor says so in the preview rather than refusing
+// the choice. What ships, though, is ours: the named presets and the quick
+// presets are starting points people will sit on for months, and one of those
+// being hard to read is a bug we shipped, not a choice they made.
+//
+// It also checks what the *derivation* produces, not just the four picked
+// colours: textMuted, border and cardElevated are computed, so a bad ratio
+// there is a bug in paletteFrom that no amount of choosing well would fix.
 //
 //   node scripts/contrast-check.mjs
 import { build } from 'esbuild';
 import path from 'node:path';
 
 const here = path.dirname(new URL(import.meta.url).pathname);
+const root = path.join(here, '..');
 const bundled = await build({
-  entryPoints: [path.join(here, '..', 'src', 'theme', 'accents.ts')],
+  entryPoints: [path.join(root, 'src', 'theme', 'presets.ts')],
+  bundle: true,
+  format: 'esm',
+  write: false,
+  platform: 'neutral',
+  absWorkingDir: root,
+  alias: { '@': path.join(root, 'src') },
+});
+const { PRESETS, QUICK_PRESETS, paletteFrom } = await import(
+  `data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`
+);
+const colorBundle = await build({
+  entryPoints: [path.join(root, 'src', 'theme', 'color.ts')],
   bundle: true,
   format: 'esm',
   write: false,
   platform: 'neutral',
 });
-const { ACCENTS, accentColor, contrast, onColor } = await import(
-  `data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`
+const { contrast } = await import(
+  `data:text/javascript;base64,${Buffer.from(colorBundle.outputFiles[0].text).toString('base64')}`
 );
 
-// The two bases, as theme/index.tsx defines them.
-const BASE = { dark: '#000000', light: '#FFFFFF' };
-// WCAG AA for large text and UI components. Accents are used for headings,
-// icons and filled buttons, not body copy, so 3:1 is the right bar —
-// demanding 4.5:1 would rule out every usable accent on black.
-const MIN_ON_BASE = 3;
-// Text sitting ON a filled accent is small and must clear the full AA bar.
-const MIN_ON_ACCENT = 4.5;
+// WCAG AA: 4.5:1 for body text, 3:1 for large text and UI components.
+const RULES = [
+  { name: 'text on background', a: 'text', b: 'background', min: 4.5 },
+  { name: 'text on card', a: 'text', b: 'card', min: 4.5 },
+  // Derived. A muted colour that fails here is a bug in paletteFrom.
+  { name: 'muted on background', a: 'textMuted', b: 'background', min: 3 },
+  { name: 'accent on background', a: 'accent', b: 'background', min: 3 },
+  { name: 'label on accent', a: 'onAccent', b: 'accent', min: 4.5 },
+  // A card you cannot see is the flat-wall-of-borders problem.
+  { name: 'card vs background', a: 'card', b: 'background', min: 1.05 },
+];
 
 let failures = 0;
-for (const accent of ACCENTS) {
-  for (const base of ['dark', 'light']) {
-    const hue = accentColor(accent.key, base);
-    const onBase = contrast(hue, BASE[base]);
-    const label = onColor(hue);
-    const onAccent = contrast(hue, label);
+const themes = [
+  ...PRESETS.map(p => ({ name: p.name, palette: p.palette })),
+  ...QUICK_PRESETS.map(p => ({ name: `${p.name} (quick)`, palette: p.palette })),
+];
 
-    const okBase = onBase >= MIN_ON_BASE;
-    const okText = onAccent >= MIN_ON_ACCENT;
-    if (!okBase || !okText) failures++;
-
-    process.stdout.write(
-      `${okBase && okText ? 'ok   ' : 'FAIL '} ${accent.name.padEnd(8)} ${base.padEnd(5)} ${hue}  ` +
-        `on ${base}: ${onBase.toFixed(1)}:1  ` +
-        `${label === '#FFFFFF' ? 'white' : 'black'} on it: ${onAccent.toFixed(1)}:1\n`,
-    );
+for (const theme of themes) {
+  const colors = paletteFrom(theme.palette);
+  const bad = [];
+  for (const rule of RULES) {
+    const ratio = contrast(colors[rule.a], colors[rule.b]);
+    if (ratio < rule.min) {
+      bad.push(`${rule.name} ${ratio.toFixed(2)}:1 < ${rule.min}`);
+    }
   }
+  if (bad.length) {
+    failures += bad.length;
+  }
+  process.stdout.write(
+    `${bad.length ? 'FAIL ' : 'ok   '} ${theme.name.padEnd(18)} ` +
+      (bad.length
+        ? bad.join('; ')
+        : `text ${contrast(colors.text, colors.background).toFixed(1)}:1, ` +
+          `accent ${contrast(colors.accent, colors.background).toFixed(1)}:1, ` +
+          `label ${contrast(colors.onAccent, colors.accent).toFixed(1)}:1`) +
+      '\n',
+  );
 }
 
 process.stdout.write(failures ? `\n${failures} FAILED\n` : '\nOK\n');
