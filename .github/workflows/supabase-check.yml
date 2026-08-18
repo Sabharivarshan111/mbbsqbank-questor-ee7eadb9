@@ -1,0 +1,46 @@
+name: Supabase live check
+
+# Runs every Supabase function the app depends on against the live project and
+# prints a pass/fail table in the log.
+#
+#   Actions → "Supabase live check" → Run workflow → open the run → read the log
+#
+# It exists because the sandbox the app is developed in cannot reach the
+# Supabase host at all — the egress gateway answers 403 to CONNECT for it, the
+# same as it does for google.com — so contracts could be checked against the
+# migrations but never against the running project. A GitHub runner has open
+# network, and this workflow is triggerable from a phone browser.
+#
+# No secrets. It uses the anon key, which is a public client key already
+# shipped inside the APK and the web bundle. Do not add a service-role key
+# here: that key bypasses RLS, and this check is meant to prove RLS works.
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_notes:
+        description: 'Also test generate-handwritten-notes (slow, uses AI quota)'
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci --legacy-peer-deps
+
+      - name: Run the live check
+        working-directory: mobile
+        run: |
+          node scripts/supabase-live-check.mjs \
+            ${{ inputs.include_notes && '--notes' || '' }}

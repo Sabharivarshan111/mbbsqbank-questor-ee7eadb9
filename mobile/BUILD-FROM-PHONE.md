@@ -100,6 +100,44 @@ For that, build a release APK; the release bundle is the one that ships.
 
 ---
 
+## Checking Supabase is actually working
+
+`Actions` → **Supabase live check** → *Run workflow*. It hits the running
+project and prints a pass/fail table: anonymous sign-in, all seven RPCs, the
+RLS policies on `profiles`, `question_progress` and `premium_subscriptions`,
+the leaderboard columns the app reads by name, and `ask-gemini` — including
+the MCQ branch, where it parses the reply and reports how many questions came
+back renderable as cards. Tick *include_notes* to also test
+`generate-handwritten-notes`; it is slow and spends AI quota, so it is off by
+default.
+
+No secrets. It uses the anon key, which is a public client key already inside
+the APK and the web bundle. **Do not add a service-role key to that workflow**
+— that key bypasses RLS, and the point of the check is to prove RLS works.
+
+It writes, because the write paths cannot be tested otherwise. It signs in
+anonymously — exactly what the app does on a fresh install — and leaves one
+anonymous user and one profile row behind, the footprint of somebody
+installing the app and never opening it. Every question it marks done is
+marked undone before it finishes.
+
+### Why this is a workflow and not something Claude runs directly
+
+The environment Claude works in has a network allowlist, and the Supabase host
+is not on it. The gateway answers 403 to CONNECT and the client sees:
+
+> Host not in allowlist: pmtgeydtqypwrypshhsx.supabase.co. Add this host to
+> your network egress settings to allow access.
+
+That is fixable, but only from your side: the network policy is chosen per
+environment at claude.ai/code. Adding `pmtgeydtqypwrypshhsx.supabase.co` to
+that environment's allowed hosts lets Claude run the same checks directly,
+without the ten-minute round trip through Actions. See
+https://code.claude.com/docs/en/claude-code-on-the-web for where those
+settings live.
+
+---
+
 ## Before anything else: the signing key
 
 Your app is on Play as `com.aistudio.mbbsqbank.aycxvd`. An update must be
