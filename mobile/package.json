@@ -15,7 +15,8 @@
     "check:mcq": "node scripts/mcq-parse-check.mjs",
     "check:notes-limits": "node scripts/notes-limits-check.mjs",
     "check:sync": "node scripts/sync-order-check.mjs",
-    "typecheck:preview": "tsc --noEmit -p preview/tsconfig.json"
+    "typecheck:preview": "tsc --noEmit -p preview/tsconfig.json",
+    "check:contrast": "node scripts/contrast-check.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",

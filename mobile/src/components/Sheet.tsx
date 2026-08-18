@@ -279,11 +279,13 @@ export function Sheet({
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={dismissable ? requestClose : undefined}
-            accessibilityRole="button"
-            accessibilityLabel="Close"
-            // Already reachable via the close button and the back gesture;
-            // announcing a full-screen target would only add noise.
-            importantForAccessibility="no"
+            // Deliberately unlabelled and unannounced. The same action is
+            // already on the close button and the back gesture, so announcing
+            // a full-screen target would only add noise — and a second control
+            // called "Close" is worse than none, because a screen reader user
+            // then has to work out which of the two they have landed on.
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
           />
         </Animated.View>
 
@@ -328,9 +330,13 @@ export function Sheet({
               ) : (
                 <View style={styles.title} />
               )}
+              {/* Labelled "Done", matching the word on the button. It read
+                  "Close" before, so TalkBack announced a different word from
+                  the one on screen — the kind of mismatch that makes a screen
+                  reader user think they are on a control they are not. */}
               {headerRight ??
                 (dismissable ? (
-                  <Touchable label="Close" onPress={requestClose} scaleTo={0.9}>
+                  <Touchable label="Done" onPress={requestClose} scaleTo={0.9}>
                     <Text style={[typeScale.bodyStrong, { color: colors.textMuted }]}>Done</Text>
                   </Touchable>
                 ) : null)}

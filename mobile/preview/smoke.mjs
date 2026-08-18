@@ -114,23 +114,82 @@ await open('screen=home');
 
 await step('home renders the subject grid', () => seesText('Your Subjects'));
 
-await step('theme toggle flips dark → light → dark', async () => {
-  await tap('Switch to light theme');
+/**
+ * Mode now lives in the Appearance sheet rather than on a header button that
+ * toggled on tap. Opening it each time is what a user does too — the sheet is
+ * the control, and there is no longer a one-tap toggle to shortcut through.
+ */
+async function setMode(label) {
+  await tap('Appearance');
+  await seesText('Mode');
+  await tap(label);
   await declineAdPromptIfShown();
-  await byLabel('Switch to dark theme').waitFor({ timeout: 4000 });
-  await tap('Switch to dark theme');
+  await tap('Done');
+  await page.waitForTimeout(900);
+  return declineAdPromptIfShown();
+}
+
+await step('appearance sheet switches dark → light → dark', async () => {
+  /**
+   * Probed on themed *text*, not on document.body.
+   *
+   * react-native-web paints its own colour on the body — rgb(11, 10, 20),
+   * which is neither palette — so reading it reported "no change" for a switch
+   * that had plainly worked. A tagline rendered in colors.text flips from
+   * near-white to near-black and is unambiguous.
+   */
+  const taglineColor = () =>
+    page.evaluate(() => {
+      const node = [...document.querySelectorAll('div,span')].find(
+        n => n.children.length === 0 && n.textContent.trim() === 'Learn. Retain. Master.',
+      );
+      return node ? getComputedStyle(node).color : null;
+    });
+
+  await setMode('Light');
+  const light = await taglineColor();
+  await setMode('Dark');
+  const dark = await taglineColor();
+  if (!light || !dark || light === dark) {
+    throw new Error(`text colour did not change between modes (${light} → ${dark})`);
+  }
+});
+
+await step('choosing an accent recolours the app', async () => {
+  await tap('Appearance');
+  await seesText('Accent');
+  await tap('Emerald');
+  await page.waitForTimeout(400);
+  // The preview badge is drawn in the accent, so it is the cheapest honest
+  // probe that the palette actually rebuilt.
+  const green = await page.evaluate(() => {
+    const badge = [...document.querySelectorAll('div,span')].find(
+      n => n.children.length === 0 && n.textContent.trim() === 'Badge',
+    );
+    return badge ? getComputedStyle(badge).color : null;
+  });
+  await tap('Fuchsia');
+  await page.waitForTimeout(400);
+  const pink = await page.evaluate(() => {
+    const badge = [...document.querySelectorAll('div,span')].find(
+      n => n.children.length === 0 && n.textContent.trim() === 'Badge',
+    );
+    return badge ? getComputedStyle(badge).color : null;
+  });
+  await tap('Done');
+  await page.waitForTimeout(900);
   await declineAdPromptIfShown();
-  await byLabel('Switch to light theme').waitFor({ timeout: 4000 });
+  if (!green || !pink || green === pink) {
+    throw new Error(`accent did not change the palette (${green} → ${pink})`);
+  }
 });
 
 await step('declining the ad prompt stops it re-asking on the next change', async () => {
-  // The toggle above was declined, which starts a cooldown. Being asked again
+  // The change above was declined, which starts a cooldown. Being asked again
   // seconds later is nagging, and was the behaviour before that cooldown
-  // existed — two toggles were enough to be asked twice.
-  await tap('Switch to light theme');
-  const askedAgain = await declineAdPromptIfShown();
-  await tap('Switch to dark theme');
-  const askedThrice = await declineAdPromptIfShown();
+  // existed — two changes were enough to be asked twice.
+  const askedAgain = await setMode('Light');
+  const askedThrice = await setMode('Dark');
   if (askedAgain || askedThrice) {
     throw new Error('prompt returned during the decline cooldown');
   }
@@ -140,7 +199,7 @@ await step('text size sheet opens, applies Larger, and closes', async () => {
   await tap('Text size');
   await seesText('Applies across the app');
   await tap('Larger');
-  await tap('Close');
+  await tap('Done');
   // The exit is a spring, not a fixed duration — give it room to settle.
   await page.waitForTimeout(1200);
   if (await page.getByText('Applies across the app').first().isVisible().catch(() => false)) {

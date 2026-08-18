@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
 import { tick } from '@/lib/haptics';
 import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
+import { accentColor, DEFAULT_ACCENT, onColor } from '@/theme/accents';
 
 export type ThemeName = 'light' | 'dark';
 export type ThemePreference = ThemeName | 'system';
@@ -36,6 +37,12 @@ export interface Palette {
   warning: string;
   danger: string;
   accent: string;
+  /**
+   * Readable text on top of `accent`. Never assume white: an amber or cyan
+   * accent needs black, and hardcoding white is the most common way a
+   * themeable UI ends up with an unreadable button.
+   */
+  onAccent: string;
 }
 
 /**
@@ -80,6 +87,7 @@ const DARK: Palette = {
   warning: '#FBBF24',
   danger: '#F87171',
   accent: '#E879F9',
+  onAccent: '#000000',
 };
 
 const LIGHT: Palette = {
@@ -101,9 +109,11 @@ const LIGHT: Palette = {
   warning: '#D97706',
   danger: '#DC2626',
   accent: '#C026D3',
+  onAccent: '#FFFFFF',
 };
 
 const STORAGE_KEY = 'orbit:theme-preference';
+const ACCENT_KEY = 'orbit:theme-accent';
 const TEXT_SIZE_KEY = 'orbit:text-size';
 
 interface ThemeContextValue {
@@ -114,6 +124,9 @@ interface ThemeContextValue {
   toggleTheme: () => void;
   textSize: TextSize;
   setTextSize: (size: TextSize) => void;
+  /** Which accent is applied. See theme/accents.ts for why it is one choice. */
+  accent: string;
+  setAccent: (key: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -124,6 +137,8 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
   textSize: 'default',
   setTextSize: () => {},
+  accent: DEFAULT_ACCENT,
+  setAccent: () => {},
 });
 
 export function ThemeProvider({
@@ -142,12 +157,20 @@ export function ThemeProvider({
   // The web app ships dark by default; keep that rather than following the OS.
   const [preference, setPreferenceState] = useState<ThemePreference>(initialPreference);
   const [textSize, setTextSizeState] = useState<TextSize>('default');
+  const [accent, setAccentState] = useState<string>(DEFAULT_ACCENT);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(value => {
         if (value === 'light' || value === 'dark' || value === 'system') {
           setPreferenceState(value);
+        }
+      })
+      .catch(() => {});
+    AsyncStorage.getItem(ACCENT_KEY)
+      .then(value => {
+        if (value) {
+          setAccentState(value);
         }
       })
       .catch(() => {});
@@ -165,6 +188,17 @@ export function ThemeProvider({
     AsyncStorage.setItem(TEXT_SIZE_KEY, next).catch(() => {});
     // No ad here. Text size is an accessibility setting, and gating one behind
     // an ad is not a trade anybody should be asked to make.
+  }, []);
+
+  const setAccent = useCallback((next: string) => {
+    // Same single tap as a theme change: it is the same kind of commit, and
+    // the same action should feel the same wherever it is started.
+    tick();
+    setAccentState(next);
+    AsyncStorage.setItem(ACCENT_KEY, next).catch(() => {});
+    // No ad. The theme bucket is spent by switching light/dark; charging twice
+    // for one visit to the same sheet is the kind of thing that makes people
+    // stop opening it.
   }, []);
 
   const setPreference = useCallback((next: ThemePreference) => {
@@ -187,17 +221,34 @@ export function ThemeProvider({
     setPreference(theme === 'dark' ? 'light' : 'dark');
   }, [theme, setPreference]);
 
+  /**
+   * The accent is folded into both `accent` and `fuchsia`.
+   *
+   * `fuchsia` is the brand hue at 42 call sites — the gradients, the highlight
+   * rules, the AI marks. Leaving it fixed while `accent` moved would mean
+   * choosing "Emerald" and getting a green button on a pink screen. Everything
+   * else in the palette, and every semantic colour, is untouched on purpose:
+   * see theme/accents.ts.
+   */
+  const colors = useMemo<Palette>(() => {
+    const base = theme === 'dark' ? DARK : LIGHT;
+    const hue = accentColor(accent, theme);
+    return { ...base, accent: hue, fuchsia: hue, onAccent: onColor(hue) };
+  }, [theme, accent]);
+
   const value = useMemo(
     () => ({
       theme,
-      colors: theme === 'dark' ? DARK : LIGHT,
+      colors,
       preference,
       setPreference,
       toggleTheme,
       textSize,
       setTextSize,
+      accent,
+      setAccent,
     }),
-    [theme, preference, setPreference, toggleTheme, textSize, setTextSize],
+    [theme, colors, preference, setPreference, toggleTheme, textSize, setTextSize, accent, setAccent],
   );
 
   return (

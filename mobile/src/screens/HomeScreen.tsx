@@ -3,6 +3,7 @@ import { Animated, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
+import { ThemeSheet } from '@/components/ThemeSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -80,7 +81,7 @@ const WHATSAPP_LABEL: Record<YearKey, string> = {
 };
 
 export default function HomeScreen() {
-  const { colors, theme, toggleTheme, textSize, setTextSize } = useTheme();
+  const { colors, theme, textSize, setTextSize } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const countDone = useCountDone();
@@ -89,6 +90,7 @@ export default function HomeScreen() {
   const [focusMinutes, setFocusMinutes] = useState(0);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
   const [textSizeOpen, setTextSizeOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   useEffect(() => {
     readFocusMinutes().then(setFocusMinutes);
@@ -195,8 +197,9 @@ export default function HomeScreen() {
             </RoundButton>
           </Touchable>
           <Touchable
-            onPress={toggleTheme}
-            label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            onPress={() => setThemeOpen(true)}
+            label="Appearance"
+            hint="Choose light or dark, and an accent colour"
             scaleTo={0.9}>
             <RoundButton label="THEME">
               {theme === 'dark' ? (
@@ -335,6 +338,8 @@ export default function HomeScreen() {
           <ChevronRight size={16} color={colors.primary} />
         </Touchable>
       </View>
+
+      <ThemeSheet visible={themeOpen} onClose={() => setThemeOpen(false)} />
 
       <Sheet
         visible={textSizeOpen}
