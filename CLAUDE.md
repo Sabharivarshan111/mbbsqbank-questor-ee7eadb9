@@ -244,7 +244,7 @@ npm run check:sync               # progress reaches the cloud once a session exi
 npm run check:contrast           # every accent stays readable on both bases
 npm run check:mcq                # MCQ response parsing + the ask-gemini markers
 npm run check:notes-limits       # every topic still fits the notes function's schema
-npm run check:smoke              # drives the real screens; 14 flows, 0 crashes
+npm run check:smoke              # drives the real screens; 15 flows, 0 crashes
 npx react-native bundle --platform android --dev false \
   --entry-file index.js --bundle-output /tmp/b.js   # must succeed
 ```
