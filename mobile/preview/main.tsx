@@ -16,10 +16,14 @@ import { hydrateProfile } from '@/hooks/useProfile';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 import { hydratePremium } from '@/lib/premium';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ScrollView } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { NotesContentView } from '@/components/NotesContentView';
 import { SAMPLE_NOTES } from './notesSample';
 import { McqCard } from '@/components/McqCard';
+import { ThinkingDots } from '@/components/ThinkingDots';
+import { MessageEntrance } from '@/components/MessageEntrance';
+import { RevealText } from '@/components/RevealText';
+import { AnswerActions, followUpsFor } from '@/components/AnswerActions';
 import { parseMcqs } from '@/lib/askAi';
 import { SAMPLE_MCQ_RESPONSE } from './mcqSample';
 
@@ -114,6 +118,62 @@ function McqDemo() {
   );
 }
 
+/** ?screen=chatdemo — the chat's motion pieces, isolated for review. */
+function ChatMotionDemo() {
+  const { colors } = useTheme();
+  const [answered, setAnswered] = React.useState(false);
+  return (
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 16, gap: 14 }}>
+      <ThinkingDots label="Thinking…" />
+      <MessageEntrance>
+        <View
+          style={{
+            maxWidth: '88%',
+            alignSelf: 'flex-end',
+            backgroundColor: colors.cardElevated,
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+          }}>
+          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>
+            Discuss the aetiology of jaundice
+          </Text>
+        </View>
+      </MessageEntrance>
+      <MessageEntrance>
+        <View
+          style={{
+            maxWidth: '88%',
+            alignSelf: 'flex-start',
+            backgroundColor: colors.background,
+            borderColor: colors.border,
+            borderWidth: 1,
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+          }}>
+          <RevealText
+            text={
+              'Jaundice is yellowish discolouration of skin and sclera caused by hyperbilirubinaemia, classified as pre-hepatic, hepatic and post-hepatic by the level at which bilirubin handling fails. Pre-hepatic causes are haemolytic; hepatic causes include viral hepatitis and cirrhosis; post-hepatic causes are obstructive, most often gallstones or carcinoma of the head of pancreas.'
+            }
+            onDone={() => setAnswered(true)}
+            style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}
+          />
+        </View>
+        {answered ? (
+          <AnswerActions
+            followUps={followUpsFor('Discuss the aetiology of jaundice')}
+            onPick={() => {}}
+            onRetry={() => {}}
+          />
+        ) : null}
+      </MessageEntrance>
+    </ScrollView>
+  );
+}
+
 function Shell() {
   const { theme, colors } = useTheme();
   React.useEffect(() => {
@@ -141,6 +201,10 @@ function Shell() {
 
   if (screen === 'mcqdemo') {
     return <McqDemo />;
+  }
+
+  if (screen === 'chatdemo') {
+    return <ChatMotionDemo />;
   }
 
   return (

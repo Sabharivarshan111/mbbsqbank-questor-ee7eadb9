@@ -14,7 +14,8 @@
     "check:smoke": "node preview/smoke.mjs",
     "check:mcq": "node scripts/mcq-parse-check.mjs",
     "check:notes-limits": "node scripts/notes-limits-check.mjs",
-    "check:sync": "node scripts/sync-order-check.mjs"
+    "check:sync": "node scripts/sync-order-check.mjs",
+    "typecheck:preview": "tsc --noEmit -p preview/tsconfig.json"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",
@@ -47,6 +48,7 @@
     "@react-native/metro-config": "0.87.0",
     "@react-native/typescript-config": "0.87.0",
     "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^5.2.0",
     "babel-plugin-module-resolver": "^5.0.3",
     "esbuild": "^0.28.2",

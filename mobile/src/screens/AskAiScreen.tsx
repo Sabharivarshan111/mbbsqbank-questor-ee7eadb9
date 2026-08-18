@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -14,9 +14,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { Maximize2, RefreshCw, Send, Sparkles } from 'lucide-react-native';
 import { typeScale } from '@/theme/typography';
+import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
 import { useTheme, withAlpha } from '@/theme';
 import { GradientFill } from '@/components/Gradient';
 import { McqCard } from '@/components/McqCard';
+import { MessageEntrance } from '@/components/MessageEntrance';
+import { ThinkingDots } from '@/components/ThinkingDots';
+import { RevealText } from '@/components/RevealText';
+import { AnswerActions, followUpsFor } from '@/components/AnswerActions';
 import {
   askAi,
   displayText,
@@ -33,6 +38,12 @@ interface ChatMessage {
   text: string;
   /** Present when this turn produced answerable practice questions. */
   mcqs?: Mcq[];
+  /** The question this answer replies to — what the follow-ups refer to. */
+  about?: string;
+  /** Reveal only on arrival, never again on a later re-render. */
+  fresh?: boolean;
+  /** The request threw; offer "Ask again" rather than follow-ups. */
+  failed?: boolean;
 }
 
 let messageSeq = 0;
@@ -50,6 +61,19 @@ export default function AskAiScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  /**
+   * Which assistant messages have finished revealing.
+   *
+   * The follow-ups wait for this. Offering "Test me on this" while the answer
+   * is still being written invites a tap that would throw away the thing the
+   * user is waiting for, and a row that appears mid-reveal gets pushed down the
+   * screen by every line that follows it — motion dragging the eye away from
+   * the text it is trying to read.
+   */
+  const [revealed, setRevealed] = useState<Set<string>>(() => new Set());
+  const markRevealed = useCallback((id: string) => {
+    setRevealed(prev => (prev.has(id) ? prev : new Set(prev).add(id)));
+  }, []);
 
   const send = useCallback(
     async (raw: string) => {
@@ -113,7 +137,14 @@ export default function AskAiScreen() {
         const result = await askAi(prompt, history);
         setMessages(prev => [
           ...prev,
-          { id: nextId(), role: 'assistant', text: result.text, mcqs: result.mcqs },
+          {
+            id: nextId(),
+            role: 'assistant',
+            text: result.text,
+            mcqs: result.mcqs,
+            about: shown,
+            fresh: true,
+          },
         ]);
       } catch (err) {
         setMessages(prev => [
@@ -122,6 +153,8 @@ export default function AskAiScreen() {
             id: nextId(),
             role: 'assistant',
             text: err instanceof Error ? err.message : String(err),
+            about: shown,
+            failed: true,
           },
         ]);
       } finally {
@@ -148,6 +181,25 @@ export default function AskAiScreen() {
   }, [messages.length, loading]);
 
   const canSend = input.trim().length > 0 && !loading;
+
+  // 160ms: the send button's state changes as often as the first character of
+  // a message, which is the tens-of-times-a-day tier — near-imperceptible or
+  // nothing. A crossfade at press-feedback speed is the former.
+  const sendReady = useRef(new Animated.Value(0)).current;
+  const sendIdle = sendReady.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+  const reduceMotion = useReducedMotion();
+  useEffect(() => {
+    if (reduceMotion) {
+      sendReady.setValue(canSend ? 1 : 0);
+      return;
+    }
+    Animated.timing(sendReady, {
+      toValue: canSend ? 1 : 0,
+      duration: DURATION.fast,
+      easing: EASE.out,
+      useNativeDriver: true,
+    }).start();
+  }, [canSend, reduceMotion, sendReady]);
 
   return (
     <KeyboardAvoidingView
@@ -201,40 +253,56 @@ export default function AskAiScreen() {
               // badly or drop below the 44dp touch minimum.
               if (item.mcqs) {
                 return (
-                  <View style={styles.mcqGroup}>
-                    <Text style={[styles.mcqHeading, { color: colors.textMuted }]}>
-                      {item.text}
-                    </Text>
-                    {item.mcqs.map((mcq, i) => (
-                      <McqCard key={`${item.id}-${i}`} item={mcq} index={i} />
-                    ))}
-                  </View>
+                  <MessageEntrance>
+                    <View style={styles.mcqGroup}>
+                      <Text style={[styles.mcqHeading, { color: colors.textMuted }]}>
+                        {item.text}
+                      </Text>
+                      {item.mcqs.map((mcq, i) => (
+                        <McqCard key={`${item.id}-${i}`} item={mcq} index={i} />
+                      ))}
+                    </View>
+                  </MessageEntrance>
                 );
               }
               return (
-                <View
-                  style={[
-                    styles.bubble,
-                    mine
-                      ? { backgroundColor: colors.cardElevated, alignSelf: 'flex-end' }
-                      : {
-                          backgroundColor: colors.background,
-                          borderColor: colors.border,
-                          borderWidth: StyleSheet.hairlineWidth,
-                          alignSelf: 'flex-start',
-                        },
-                  ]}>
-                  <Text style={[styles.bubbleText, { color: colors.text }]}>{item.text}</Text>
-                </View>
+                <MessageEntrance>
+                  <View
+                    style={[
+                      styles.bubble,
+                      mine
+                        ? { backgroundColor: colors.cardElevated, alignSelf: 'flex-end' }
+                        : {
+                            backgroundColor: colors.background,
+                            borderColor: colors.border,
+                            borderWidth: StyleSheet.hairlineWidth,
+                            alignSelf: 'flex-start',
+                          },
+                    ]}>
+                    {mine ? (
+                      <Text style={[styles.bubbleText, { color: colors.text }]}>{item.text}</Text>
+                    ) : (
+                      <RevealText
+                        text={item.text}
+                        animate={item.fresh}
+                        onDone={() => markRevealed(item.id)}
+                        style={[styles.bubbleText, { color: colors.text }]}
+                      />
+                    )}
+                  </View>
+                  {!mine && item.about && revealed.has(item.id) ? (
+                    <AnswerActions
+                      followUps={item.failed ? [] : followUpsFor(item.about)}
+                      onPick={send}
+                      onRetry={() => send(item.about!)}
+                      disabled={loading}
+                    />
+                  ) : null}
+                </MessageEntrance>
               );
             }}
             ListFooterComponent={
-              loading ? (
-                <View style={styles.typing}>
-                  <ActivityIndicator size="small" color={colors.fuchsia} />
-                  <Text style={[styles.typingText, { color: colors.textMuted }]}>Thinking…</Text>
-                </View>
-              ) : undefined
+              loading ? <ThinkingDots label="Thinking…" /> : undefined
             }
           />
         )}
@@ -258,15 +326,46 @@ export default function AskAiScreen() {
               style={[styles.input, { color: colors.text }]}
               multiline
             />
-            <Touchable
-              onPress={() => send(input)}
-              disabled={!canSend}
-              label="Send"
-              scaleTo={0.9}
-              style={[styles.sendButton, { backgroundColor: colors.fuchsia }]}>
-              <GradientFill from="#F5D0FE" to={colors.fuchsia} borderRadius={12} />
-              <Send size={18} color="#3B0764" style={styles.sendIcon} />
-            </Touchable>
+            {/*
+              * The send button crossfades between its two states rather than
+              * snapping. Touchable applies a flat 0.45 opacity to a disabled
+              * target, which made the button pop the moment the first
+              * character landed — a hard change on the control you are
+              * actively typing into.
+              *
+              * Opacity only, on the native driver: the gradient fill cannot be
+              * interpolated, and animating a background colour would be a JS
+              * animation on the thread that is already handling keystrokes.
+              * Two stacked layers, one fading over the other, gets there with
+              * transform-and-opacity work only.
+              */}
+            <View style={styles.sendWrap}>
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFill,
+                  styles.sendLayer,
+                  { backgroundColor: colors.cardElevated, opacity: sendIdle },
+                ]}
+              />
+              <Animated.View
+                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, styles.sendLayer, { opacity: sendReady }]}>
+                <GradientFill from="#F5D0FE" to={colors.fuchsia} borderRadius={12} />
+              </Animated.View>
+              <Touchable
+                onPress={() => send(input)}
+                disabled={!canSend}
+                label="Send"
+                scaleTo={0.9}
+                style={styles.sendButton}>
+                <Send
+                  size={18}
+                  color={canSend ? '#3B0764' : colors.textMuted}
+                  style={styles.sendIcon}
+                />
+              </Touchable>
+            </View>
           </View>
           <View style={styles.disclaimer}>
             <Sparkles size={12} color={colors.textMuted} />
@@ -375,15 +474,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
-  typing: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  typingText: {
-    fontSize: 13,
-  },
   composerWrap: {
     borderTopWidth: StyleSheet.hairlineWidth,
     padding: 12,
@@ -409,13 +499,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     paddingVertical: 6,
   },
+  sendWrap: {
+    height: 44,
+    width: 44,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  sendLayer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   sendButton: {
     height: 44,
     width: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   sendIcon: {
     // Keeps the glyph above the absolutely-positioned gradient.
