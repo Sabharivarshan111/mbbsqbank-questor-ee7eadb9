@@ -3,7 +3,9 @@ import { Animated, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
-import { ThemeSheet } from '@/components/ThemeSheet';
+import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
+import { presetByKey } from '@/theme/presets';
+import { ThemeEditor } from '@/components/ThemeEditor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -81,7 +83,7 @@ const WHATSAPP_LABEL: Record<YearKey, string> = {
 };
 
 export default function HomeScreen() {
-  const { colors, theme, textSize, setTextSize } = useTheme();
+  const { colors, theme, textSize, setTextSize, custom, setCustom, setPreference } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const countDone = useCountDone();
@@ -91,6 +93,16 @@ export default function HomeScreen() {
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
   const [textSizeOpen, setTextSizeOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  /**
+   * Where the menu hangs from.
+   *
+   * Measured on press rather than on layout: the header moves with the safe
+   * area and the scroll position, and a stale frame would leave the menu
+   * floating away from the button it belongs to.
+   */
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const themeButton = useRef<React.ComponentRef<typeof View>>(null);
 
   useEffect(() => {
     readFocusMinutes().then(setFocusMinutes);
@@ -196,8 +208,14 @@ export default function HomeScreen() {
               <Type size={16} color={colors.text} />
             </RoundButton>
           </Touchable>
+          <View ref={themeButton} collapsable={false}>
           <Touchable
-            onPress={() => setThemeOpen(true)}
+            onPress={() => {
+              themeButton.current?.measureInWindow((x, y, width, height) => {
+                setAnchor({ top: y + height + 8, right: 16 });
+                setThemeOpen(true);
+              });
+            }}
             label="Themes"
             hint="Pick a theme or build your own"
             scaleTo={0.9}>
@@ -209,6 +227,7 @@ export default function HomeScreen() {
               )}
             </RoundButton>
           </Touchable>
+          </View>
         </View>
       </View>
 
@@ -339,7 +358,23 @@ export default function HomeScreen() {
         </Touchable>
       </View>
 
-      <ThemeSheet visible={themeOpen} onClose={() => setThemeOpen(false)} />
+      <ThemeMenu
+        visible={themeOpen}
+        anchor={anchor}
+        onClose={() => setThemeOpen(false)}
+        onCreate={() => setEditorOpen(true)}
+      />
+
+      <ThemeEditor
+        visible={editorOpen}
+        initial={custom ?? presetByKey('dark')!.palette!}
+        onClose={() => setEditorOpen(false)}
+        onApply={next => {
+          setCustom(next);
+          setPreference('custom');
+          setEditorOpen(false);
+        }}
+      />
 
       <Sheet
         visible={textSizeOpen}

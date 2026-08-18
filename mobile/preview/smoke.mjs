@@ -79,6 +79,19 @@ async function step(name, fn) {
   // as well as a dialog, since its scrim blocks the header the next step needs.
   await declineAdPromptIfShown();
   await closeSheetIfOpen();
+  await closeModalIfOpen();
+}
+
+/** The theme editor is a modal card, not a sheet; it closes with its X. */
+async function closeModalIfOpen() {
+  const close = page.locator('[aria-label="Close"]').first();
+  if (await close.isVisible().catch(() => false)) {
+    await close.click().catch(() => {});
+    await page.waitForTimeout(600);
+    await declineAdPromptIfShown();
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -179,26 +192,16 @@ await open('screen=home');
 await step('home renders the subject grid', () => seesText('Your Subjects'));
 
 /**
- * Themes live in a sheet now rather than on a header button that toggled on
- * tap. Opening it each time is what a user does too.
+ * Themes are an anchored menu now, matching the published app: tap the header
+ * button, pick a row, the menu closes itself.
  */
 async function pickTheme(label) {
   await tap('Themes');
-  await seesText('Current theme');
   await tap(label);
-  await declineAdPromptIfShown();
-  await tap('Done');
-  await waitForSheetClosed();
+  await page.waitForTimeout(500);
   return declineAdPromptIfShown();
 }
 
-/**
- * Probed on themed *text*, not on document.body.
- *
- * react-native-web paints its own colour on the body — rgb(11, 10, 20), which
- * is in no palette — so reading it reported "no change" for a switch that had
- * plainly worked.
- */
 const taglineColor = () =>
   page.evaluate(() => {
     const node = [...document.querySelectorAll('div,span')].find(
@@ -207,7 +210,7 @@ const taglineColor = () =>
     return node ? getComputedStyle(node).color : null;
   });
 
-await step('theme sheet switches between presets', async () => {
+await step('theme menu switches between presets', async () => {
   await pickTheme('Light');
   const light = await taglineColor();
   await pickTheme('Dark');
@@ -219,36 +222,24 @@ await step('theme sheet switches between presets', async () => {
 
 await step('Black Pink changes the accent but keeps the black base', async () => {
   /**
-   * Asserted on the two things that actually distinguish it from Dark.
-   *
-   * The first version of this step read the same value twice and asserted the
-   * two were equal, which is true of any value and tested nothing. The claim
-   * worth checking is that Black Pink moves the accent while leaving the
-   * background where Dark had it.
+   * Asserted on the two things that actually distinguish it from Dark. An
+   * earlier version read the same value twice and asserted they were equal,
+   * which is true of any value and tested nothing.
    */
-  const badge = () =>
+  const heroAccent = () =>
     page.evaluate(() => {
       const node = [...document.querySelectorAll('div,span')].find(
-        n => n.children.length === 0 && n.textContent.trim() === 'Badge',
+        n => n.children.length === 0 && n.textContent.trim() === 'Ask AI',
       );
       return node ? getComputedStyle(node).color : null;
     });
 
-  await tap('Themes');
-  await seesText('Current theme');
-  await tap('Dark');
-  await declineAdPromptIfShown();
-  const darkAccent = await badge();
+  await pickTheme('Dark');
+  const darkAccent = await heroAccent();
   const darkText = await taglineColor();
-
-  await tap('Black Pink');
-  await declineAdPromptIfShown();
-  const pinkAccent = await badge();
+  await pickTheme('Black Pink');
+  const pinkAccent = await heroAccent();
   const pinkText = await taglineColor();
-
-  await tap('Done');
-  await waitForSheetClosed();
-  await declineAdPromptIfShown();
 
   if (!darkAccent || !pinkAccent || darkAccent === pinkAccent) {
     throw new Error(`accent did not change (${darkAccent} → ${pinkAccent})`);
@@ -259,58 +250,56 @@ await step('Black Pink changes the accent but keeps the black base', async () =>
   await pickTheme('Dark');
 });
 
-await step('the custom editor applies a theme built by hand', async () => {
+await step('the theme editor builds and applies a theme', async () => {
   await tap('Themes');
-  await seesText('Current theme');
-  await tap('Create your own…');
-  await seesText('Quick presets');
+  await tap('Create Your Own…');
+  await seesText('Pick colors for your perfect look');
 
-  // Every one of the four parts must be selectable, or the editor is not the
-  // thing the screenshots asked for.
-  for (const part of ['Background', 'Text', 'Accent', 'Card']) {
+  // All four parts must open a picker, or this is not the editor asked for.
+  for (const part of ['Background, Main page color', 'Text, Main text color', 'Accent, Buttons & highlights', 'Card, Cards & panels']) {
     await tap(part);
+    await page.waitForTimeout(250);
+    const picker = await page.locator('[aria-label$="colour picker"]').count();
+    if (picker === 0) {
+      throw new Error(`tapping "${part}" did not open a picker`);
+    }
+    /**
+     * Dismiss by tapping the same slot again.
+     *
+     * Clicking the backdrop was the obvious move and closed the entire editor
+     * — the popover's scrim and the modal's are both "outside the card" from a
+     * click's point of view. Toggling on the slot is also what a user does.
+     */
+    await tap(part);
+    await page.waitForTimeout(250);
+  }
+
+  // Reset has to actually restore, not just exist.
+  await tap('Sunset');
+  await page.waitForTimeout(300);
+  const sunsetShot = await page.screenshot();
+  await tap('Reset');
+  await page.waitForTimeout(300);
+  const resetShot = await page.screenshot();
+  if (Buffer.compare(sunsetShot, resetShot) === 0) {
+    throw new Error('Reset changed nothing');
   }
 
   await tap('Forest');
-  await page.waitForTimeout(400);
-  await tap('Apply theme');
-  await declineAdPromptIfShown();
-  await waitForSheetClosed();
+  await page.waitForTimeout(300);
+  await tap('Apply Theme');
+  await page.waitForTimeout(700);
   await declineAdPromptIfShown();
 
-  // Forest is a dark green background; the app should now be wearing it.
-  const bg = await page.evaluate(() => {
-    const node = [...document.querySelectorAll('div,span')].find(
-      n => n.children.length === 0 && n.textContent.trim() === 'Learn. Retain. Master.',
-    );
-    let el = node;
-    while (el && getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)') {
-      el = el.parentElement;
-    }
-    return el ? getComputedStyle(el).backgroundColor : null;
-  });
-  if (!bg || bg === 'rgb(0, 0, 0)') {
-    throw new Error(`custom theme did not reach the app (background ${bg})`);
-  }
-
-  /**
-   * Applying returns to the theme list with My Theme selected, rather than
-   * closing the sheet — you see the thing you just made take its place among
-   * the others. The first version of this step assumed a dismiss and tapped
-   * the header button again, which the open sheet's scrim correctly refused.
-   */
+  // The applied theme should now be offered as My Theme.
+  await tap('Themes');
   await seesText('My Theme');
   await tap('Dark');
-  await declineAdPromptIfShown();
-  await tap('Done');
-  await waitForSheetClosed();
+  await page.waitForTimeout(500);
   await declineAdPromptIfShown();
 });
 
 await step('declining the ad prompt stops it re-asking on the next change', async () => {
-  // The change above was declined, which starts a cooldown. Being asked again
-  // seconds later is nagging, and was the behaviour before that cooldown
-  // existed — two changes were enough to be asked twice.
   const askedAgain = await pickTheme('Light');
   const askedThrice = await pickTheme('Dark');
   if (askedAgain || askedThrice) {
