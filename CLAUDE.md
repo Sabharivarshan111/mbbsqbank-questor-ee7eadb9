@@ -111,6 +111,22 @@ start of a question string, and the model reads them to fill `pyqYears`.
 Trimming the front to fit would empty the year badges instead.
 `npm run check:notes-limits` walks all 413 topic groups.
 
+## Cloud progress needs a profile, not just a session
+
+`record_questions_done` opens with `IF _year IS NULL THEN RETURN 0` — it reads
+the caller's `profiles.year`, so a push before that row exists returns 0 and
+reports **no error**.
+
+Anonymous sign-in happens inside `saveProfile` and nowhere else, so on a fresh
+install there is no session at launch and `App.tsx`'s `reconcileProgress()`
+legitimately does nothing. Something therefore has to run it *again* once the
+profile is saved, or everything ticked before onboarding stays on the device —
+it only self-heals on the next launch or the next visit to My Progress, which
+is why it went unnoticed. `useProfile.save` does that, gated on the returned
+cloud profile because that is the proof both the session and the row exist.
+
+`npm run check:sync` pins the ordering.
+
 ## Motion goes through `src/theme/motion.ts`
 
 Do not hand-roll an animation. The house springs, easing curves, duration scale,
@@ -207,6 +223,7 @@ cd mobile
 npx tsc --noEmit                 # must be clean
 npx eslint .                     # 0 errors (warnings are inline-style noise)
 npm run check:fanout             # per-question subscriptions still isolated
+npm run check:sync               # progress reaches the cloud once a session exists
 npm run check:mcq                # MCQ response parsing + the ask-gemini markers
 npm run check:notes-limits       # every topic still fits the notes function's schema
 npm run check:smoke              # drives the real screens; 12 flows, 0 crashes
