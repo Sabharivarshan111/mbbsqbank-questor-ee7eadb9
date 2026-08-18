@@ -51,6 +51,22 @@ That is real, but producing one is a full native Android build, the same build
 this repo already does in Actions. It would add an Expo migration and buy
 nothing.
 
+### Even if it could load, it would not help you
+
+This is the part that gets left out of the Reddit threads. Expo Go is a
+*client*. It does not contain your app — it fetches the JavaScript from
+somewhere at runtime, and that somewhere is a Metro dev server running on a
+computer on the same network (or a published EAS Update channel, which needs a
+build pipeline of its own).
+
+So on the "no computer" path this whole page is about, Expo Go has nothing to
+connect to. It would sit at "Development servers: none found". The thing people
+like about it — edit, save, see it in a second — is the dev server, not the app.
+
+And if you *do* have a computer, `npx react-native run-android` is strictly
+better than a dev client: same instant reload, and it runs the real app with
+its real native modules instead of a shimmed approximation.
+
 **The equivalent for this project is the debug APK below.** Install it once and
 it behaves like Expo Go in the way that matters: it has the dev menu (shake the
 phone), the error overlay, and it can connect to Metro for Fast Refresh if you
