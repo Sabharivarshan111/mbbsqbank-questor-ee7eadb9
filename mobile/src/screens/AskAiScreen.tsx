@@ -22,8 +22,6 @@ import { MessageEntrance } from '@/components/MessageEntrance';
 import { ThinkingDots } from '@/components/ThinkingDots';
 import { RevealText } from '@/components/RevealText';
 import { AnswerActions, followUpsFor } from '@/components/AnswerActions';
-import { SlashMenu } from '@/components/SlashMenu';
-import { matchPrompts, slashToken, type QuickPrompt } from '@/lib/quickPrompts';
 import {
   askAi,
   displayText,
@@ -63,8 +61,6 @@ export default function AskAiScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   /**
    * Which assistant messages have finished revealing.
    *
@@ -183,30 +179,6 @@ export default function AskAiScreen() {
       listRef.current?.scrollToEnd({ animated: true });
     }
   }, [messages.length, loading]);
-
-  /**
-   * The `/` menu is derived from the input rather than held in state, so it
-   * cannot get out of step with what is typed — there is no way to be showing
-   * a menu for a token that is no longer there.
-   *
-   * `dismissed` is the one piece of state: Escape has no equivalent on a
-   * phone, so the menu needs a way to be put away without deleting the slash
-   * the user meant to type.
-   */
-  const token = dismissed ? null : slashToken(input);
-  const slashItems = token ? matchPrompts(token.query) : [];
-
-  const pickPrompt = useCallback(
-    (item: QuickPrompt) => {
-      setInput(current => {
-        const found = slashToken(current);
-        const head = found ? current.slice(0, found.start) : current;
-        return `${head}${item.insert}`;
-      });
-      inputRef.current?.focus();
-    },
-    [],
-  );
 
   const canSend = input.trim().length > 0 && !loading;
 
@@ -337,42 +309,18 @@ export default function AskAiScreen() {
 
         {/* Composer */}
         <View style={[styles.composerWrap, { borderTopColor: colors.border }]}>
-          {token ? (
-            <SlashMenu items={slashItems} query={token.query} onPick={pickPrompt} />
-          ) : null}
           <View
             style={[
               styles.composer,
               { backgroundColor: colors.background, borderColor: colors.border },
             ]}>
-            {/* The commands would otherwise be invisible: nobody types a
-                slash into a chat box to see what happens. This is the
-                affordance, and it toggles the same menu the slash opens. */}
-            <Touchable
-              onPress={() => {
-                if (token) {
-                  setDismissed(true);
-                  return;
-                }
-                setDismissed(false);
-                setInput(current => (current.length === 0 || current.endsWith(' ') ? `${current}/` : `${current} /`));
-                inputRef.current?.focus();
-              }}
-              label={token ? 'Hide commands' : 'Show commands'}
-              hint="Shortcuts for MCQs, mnemonics and exam questions"
-              scaleTo={0.88}
+            <View
               style={[styles.sparkAvatar, { backgroundColor: withAlpha(colors.fuchsia, 0.18) }]}>
               <Sparkles size={16} color={colors.fuchsia} />
-            </Touchable>
+            </View>
             <TextInput
-              ref={inputRef}
               value={input}
-              onChangeText={next => {
-                setInput(next);
-                // Typing again is a fresh intent; a menu dismissed for the
-                // previous token should not stay dismissed for the next one.
-                setDismissed(false);
-              }}
+              onChangeText={setInput}
               placeholder="Ask a medical question…"
               placeholderTextColor={colors.textMuted}
               style={[styles.input, { color: colors.text }]}

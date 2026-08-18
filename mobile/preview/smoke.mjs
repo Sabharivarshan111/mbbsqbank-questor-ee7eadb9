@@ -472,59 +472,6 @@ await step('ask ai screen renders and accepts input', async () => {
   await byLabel('Send').waitFor({ timeout: 4000 });
 });
 
-await step('slash commands filter, insert, and stay out of mg/dL', async () => {
-  await open('screen=askai');
-  const field = page.locator('[placeholder="Ask a medical question…"]');
-  await field.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Discoverable without knowing to type a slash.
-  await tap('Show commands');
-  await page.waitForTimeout(400);
-  const commands = () =>
-    page.evaluate(() =>
-      [...document.querySelectorAll('div,span')]
-        .filter(n => n.children.length === 0 && /^\/[a-z]+$/.test(n.textContent.trim()) && n.offsetParent)
-        .map(n => n.textContent.trim()),
-    );
-  const all = await commands();
-  if (all.length < 5) {
-    throw new Error(`expected the full command list, saw ${all.join(',') || 'none'}`);
-  }
-
-  /**
-   * Prefix matching, not substring.
-   *
-   * "/m" once returned four of six commands, because `label.includes('m')`
-   * matches "si-m-ply" and "co-m-pare" too — a filter that filtered nothing.
-   */
-  await field.fill('/m');
-  await page.waitForTimeout(400);
-  const filtered = await commands();
-  if (filtered.join(',') !== '/mcqs,/mnemonic') {
-    throw new Error(`"/m" should match mcqs and mnemonic, got ${filtered.join(',') || 'none'}`);
-  }
-
-  // Picking inserts framing and leaves the topic to the user, rather than
-  // sending a question with a hole in it.
-  await tap('Mnemonic');
-  await page.waitForTimeout(400);
-  const value = await field.inputValue();
-  if (!value.toLowerCase().includes('mnemonic') || value.includes('/m')) {
-    throw new Error(`picking a command did not replace the token: ${JSON.stringify(value)}`);
-  }
-
-  /**
-   * A slash inside a word is not a command. Units are full of them, and a menu
-   * that opened on "mmol/L" would cover the transcript every time somebody
-   * asked about a lab value.
-   */
-  await field.fill('Normal serum sodium in mmol/L');
-  await page.waitForTimeout(400);
-  if ((await page.locator('[aria-label="Hide commands"]').count()) > 0) {
-    throw new Error('the command menu opened for a slash inside a unit');
-  }
-});
-
 await step('progress screen renders', async () => {
   await open('screen=progress');
   await seesText('YOUR YEAR', 6000);
