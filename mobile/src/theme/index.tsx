@@ -12,7 +12,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
 import { tick } from '@/lib/haptics';
 import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
-import { paletteFrom, presetByKey, PRESETS, type CustomPalette, type PresetKey } from '@/theme/presets';
+import {
+  paletteFrom,
+  presetByKey,
+  PRESETS,
+  type CustomPalette,
+  type Material,
+  type PresetKey,
+} from '@/theme/presets';
 
 export type ThemeName = 'light' | 'dark';
 /**
@@ -48,6 +55,12 @@ export interface Palette {
    * themeable UI ends up with an unreadable button.
    */
   onAccent: string;
+  /**
+   * How surfaces are drawn. `glass` turns on the Liquid Glass treatment in
+   * GlassSurface: translucent fill, specular rim, float. Components that do
+   * not care can ignore it and stay solid.
+   */
+  material: Material;
 }
 
 /**
@@ -93,6 +106,7 @@ const DARK: Palette = {
   danger: '#F87171',
   accent: '#E879F9',
   onAccent: '#000000',
+  material: 'solid',
 };
 
 
@@ -237,7 +251,17 @@ export function ThemeProvider({
     setPreference(theme === 'dark' ? 'light' : 'dark');
   }, [theme, setPreference]);
 
-  const colors = useMemo<Palette>(() => paletteFrom(chosen), [chosen]);
+  /**
+   * A material belongs to a named preset, not to a set of colours, so a custom
+   * theme is always solid — there is nothing in four hex values that could say
+   * "and make it glass".
+   */
+  const material: Material =
+    (preference !== 'custom' && preference !== 'system'
+      ? presetByKey(preference)?.material
+      : undefined) ?? 'solid';
+
+  const colors = useMemo<Palette>(() => paletteFrom(chosen, material), [chosen, material]);
 
   const value = useMemo(
     () => ({

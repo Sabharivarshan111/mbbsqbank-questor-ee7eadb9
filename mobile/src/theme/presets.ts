@@ -18,11 +18,28 @@ export interface CustomPalette {
 /** The named themes in the picker. `custom` is whatever is saved as My Theme. */
 export type PresetKey = 'dark' | 'light' | 'blackpink' | 'liquidglass' | 'custom' | 'system';
 
+/**
+ * How surfaces are drawn, as opposed to what colour they are.
+ *
+ * `solid` is an opaque card with a hairline border — what every theme here
+ * used before. `glass` is Apple's Liquid Glass treatment: a translucent layer
+ * that sits *over* the background rather than replacing it, with a specular
+ * highlight along its lit edge.
+ *
+ * It is a separate axis from the four colours on purpose. Glass is not a
+ * palette — you cannot express "translucent, lit from above, floating" as a
+ * background hex — and keeping it separate means the custom editor still deals
+ * in four colours while a preset can carry a material as well.
+ */
+export type Material = 'solid' | 'glass';
+
 export interface Preset {
   key: PresetKey;
   name: string;
   /** Absent for `system` and `custom`, which resolve at runtime. */
   palette?: CustomPalette;
+  /** Defaults to solid. */
+  material?: Material;
 }
 
 /**
@@ -51,10 +68,38 @@ export const PRESETS: Preset[] = [
   {
     key: 'liquidglass',
     name: 'Liquid Glass',
-    // Cool, bright and low-contrast between surfaces — the frosted look the
-    // name refers to. Text stays near-black so the contrast guarantee holds;
-    // "glass" is a surface treatment, not an excuse for grey-on-grey type.
-    palette: { background: '#EEF2F7', text: '#101418', accent: '#2F7DEC', card: '#FFFFFF' },
+    /**
+     * Modelled on Apple's Liquid Glass (iOS 26), within what React Native can
+     * honestly draw. What the material actually is, and what survives the
+     * port:
+     *
+     *   • **Translucency over an opaque fill.** Glass shows what is behind it.
+     *     The card is a white wash at partial alpha rather than a solid, so
+     *     the background reads through it and two stacked surfaces visibly
+     *     differ in depth rather than just in lightness.
+     *   • **A specular highlight on the lit edge.** The single most
+     *     identifiable feature: a bright hairline along the top, fading down
+     *     the sides, as if a light source sits above the screen. Drawn as a
+     *     gradient rim in GlassSurface.
+     *   • **Concentric radii and float.** Larger corners and a soft shadow, so
+     *     a panel reads as sitting above the page rather than cut into it.
+     *   • **A cool, bright ground.** Glass has no colour of its own; it takes
+     *     it from what is behind. A near-white cool background is what lets
+     *     the translucency read at all — over black, a white wash at 60% is
+     *     just a grey card.
+     *
+     * What does NOT survive: real refraction and background blur. Both need a
+     * backdrop filter, which React Native has no equivalent for without a
+     * native module (react-native-blur or Skia). Faking a blur by drawing a
+     * lighter rectangle is what makes an imitation look cheap, so it is left
+     * out rather than approximated. See .claude/skills/apple-design/README.md,
+     * where "no backdrop blur" is recorded as a deliberate departure.
+     *
+     * Text stays near-black: "glass" is a surface treatment, never a licence
+     * for grey-on-grey type.
+     */
+    palette: { background: '#EAEFF6', text: '#0F1419', accent: '#2F7DEC', card: '#FFFFFF' },
+    material: 'glass',
   },
 ];
 
@@ -111,7 +156,7 @@ const HUES_LIGHT = { cyan: '#0891B2', emerald: '#059669', green: '#16A34A', viol
  * from whichever base the chosen background is closer to. They are never
  * derived from the user's picks: a red that means "wrong" has to stay red.
  */
-export function paletteFrom(custom: CustomPalette) {
+export function paletteFrom(custom: CustomPalette, material: Material = 'solid') {
   const dark = isDark(custom.background);
   const semantic = dark ? SEMANTIC_DARK : SEMANTIC_LIGHT;
   const hues = dark ? HUES_DARK : HUES_LIGHT;
@@ -131,6 +176,7 @@ export function paletteFrom(custom: CustomPalette) {
     accent: custom.accent,
     onAccent: onColor(custom.accent),
     ...semantic,
+    material,
   };
 }
 

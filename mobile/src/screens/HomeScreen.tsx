@@ -6,6 +6,7 @@ import { Sheet } from '@/components/Sheet';
 import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
 import { ThemeEditor } from '@/components/ThemeEditor';
+import { GlassSurface } from '@/components/GlassSurface';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -232,11 +233,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Hero card */}
-      <View
-        style={[
-          styles.hero,
-          { backgroundColor: colors.card, borderColor: withAlpha(colors.primary, 0.2) },
-        ]}>
+      <GlassSurface style={styles.hero} borderRadius={20}>
         <View
           style={[styles.heroGlow, { backgroundColor: withAlpha(colors.fuchsia, 0.12) }]}
           pointerEvents="none"
@@ -281,7 +278,7 @@ export default function HomeScreen() {
             </Touchable>
           ))}
         </View>
-      </View>
+      </GlassSurface>
 
       {/* Quick actions */}
       <View style={styles.quickRow}>
@@ -631,7 +628,6 @@ function QuickAction({
   color: string;
   onPress: () => void;
 }) {
-  const { colors } = useTheme();
   return (
     <Touchable
       onPress={onPress}
@@ -639,10 +635,11 @@ function QuickAction({
       // The description survives here rather than on screen: TalkBack has room
       // for it, a quarter of a 390dp row does not.
       hint={sub}
-      style={[
-        styles.quickAction,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}>
+      style={styles.quickActionTarget}>
+      {/* The surface is a child rather than the Touchable's own style, so the
+          specular rim can sit above the fill without wrapping the press
+          target in an extra layout box. */}
+      <GlassSurface style={styles.quickAction} borderRadius={16}>
       {icon}
       {/* No arrow. Four identical chevrons on four obviously-tappable cards is
           decoration that costs the label its width — "Progress" was rendering
@@ -650,6 +647,7 @@ function QuickAction({
       <Text style={[styles.quickLabel, { color }]} numberOfLines={1}>
         {label}
       </Text>
+      </GlassSurface>
     </Touchable>
   );
 }
@@ -835,6 +833,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space.sm,
     marginBottom: space.lg,
+  },
+  quickActionTarget: {
+    flex: 1,
   },
   quickAction: {
     flex: 1,

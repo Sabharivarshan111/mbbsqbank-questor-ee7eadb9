@@ -157,6 +157,26 @@ picked ones.
 which preset is selected. That is what keeps the status bar, the navigator and
 the moon/sun icon correct for a custom theme.
 
+## Liquid Glass is a material, not a palette
+
+`Material` in `src/theme/presets.ts` is a second axis alongside the four
+colours, because "translucent, lit from above, floating" cannot be expressed
+as a background hex. Only named presets carry one; a custom theme is always
+solid, since there is nothing in four picked colours that could say otherwise.
+
+`components/GlassSurface.tsx` is the only place that draws it. Three things do
+the work, in order of how much they matter: the **specular highlight** (a
+bright hairline on the top edge fading down — the most identifiable feature of
+Apple's material and the cheapest to draw correctly), **translucency** (a wash
+at partial alpha, so the page reads through), and **float** (soft shadow,
+larger radius).
+
+**No backdrop blur, and no faking it.** Real refraction needs a backdrop
+filter, which React Native has no equivalent for without `react-native-blur`
+or Skia. A lighter rectangle pretending to be a blur is what makes an
+imitation look cheap. If that dependency is ever added, GlassSurface is the
+one file that changes.
+
 ## Motion goes through `src/theme/motion.ts`
 
 Do not hand-roll an animation. The house springs, easing curves, duration scale,
