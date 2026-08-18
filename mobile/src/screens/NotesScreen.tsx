@@ -382,7 +382,9 @@ function NotesDetailView({
             const until = Date.now() + INTER_BATCH_DELAY_MS;
             while (Date.now() < until && !cancelled.current) {
               setWaitSecs(Math.max(0, Math.ceil((until - Date.now()) / 1000)));
-              await new Promise<void>(resolve => setTimeout(resolve, 500));
+              // 1Hz: the countdown is shown to the second, so a 500ms tick was
+              // paying for twice the renders with nothing visible in return.
+              await new Promise<void>(resolve => setTimeout(resolve, 1000));
             }
             setPhase('loading');
           }
@@ -438,14 +440,31 @@ function NotesDetailView({
       {busy ? (
         <View style={[styles.status, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <ActivityIndicator color={colors.fuchsia} />
+          {/*
+            * Two texts, because only one of them may be announced.
+            *
+            * Generating a big topic runs for minutes with 25-second pauses, so
+            * a screen-reader user does need to be told the difference between
+            * a long wait and a hang — that is the live region below. But this
+            * label originally carried the ticking countdown inside the live
+            * region, which made TalkBack read out "24s", "23s", "23s"… roughly
+            * fifty times per batch, drowning the screen in speech. The number
+            * is glanceable information; it is hidden from assistive tech and
+            * only the phase is announced.
+            */}
           <Text
-            // Generating a big topic runs for minutes with 25-second pauses
-            // between batches. Announce each change of state, or a screen-reader
-            // user has no way to tell a long wait from a hang.
             accessibilityLiveRegion="polite"
             style={[styles.statusText, { color: colors.text }]}>
-            {phase === 'waiting' ? `Pacing the next batch — ${waitSecs}s` : 'Writing your notes…'}
+            {phase === 'waiting' ? 'Pacing the next batch' : 'Writing your notes…'}
           </Text>
+          {phase === 'waiting' ? (
+            <Text
+              importantForAccessibility="no"
+              accessibilityElementsHidden
+              style={[styles.statusSub, { color: colors.textMuted }]}>
+              {waitSecs}s
+            </Text>
+          ) : null}
           {totalBatches > 1 ? (
             <>
               <Text style={[styles.statusSub, { color: colors.textMuted }]}>

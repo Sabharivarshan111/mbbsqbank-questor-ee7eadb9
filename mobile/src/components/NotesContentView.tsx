@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useTheme, withAlpha } from '@/theme';
@@ -7,8 +7,17 @@ import type { NotesContent, Section } from '@/lib/handwrittenNotes';
 /**
  * Renders the section vocabulary the notes edge function emits — the same ten
  * shapes handled by src/components/handwritten/HandwrittenNotesView.tsx.
+ *
+ * Memoized because the Notes screen re-renders on a timer while it generates.
+ *
+ * A big topic arrives in batches with a 25-second pace between them, and the
+ * countdown ticks the screen's state throughout. `content` does not change
+ * during those ticks, but without memo the whole section tree — tables,
+ * flowcharts, every bullet — was rebuilt on each one. That is the most
+ * expensive thing on screen re-rendering repeatedly on the cheap phones this
+ * app targets, for a number that changes in a label above it.
  */
-export function NotesContentView({ content }: { content: NotesContent }) {
+function NotesContentViewBase({ content }: { content: NotesContent }) {
   const { colors } = useTheme();
 
   return (
@@ -494,3 +503,5 @@ const styles = StyleSheet.create({
     padding: 14,
   },
 });
+
+export const NotesContentView = memo(NotesContentViewBase);
