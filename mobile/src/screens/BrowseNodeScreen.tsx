@@ -18,6 +18,8 @@ import { EmptyState, Muted, SegmentedControl } from '@/components/ui';
 import { GradientText } from '@/components/GradientText';
 import { ThinBar } from '@/components/ProgressRing';
 import { QuestionRow } from '@/components/QuestionRow';
+import { FilterField } from '@/components/FilterField';
+import { getCleanQuestionText } from '@/lib/questionText';
 import {
   collectAllQuestions,
   collectQuestions,
@@ -56,6 +58,7 @@ export default function BrowseNodeScreen() {
   const { year, path, title } = route.params;
 
   const [type, setType] = useState<QuestionType>('essay');
+  const [query, setQuery] = useState('');
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -72,6 +75,35 @@ export default function BrowseNodeScreen() {
   const node = useMemo(() => resolveNode(year, path), [year, path]);
   const children = useMemo(() => getTopicChildren(node), [node]);
   const questions = useMemo(() => findTypeQuestions(node, type), [node, type]);
+
+  /**
+   * Only worth showing above a list long enough to scroll.
+   *
+   * The largest topic in the bank holds 67 questions; plenty hold three. A
+   * field above three rows is chrome that costs a row of space and earns
+   * nothing, so it appears at the point where finding something by eye starts
+   * to lose to typing two letters.
+   */
+  const filterable = questions.length >= FILTER_THRESHOLD;
+
+  /**
+   * Pairs, not strings, because the number shown on each row is its position
+   * in the topic. Renumbering a filtered list 1..n would quietly tell the user
+   * that "question 2" is a different question depending on what they typed.
+   */
+  const visible = useMemo(() => {
+    const pairs = questions.map((question, index) => ({ question, index }));
+    const needle = query.trim().toLowerCase();
+    if (!filterable || !needle) {
+      return pairs;
+    }
+    // Matched against the cleaned text: the raw string carries importance
+    // stars, PYQ years and a page number, so a query would otherwise hit
+    // markers the user cannot see and is not looking for.
+    return pairs.filter(pair => getCleanQuestionText(pair.question).toLowerCase().includes(needle));
+  }, [questions, query, filterable]);
+
+  const filtering = filterable && query.trim().length > 0;
   const essayCount = useMemo(() => findTypeQuestions(node, 'essay').length, [node]);
   const shortNoteCount = useMemo(() => findTypeQuestions(node, 'short-notes').length, [node]);
 
@@ -263,13 +295,14 @@ export default function BrowseNodeScreen() {
 
   // ---- Questions -----------------------------------------------------------
   const doneHere = countDone(questions);
+
   return (
     <FlatList
       {...LIST_TUNING}
       style={{ backgroundColor: colors.background }}
       contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 8 }]}
-      data={questions}
-      keyExtractor={(item, index) => `${index}-${item.slice(0, 24)}`}
+      data={visible}
+      keyExtractor={item => `${item.index}-${item.question.slice(0, 24)}`}
       initialNumToRender={12}
       windowSize={10}
       removeClippedSubviews
@@ -305,20 +338,55 @@ export default function BrowseNodeScreen() {
               </View>
             </View>
           ) : null}
+
+          {filterable ? (
+            <View style={styles.filterWrap}>
+              <FilterField
+                value={query}
+                onChange={setQuery}
+                placeholder={`Filter ${questions.length} questions`}
+                label={`Filter questions in ${title}`}
+              />
+              {filtering ? (
+                // Announced, because the result of typing is a list changing
+                // somewhere below the keyboard where it cannot be seen.
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[styles.filterCount, { color: colors.textMuted }]}>
+                  {visible.length} of {questions.length}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
       }
       ListEmptyComponent={
-        <EmptyState
-          title={`No ${type === 'essay' ? 'essays' : 'short notes'} here`}
-          subtitle="Switch the tab above to see the other question type."
-        />
+        // An empty list because you filtered is a different situation from an
+        // empty list because the topic has none, and telling someone to switch
+        // tabs when they have simply mistyped is actively unhelpful.
+        filtering ? (
+          <EmptyState
+            title="No matches"
+            subtitle={`Nothing in ${title} matches "${query.trim()}".`}
+          />
+        ) : (
+          <EmptyState
+            title={`No ${type === 'essay' ? 'essays' : 'short notes'} here`}
+            subtitle="Switch the tab above to see the other question type."
+          />
+        )
       }
-      renderItem={({ item, index }) => (
-        <QuestionRow question={item} index={index} onAskAi={askAi} />
+      renderItem={({ item }) => (
+        // item.index, not the list position: the row's number is where the
+        // question sits in the topic, which does not change when filtered.
+        <QuestionRow question={item.question} index={item.index} onAskAi={askAi} />
       )}
     />
   );
 }
+
+/** Below this, scanning the list by eye beats typing. */
+const FILTER_THRESHOLD = 12;
 
 const styles = StyleSheet.create({
   container: {
@@ -455,6 +523,14 @@ const styles = StyleSheet.create({
   topicCount: {
     fontSize: 13,
     marginTop: 8,
+  },
+  filterWrap: {
+    marginTop: 12,
+    gap: 6,
+  },
+  filterCount: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   questionStats: {
     marginTop: 12,

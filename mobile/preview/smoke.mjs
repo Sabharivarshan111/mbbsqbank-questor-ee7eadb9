@@ -296,6 +296,94 @@ await step('double tap a question opens Ask AI with the question text', async ()
   }
 });
 
+await step('in-topic filter narrows the list and keeps question numbers', async () => {
+  // Straight to the largest topic in the bank — 67 short notes, 15 essays —
+  // because the field only appears above a list long enough to need it.
+  await open(
+    'screen=browse&year=second-year&node=pharmacology,paper-2,anti-microbial-drugs&title=Anti-Microbial%20Drugs',
+  );
+  await declineAdPromptIfShown();
+
+  const field = page.locator('[placeholder^="Filter"]');
+  await field.waitFor({ state: 'visible', timeout: 5000 });
+
+  const numbers = async () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('div,span')]
+        .filter(n => n.children.length === 0 && /^\d+\./.test(n.textContent.trim()) && n.offsetParent)
+        .map(n => Number(n.textContent.trim().split('.')[0])),
+    );
+
+  /**
+   * Narrowing is asserted on the "N of M" counter, not on how many rows are on
+   * screen. The list is virtualized, so the visible row count is whatever the
+   * window happens to be rendering — comparing those two numbers had the test
+   * reporting "13 → 14" for a filter that genuinely cut 15 rows to 10.
+   */
+  const counter = async () => {
+    const text = await page.evaluate(() => {
+      const hit = [...document.querySelectorAll('div,span')].find(
+        n => n.children.length === 0 && /^\d+ of \d+$/.test(n.textContent.trim()) && n.offsetParent,
+      );
+      return hit ? hit.textContent.trim() : null;
+    });
+    return text;
+  };
+
+  const before = await numbers();
+  if (before.length < 10) {
+    throw new Error(`expected a long list, saw ${before.length} rows`);
+  }
+
+  // 10 of the 15 essays contain "anti", at positions 1-6, 10-12 and 15.
+  await field.fill('anti');
+  await page.waitForTimeout(500);
+  if ((await counter()) !== '10 of 15') {
+    throw new Error(`filter counter read "${await counter()}", expected "10 of 15"`);
+  }
+
+  /**
+   * The number on a row is its position in the topic, not its position in the
+   * filtered list — renumbering 1..n would mean "question 2" named a different
+   * question depending on what was typed.
+   *
+   * Asserted as "strictly ascending, with at least one gap", which is what
+   * preserved positions look like once a filter has skipped something. An
+   * earlier version only checked that the first two rows were not 1 and 2;
+   * giving every row the same index slipped straight past that, because then
+   * no two consecutive rows read 1 and 2 either.
+   */
+  const after = await numbers();
+  const ascending = after.every((n, i) => i === 0 || n > after[i - 1]);
+  const hasGap = after.some((n, i) => i > 0 && n !== after[i - 1] + 1);
+  if (!ascending) {
+    throw new Error(`row numbers are not ascending after filtering: ${after.join(',')}`);
+  }
+  if (!hasGap) {
+    throw new Error(`row numbers were renumbered 1..n by the filter: ${after.join(',')}`);
+  }
+
+  // A filtered list with no matches must not tell the user to switch tabs.
+  await field.fill('zzzznope');
+  await page.waitForTimeout(500);
+  await page.getByText('No matches').first().waitFor({ state: 'visible', timeout: 4000 });
+  if (await page.getByText('Switch the tab above').first().isVisible().catch(() => false)) {
+    throw new Error('showed the wrong-tab empty state for a filter with no matches');
+  }
+
+  // Clearing restores everything.
+  await page.locator('[aria-label="Clear filter"]').first().click();
+  await page.waitForTimeout(500);
+  // With no query there is nothing to count, so the counter goes away and the
+  // full list is back.
+  if ((await counter()) !== null) {
+    throw new Error('the filter counter is still showing after clearing');
+  }
+  if ((await numbers()).length < 10) {
+    throw new Error('clearing did not restore the full list');
+  }
+});
+
 // ---- Timer -----------------------------------------------------------------
 await step('timer starts, pauses, resets, and opens its sheet', async () => {
   await open('screen=timer');
