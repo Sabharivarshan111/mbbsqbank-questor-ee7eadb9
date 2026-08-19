@@ -4,6 +4,7 @@ import Video from 'react-native-video';
 import { useTheme } from '@/theme';
 import { useReducedMotion } from '@/theme/motion';
 import { useWallpaper } from '@/hooks/useWallpaper';
+import { solveWallpaper } from '@/lib/wallpaper';
 
 /**
  * Draws the chosen photo or video behind a screen's content.
@@ -27,6 +28,21 @@ import { useWallpaper } from '@/hooks/useWallpaper';
  * missing must leave a normal, working screen rather than a black hole — so a
  * load error clears the media and the theme's own background shows through.
  */
+/**
+ * The text colour to use over the current wallpaper, or the theme's own when
+ * there is none. Content drawn directly on the background — headings, the
+ * brand mark — reads this instead of `colors.text`; anything inside a card is
+ * on the card, not the wallpaper, and keeps the palette's colour.
+ */
+export function useWallpaperText(): string {
+  const { colors } = useTheme();
+  const { wallpaper } = useWallpaper();
+  if (!wallpaper) {
+    return colors.text;
+  }
+  return solveWallpaper(wallpaper, colors.background, colors.text).text;
+}
+
 export function WallpaperBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
   const { wallpaper, clear } = useWallpaper();
@@ -86,7 +102,14 @@ export function WallpaperBackground({ children }: { children: React.ReactNode })
         <View
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: colors.background, opacity: wallpaper.dim },
+            {
+              backgroundColor: colors.background,
+              // Re-solved against the live theme rather than using the stored
+              // value: the same photograph needs a different scrim under a
+              // light theme than a dark one, and switching theme must not
+              // leave the app unreadable until the wallpaper is re-picked.
+              opacity: solveWallpaper(wallpaper, colors.background, colors.text).dim,
+            },
           ]}
         />
       </View>

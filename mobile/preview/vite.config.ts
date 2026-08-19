@@ -40,6 +40,10 @@ export default defineConfig({
         replacement: path.resolve(__dirname, 'shims', 'image-picker.ts'),
       },
       {
+        find: 'react-native-image-colors',
+        replacement: path.resolve(__dirname, 'shims', 'image-colors.ts'),
+      },
+      {
         find: 'react-native-video',
         replacement: path.resolve(__dirname, 'shims', 'video.tsx'),
       },

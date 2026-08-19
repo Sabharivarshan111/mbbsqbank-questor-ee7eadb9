@@ -7,7 +7,7 @@ import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
 import { ThemeEditor } from '@/components/ThemeEditor';
 import { GlassSurface } from '@/components/GlassSurface';
-import { WallpaperBackground } from '@/components/WallpaperBackground';
+import { WallpaperBackground, useWallpaperText } from '@/components/WallpaperBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -86,6 +86,12 @@ const WHATSAPP_LABEL: Record<YearKey, string> = {
 
 export default function HomeScreen() {
   const { colors, theme, textSize, setTextSize, custom, setCustom, setPreference } = useTheme();
+  /**
+   * Content drawn straight onto the background reads this rather than
+   * colors.text, because over a wallpaper the palette's guarantee no longer
+   * holds. Anything inside a card is on the card and keeps the palette.
+   */
+  const onWall = useWallpaperText();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const countDone = useCountDone();
@@ -202,7 +208,7 @@ export default function HomeScreen() {
             <Menu size={20} color={colors.text} />
           </View>
           <View>
-            <Text style={[styles.brand, { color: colors.text }]}>ORBIT</Text>
+            <Text style={[styles.brand, { color: onWall }]}>ORBIT</Text>
             <Text style={[styles.tagline, { color: colors.textMuted }]}>
               Learn. Retain. Master.
             </Text>

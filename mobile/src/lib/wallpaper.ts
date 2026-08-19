@@ -1,6 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
+// v1.x on purpose: 2.x is an Expo module and pulls in expo-modules-core,
+// which a bare React Native app cannot resolve — Metro fails the whole
+// bundle. 1.5.2 is the last pure-RN release and has the API this needs.
+import ImageColors from 'react-native-image-colors';
 import { warn } from '@/lib/log';
+import { readabilityFor } from '@/lib/wallpaperReadability';
 
 /**
  * A photo or video from the phone, shown behind the Home screen.
@@ -21,11 +26,47 @@ export interface Wallpaper {
   kind: 'image' | 'video';
   /** 0 = no scrim, 1 = the theme background entirely. */
   dim: number;
+  /**
+   * The wallpaper's representative colour, sampled once when it was chosen.
+   *
+   * Kept so the scrim can be re-solved when the *theme* changes without
+   * re-reading the file — the picture has not moved, but what it has to be
+   * readable against has.
+   */
+  media?: string;
+  /**
+   * Text colour over the wallpaper. Absent means "whatever the solver
+   * decided"; set means the user overrode it and their choice stands.
+   */
+  textColor?: string;
 }
 
 const KEY = 'orbit:wallpaper';
 
 export const DEFAULT_DIM = 0.55;
+
+/**
+ * Solve the scrim and text colour for a wallpaper against a theme.
+ *
+ * Called when a wallpaper is picked and again whenever the theme changes,
+ * because the same photograph needs a different scrim under a light theme than
+ * a dark one. A user-set `textColor` is never overridden — the solver moves the
+ * scrim to fit their choice instead.
+ */
+export function solveWallpaper(
+  wallpaper: Wallpaper,
+  themeBackground: string,
+  themeText: string,
+): { dim: number; text: string } {
+  if (!wallpaper.media) {
+    // Nothing sampled — a video, or a sampling failure. Keep the default
+    // scrim, which is heavy enough to hold most photographs, and the theme's
+    // own text. Guessing from no information is worse than a safe default.
+    return { dim: wallpaper.dim, text: wallpaper.textColor ?? themeText };
+  }
+  const solved = readabilityFor(wallpaper.media, themeBackground, wallpaper.textColor ?? themeText);
+  return { dim: solved.dim, text: wallpaper.textColor ?? solved.text };
+}
 /**
  * Below this the app stops being reliably readable over a bright photo. The
  * slider stops here rather than at 0: an unreadable app is not a preference.
@@ -65,6 +106,39 @@ export async function writeWallpaper(wallpaper: Wallpaper | null): Promise<void>
 }
 
 /**
+ * The wallpaper's representative colour.
+ *
+ * Android's Palette API, through react-native-image-colors. `average` rather
+ * than `dominant` or `vibrant`: text has to survive the *whole* picture, not
+ * its most interesting part. A photo that is mostly dark sky with one bright
+ * sun has a vibrant colour of yellow and an average close to the sky, and the
+ * sky is what most of the text will be sitting on.
+ *
+ * Video cannot be sampled — there is no frame to read without decoding one,
+ * which needs a native thumbnail API this app does not have. Returns null, and
+ * the caller falls back to a scrim heavy enough for an unknown picture.
+ */
+async function sampleColor(uri: string, kind: 'image' | 'video'): Promise<string | null> {
+  if (kind === 'video') {
+    return null;
+  }
+  try {
+    const result = await ImageColors.getColors(uri, {
+      fallback: '#808080',
+      cache: false,
+      quality: 'low',
+    });
+    if (result.platform === 'android') {
+      return result.average ?? result.dominant ?? null;
+    }
+    return null;
+  } catch (error) {
+    warn('wallpaper colour sampling failed:', error);
+    return null;
+  }
+}
+
+/**
  * Open the phone's gallery and return what was chosen.
  *
  * Photos and videos in one picker, because "set a wallpaper" is one intent and
@@ -99,11 +173,8 @@ export async function pickWallpaper(): Promise<Wallpaper | null> {
     if (!asset?.uri) {
       return null;
     }
-    return {
-      uri: asset.uri,
-      kind: asset.type?.startsWith('video') ? 'video' : 'image',
-      dim: DEFAULT_DIM,
-    };
+    const kind = asset.type?.startsWith('video') ? 'video' : 'image';
+    return { uri: asset.uri, kind, dim: DEFAULT_DIM, media: (await sampleColor(asset.uri, kind)) ?? undefined };
   } catch (error) {
     warn('wallpaper picker threw:', error);
     return null;

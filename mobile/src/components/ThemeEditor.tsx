@@ -10,7 +10,7 @@ import { paletteFrom, presetByKey, QUICK_PRESETS, type CustomPalette } from '@/t
 import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
 import { radius, space } from '@/theme/tokens';
 import { Image } from 'react-native';
-import { DEFAULT_DIM, MIN_DIM, pickWallpaper, type Wallpaper } from '@/lib/wallpaper';
+import { DEFAULT_DIM, MIN_DIM, pickWallpaper, solveWallpaper, type Wallpaper } from '@/lib/wallpaper';
 import { getWallpaper, setWallpaper } from '@/hooks/useWallpaper';
 
 /**
@@ -199,6 +199,55 @@ export function ThemeEditor({
                   <Text style={[styles.paperName, { color: colors.text }]}>
                     {paper.kind === 'video' ? 'Video wallpaper' : 'Photo wallpaper'}
                   </Text>
+                  {/* What the solver decided, stated plainly. A number the app
+                      chose on your behalf should be visible, not silent — and
+                      it is the difference between "the app dimmed my photo"
+                      and "the app dimmed my photo so the text stays legible". */}
+                  <Text style={[styles.paperSolved, { color: colors.textMuted }]}>
+                    {paper.media
+                      ? `Auto: ${Math.round(solveWallpaper(paper, draft.background, draft.text).dim * 100)}% dim keeps text readable`
+                      : paper.kind === 'video'
+                      ? 'Video cannot be sampled — set the dim by eye'
+                      : 'Colour could not be read — set the dim by eye'}
+                  </Text>
+
+                  {/* Text colour over the wallpaper. Auto is the solved answer;
+                      the two overrides exist because the solver optimises for
+                      contrast and a person may simply prefer the other one. */}
+                  <View style={styles.dimRow}>
+                    {[
+                      { key: undefined, label: 'Auto' },
+                      { key: '#FFFFFF', label: 'Light' },
+                      { key: '#000000', label: 'Dark' },
+                    ].map(option => {
+                      const active = paper.textColor === option.key;
+                      return (
+                        <Touchable
+                          key={option.label}
+                          onPress={() => setPaper({ ...paper, textColor: option.key })}
+                          role="radio"
+                          label={`${option.label} text`}
+                          state={{ checked: active }}
+                          scaleTo={0.94}
+                          style={[
+                            styles.textChip,
+                            {
+                              backgroundColor: active ? colors.primary : 'transparent',
+                              borderColor: active ? colors.primary : colors.border,
+                            },
+                          ]}>
+                          <Text
+                            style={[
+                              styles.dimText,
+                              { color: active ? colors.primaryText : colors.textMuted },
+                            ]}>
+                            {option.label}
+                          </Text>
+                        </Touchable>
+                      );
+                    })}
+                  </View>
+
                   {/* The dim is the readability control, so it lives with the
                       wallpaper rather than in a settings screen. Stepped, not a
                       slider: five choices you can hit with a thumb beat a
@@ -582,6 +631,17 @@ const styles = StyleSheet.create({
   },
   dimChip: {
     minWidth: 34,
+    height: 28,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paperSolved: {
+    fontSize: 11,
+  },
+  textChip: {
+    minWidth: 46,
     height: 28,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
