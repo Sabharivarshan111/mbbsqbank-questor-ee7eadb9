@@ -22,12 +22,13 @@ const ITEMS: { key: TabKey; label: string; Icon: typeof Home }[] = [
 ];
 
 /**
- * Geometry. The blob is positioned from the same numbers the stylesheet uses
- * rather than from measurement: every tab is `flex: 1`, so a slot is just the
- * bar's content width divided by five, and the icon row starts at a known
- * offset. Measuring five children instead would cost five layout callbacks on
- * every rotation to learn what arithmetic already knows — and would silently
- * disagree with the styles if one of them changed.
+ * Geometry. Horizontally the blob is positioned from the same numbers the
+ * stylesheet uses rather than from measurement: every tab is `flex: 1`, so a
+ * slot is the bar's content width divided by five. Measuring five children
+ * instead would cost five layout callbacks per rotation to learn what
+ * arithmetic already knows, and could silently disagree with the styles.
+ *
+ * Height is the exception, and is measured — see PILL_GUTTER below.
  */
 const BAR_PAD_X = 8;
 const BAR_PAD_TOP = 6;
@@ -35,29 +36,33 @@ const ITEM_PAD_Y = 6;
 const ICON_SIZE = 20;
 const ICON_LABEL_GAP = 3;
 
-/** The pill itself. */
-const BLOB_W = 46;
-const BLOB_H = 26;
+/**
+ * The pill wraps the whole tab — icon *and* label — so the label is written on
+ * the accent rather than sitting under a badge. It is sized from the slot and
+ * from the measured height of a tab's content, not from constants, because the
+ * label's height moves with the in-app text size: a fixed height would leave
+ * "My Progress" hanging out of the bottom at the largest setting.
+ */
+const PILL_GUTTER = 6;
+const PILL_INSET_Y = 2;
+const PILL_RADIUS = 20;
 /**
  * The glow is drawn *inside* the SVG rather than as a shadow, because on
  * Android `elevation` is what draws a shadow and any elevated view jumps in
  * front of its non-elevated siblings — the blob would cover the icons it is
  * meant to sit behind. A radial wash costs one gradient and paints in order.
  */
-const GLOW_PAD_X = 12;
-const GLOW_PAD_Y = 10;
-const CANVAS_W = BLOB_W + GLOW_PAD_X * 2;
-const CANVAS_H = BLOB_H + GLOW_PAD_Y * 2;
+const GLOW_PAD = 10;
 
 /**
  * Port of src/components/shell/BottomNav.tsx: five items with the Timer raised
  * into a floating disc in the middle.
  *
  * Selection is carried by a **gradient blob that springs from the old tab to
- * the new one**, behind the icon. It replaced a dot that faded in under each
- * label: a dot tells you where you are, a thing that travels tells you where
- * you *came from*, which is the part that makes a tab bar feel like one
- * surface rather than five independent buttons.
+ * the new one**, wrapping the icon and its label together. It replaced a dot
+ * that faded in under each label: a dot tells you where you are, a thing that
+ * travels tells you where you *came from*, which is the part that makes a tab
+ * bar feel like one surface rather than five independent buttons.
  *
  * Three details that are load-bearing:
  *
@@ -70,9 +75,12 @@ const CANVAS_H = BLOB_H + GLOW_PAD_Y * 2;
  *     the outgoing icon in a muted colour while the blob is still underneath
  *     it — briefly unreadable. Two layers and an opacity keeps every frame on
  *     the GPU and legible.
- *   • The Timer keeps its raised disc, so the blob fades as it arrives at that
- *     slot and the disc's own scale takes over. It still travels there, so
- *     leaving the Timer starts the blob from where the eye last saw it.
+ *   • The Timer keeps its raised disc and takes no pill: the disc is already
+ *     the accent-free landmark in the middle of the bar, and a pill behind a
+ *     button that floats above the bar reads as two separate things. The blob
+ *     fades as it arrives at that slot and the disc's own scale takes over. It
+ *     still travels there, so leaving the Timer starts the blob from where the
+ *     eye last saw it.
  *
  * Two design-skill notes that predate the blob and still hold:
  *   • The bar is the app's persistent chrome, so it carries a bright hairline
@@ -95,8 +103,14 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
   const onTimer = activeKey === 'Timer';
 
   const [barWidth, setBarWidth] = useState(0);
+  const [faceHeight, setFaceHeight] = useState(0);
   const slot = barWidth > 0 ? (barWidth - BAR_PAD_X * 2) / ITEMS.length : 0;
-  const blobLeft = (index: number) => BAR_PAD_X + index * slot + (slot - CANVAS_W) / 2;
+  const pillW = slot - PILL_GUTTER;
+  const pillH = faceHeight - PILL_INSET_Y * 2;
+  const canvasW = pillW + GLOW_PAD * 2;
+  const canvasH = pillH + GLOW_PAD * 2;
+  const ready = slot > 0 && faceHeight > 0;
+  const blobLeft = (index: number) => BAR_PAD_X + index * slot + (slot - canvasW) / 2;
 
   const blobX = useRef(new Animated.Value(0)).current;
   const placed = useRef(false);
@@ -110,7 +124,7 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
   // First placement is not an animation: nothing may animate on first paint,
   // and there is no previous tab to have travelled from.
   useEffect(() => {
-    if (slot <= 0) {
+    if (!ready) {
       return;
     }
     const target = blobLeft(activeIndex);
@@ -122,7 +136,7 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
     springTo(blobX, target, { spring: SPRING.momentum, reduceMotion }).start();
     // blobLeft is derived from slot, which is in the deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, slot, blobX, reduceMotion]);
+  }, [activeIndex, slot, ready, blobX, reduceMotion]);
 
   useEffect(() => {
     Animated.parallel([
@@ -173,12 +187,15 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
           paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
         },
       ]}>
-      {slot > 0 ? (
+      {ready ? (
         <Animated.View
           pointerEvents="none"
           style={[
             styles.blob,
             {
+              top: BAR_PAD_TOP + PILL_INSET_Y - GLOW_PAD,
+              width: canvasW,
+              height: canvasH,
               opacity: blobIn,
               transform: [
                 { translateX: blobX },
@@ -198,7 +215,7 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
               ],
             },
           ]}>
-          <Svg width={CANVAS_W} height={CANVAS_H}>
+          <Svg width={canvasW} height={canvasH}>
             <Defs>
               <RadialGradient id="navGlow" cx="50%" cy="50%" rx="50%" ry="50%">
                 <Stop offset="0" stopColor={colors.accent} stopOpacity="0.34" />
@@ -211,18 +228,18 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
               </LinearGradient>
             </Defs>
             <Ellipse
-              cx={CANVAS_W / 2}
-              cy={CANVAS_H / 2}
-              rx={CANVAS_W / 2}
-              ry={CANVAS_H / 2}
+              cx={canvasW / 2}
+              cy={canvasH / 2}
+              rx={canvasW / 2}
+              ry={canvasH / 2}
               fill="url(#navGlow)"
             />
             <Rect
-              x={GLOW_PAD_X}
-              y={GLOW_PAD_Y}
-              width={BLOB_W}
-              height={BLOB_H}
-              rx={12}
+              x={GLOW_PAD}
+              y={GLOW_PAD}
+              width={pillW}
+              height={pillH}
+              rx={PILL_RADIUS}
               fill="url(#navBlob)"
             />
           </Svg>
@@ -252,54 +269,24 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
               state={{ selected: isActive }}
               scaleTo={0.92}
               style={styles.centerItem}>
-              <View style={styles.discWrap}>
-                {/* The Timer is the one tab the blob cannot sit behind — the
-                    disc is raised out of the bar and covers it. So selection
-                    is said the same way, in the same colour, with a ring that
-                    springs out from under the disc as the blob fades in at
-                    this slot. Without it the middle tab is the only one with
-                    no visible selected state. */}
-                <Animated.View
-                  pointerEvents="none"
-                  style={[
-                    styles.discRing,
-                    {
-                      borderColor: colors.accent,
-                      opacity: discScale.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 1],
-                        extrapolate: 'clamp',
-                      }),
-                      transform: [
-                        {
-                          scale: discScale.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.9, 1],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                />
-                <Animated.View
-                  style={[
-                    styles.centerDisc,
-                    {
-                      backgroundColor: colors.primary,
-                      borderColor: colors.background,
-                      transform: [
-                        {
-                          scale: discScale.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [1, 1.06],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}>
-                  <Icon size={24} color={colors.primaryText} />
-                </Animated.View>
-              </View>
+              <Animated.View
+                style={[
+                  styles.centerDisc,
+                  {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.background,
+                    transform: [
+                      {
+                        scale: discScale.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 1.06],
+                        }),
+                      },
+                    ],
+                  },
+                ]}>
+                <Icon size={24} color={colors.primaryText} />
+              </Animated.View>
             </Touchable>
           );
         }
@@ -315,6 +302,14 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
             scaleTo={0.9}
             style={styles.item}>
             <Animated.View
+              // One tab is enough: they are all the same content in the same
+              // box. The height is what the in-app text size moves, so the
+              // pill is sized from it rather than from a constant.
+              onLayout={
+                index === 0
+                  ? event => setFaceHeight(event.nativeEvent.layout.height)
+                  : undefined
+              }
               style={[
                 styles.face,
                 {
@@ -341,7 +336,7 @@ export default function BottomNav({ state, navigation }: BottomTabBarProps) {
                 importantForAccessibility="no-hide-descendants"
                 style={[StyleSheet.absoluteFill, styles.face, { opacity: face }]}>
                 <Icon size={ICON_SIZE} color={colors.onAccent} />
-                <Text style={[styles.label, { color: colors.primary }]}>{label}</Text>
+                <Text style={[styles.label, { color: colors.onAccent }]}>{label}</Text>
               </Animated.View>
             </Animated.View>
           </Touchable>
@@ -362,13 +357,10 @@ const styles = StyleSheet.create({
   blob: {
     position: 'absolute',
     left: 0,
-    // Centred on the icon, not on the item: the label sits below the pill and
-    // keeps the page's text colour. The canvas is taller than the pill by the
-    // glow's padding, so it starts that much higher again — the overhang above
-    // the bar is the glow bleeding onto the content, which is what a glow does.
-    top: BAR_PAD_TOP + ITEM_PAD_Y + ICON_SIZE / 2 - BLOB_H / 2 - GLOW_PAD_Y,
-    width: CANVAS_W,
-    height: CANVAS_H,
+    // `top`, `width` and `height` are set inline: all three are measured, so
+    // they cannot live in a static stylesheet. The canvas is larger than the
+    // pill by the glow's padding on every side, and the overhang above the bar
+    // is the glow bleeding onto the content — which is what a glow does.
   },
   item: {
     flex: 1,
@@ -391,21 +383,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: -26,
-  },
-  discWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  discRing: {
-    position: 'absolute',
-    // 6dp of clearance on each side of the 56dp disc, which is what makes it
-    // read as a ring around the button rather than a thicker border on it.
-    top: -6,
-    left: -6,
-    height: 68,
-    width: 68,
-    borderRadius: 34,
-    borderWidth: 2,
   },
   centerDisc: {
     height: 56,
