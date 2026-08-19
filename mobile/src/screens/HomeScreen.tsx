@@ -3,6 +3,7 @@ import { Animated, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
+import { HoloCard } from '@/components/HoloCard';
 import { Slider } from '@/components/Slider';
 import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
@@ -456,20 +457,20 @@ export default function HomeScreen() {
       />
 
       <View style={styles.subjectGrid}>
-        {subjects.map(subject => (
-          <Touchable
+        {subjects.map((subject, i) => (
+          <HoloCard
             key={subject.key}
+            index={i}
             onPress={() => openSubject(subject.key, subject.name)}
             // One spoken sentence beats four fragments; TalkBack reads the
             // card as a whole, not as name / bar / percent / arrow.
             label={`${subject.name}, ${subject.pct}% complete`}
-            scaleTo={0.975}
-            style={[styles.subjectCard, { borderColor: colors.border }]}>
-            <GradientFill
-              from={subject.gradient[0]}
-              to={subject.gradient[1]}
-              borderRadius={16}
-            />
+            from={subject.gradient[0]}
+            to={subject.gradient[1]}
+            borderColor={colors.border}
+            borderRadius={16}
+            style={styles.subjectBox}
+            innerStyle={styles.subjectCard}>
             <Text style={styles.subjectEmoji}>{subject.icon}</Text>
             <View style={styles.subjectFooter}>
               <Text style={[styles.subjectName, { color: colors.text }]}>
@@ -488,7 +489,7 @@ export default function HomeScreen() {
                 </View>
               </View>
             </View>
-          </Touchable>
+          </HoloCard>
         ))}
       </View>
 
@@ -1030,12 +1031,19 @@ const styles = StyleSheet.create({
     rowGap: 12,
     marginBottom: space.lg,
   },
-  subjectCard: {
+  subjectBox: {
     // 48.5% x 2 = 97%, leaving a 3% gutter between the columns and nothing at
     // the edges. Strict two columns; an odd last card stays half-width instead
     // of stretching across.
+    //
+    // The box carries the layout and the tilt; the card inside it carries the
+    // surface. Splitting them keeps the 3D transform off the same view that
+    // has to clip its children.
     width: '48.5%',
     height: 160,
+  },
+  subjectCard: {
+    flex: 1,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,

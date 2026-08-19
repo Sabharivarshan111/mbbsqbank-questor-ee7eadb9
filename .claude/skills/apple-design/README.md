@@ -109,6 +109,13 @@ From `review-animations/STANDARDS.md` and `animate/SKILL.md`'s "Never Ship":
   reading that needs the native module this avoids — so the mitigation is
   restraint rather than a check. `haptics.ts` is the one place to gate if a
   user-facing switch is ever wanted.
+- **No blend modes.** `components/HoloCard.tsx` is the web's
+  `mix-blend-mode: color-dodge` foil, and React Native has no blend mode at
+  all. The iridescent band is a translucent wash instead: softer and less
+  luminous than dodging, which is the honest limit rather than a fake. It also
+  drops the reference's pointer-tracked tilt, which has no meaning without a
+  cursor — the card drifts on its own instead, because its tap navigates and
+  anything press-driven would be seen for a tenth of a second.
 - **No motion blur** (§11) — not expressible in RN's animation system without a
   shader.
 - **No stagger on list entrances.** The long lists are `FlatList`s whose rows

@@ -215,6 +215,7 @@ and the primitives that use them are:
 | Bottom sheets | `components/Sheet.tsx` — drag-to-dismiss with velocity handoff |
 | Either/or decisions | `components/Dialog.tsx` |
 | A value on a range | `components/Slider.tsx` — thumb glued to the finger, velocity handed to the spring, detents |
+| The subject cards | `components/HoloCard.tsx` — iridescent foil that drifts on its own, and stops when the screen is not focused |
 | Back navigation | `components/BackButton.tsx` |
 | Long lists | spread `components/listTuning.ts` onto the `FlatList` |
 
