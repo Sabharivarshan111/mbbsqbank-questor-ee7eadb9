@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { SPRING, springTo, useReducedMotion } from '@/theme/motion';
+import { useReorderLocked } from '@/components/ReorderLock';
 
 /**
  * The app's press target.
@@ -100,6 +101,12 @@ export function Touchable({
   testID,
 }: TouchableProps) {
   const reduceMotion = useReducedMotion();
+  /**
+   * Set while the surrounding screen is being rearranged. The control still
+   * looks and feels alive — it is being dragged, after all — but it does not
+   * fire. See ReorderLock.tsx for why this is here and not at the call sites.
+   */
+  const locked = useReorderLocked();
   const pressed = useRef(new Animated.Value(0)).current;
 
   const animateTo = useCallback(
@@ -148,8 +155,8 @@ export function Touchable({
 
   return (
     <AnimatedPressable
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={locked ? undefined : onPress}
+      onLongPress={locked ? undefined : onLongPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={isDisabled}

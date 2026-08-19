@@ -108,16 +108,53 @@ jobs:
       # and NDK 27.1.12297006 are what android/build.gradle pins; none of them
       # is guaranteed to be on the runner image, and Gradle's failure when one
       # is missing names the component but not the fix.
+      # The first run of this failed here, with "Failed to find package
+      # 'platforms;android-37'". Two things were wrong with asking for all
+      # three unconditionally: the runner image already ships most of them, so
+      # the install was usually pointless, and a package the image has but the
+      # repository index does not list is a failure for no reason at all.
+      #
+      # So: install only what is actually missing from disk, and if the stable
+      # channel does not have it, try the preview channels before giving up —
+      # a compileSdk that is still in preview is only published there. The
+      # listing is printed either way, because "failed to find package" without
+      # the set of packages that *do* exist costs a whole run to diagnose.
       - name: Install the SDK components the build pins
         run: |
           set -euo pipefail
           SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKM="$SDK/cmdline-tools/latest/bin/sdkmanager"
           echo "SDK root: $SDK"
-          yes | "$SDK"/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
-          "$SDK"/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-37" \
-            "build-tools;37.0.0" \
-            "ndk;27.1.12297006"
+          echo "platforms on disk:  $(ls "$SDK/platforms" 2>/dev/null | tr '\n' ' ')"
+          echo "build-tools on disk: $(ls "$SDK/build-tools" 2>/dev/null | tr '\n' ' ')"
+          echo "ndk on disk:         $(ls "$SDK/ndk" 2>/dev/null | tr '\n' ' ')"
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+
+          need=()
+          [ -d "$SDK/platforms/android-37" ]   || need+=("platforms;android-37")
+          [ -d "$SDK/build-tools/37.0.0" ]     || need+=("build-tools;37.0.0")
+          [ -d "$SDK/ndk/27.1.12297006" ]      || need+=("ndk;27.1.12297006")
+
+          if [ ${#need[@]} -eq 0 ]; then
+            echo "Everything the build pins is already installed."
+            exit 0
+          fi
+          echo "missing: ${need[*]}"
+
+          # channel 0 = stable, 3 = canary. Preview platforms live in the
+          # latter, and asking on stable reports them as non-existent.
+          for channel in 0 1 2 3; do
+            if "$SDKM" --channel=$channel "${need[@]}"; then
+              echo "installed from channel $channel"
+              exit 0
+            fi
+            echo "channel $channel did not have all of: ${need[*]}"
+          done
+
+          echo "::error::could not install ${need[*]} from any channel"
+          echo "packages this SDK repository offers:"
+          "$SDKM" --list --channel=3 2>/dev/null | sed -n '1,200p'
+          exit 1
 
       # Printed before the build so a failure log opens with the versions that
       # produced it, rather than requiring a second run to find out.

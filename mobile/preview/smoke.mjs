@@ -377,6 +377,51 @@ await step('text size slider resizes the app live, and snaps to 100%', async () 
   }
 });
 
+await step('home blocks rearrange, and the order survives a reload', async () => {
+  await open('screen=home');
+
+  /** Vertical position of the block that contains a known piece of text. */
+  const topOf = text =>
+    page.evaluate(needle => {
+      const nodes = [...document.querySelectorAll('div')].filter(el =>
+        el.textContent?.includes(needle),
+      );
+      const node = nodes[nodes.length - 1];
+      return node ? node.getBoundingClientRect().top : NaN;
+    }, text);
+
+  const heroFirst = (await topOf('Welcome to Orbit')) < (await topOf('Join our WhatsApp'));
+  if (!heroFirst) {
+    throw new Error('expected the hero above the WhatsApp block to start with');
+  }
+
+  await tap('Rearrange home screen');
+  await seesText('Drag a block');
+  await tap('Move WhatsApp community up');
+  await tap('Move WhatsApp community up');
+  // The blocks move on a spring, and the assertion is about where they end up.
+  await page.waitForTimeout(700);
+  if ((await topOf('Join our WhatsApp')) > (await topOf('Welcome to Orbit'))) {
+    throw new Error('two moves up did not put the WhatsApp block above the hero');
+  }
+
+  await tap('Finish rearranging');
+  await open('screen=home');
+  if ((await topOf('Join our WhatsApp')) > (await topOf('Welcome to Orbit'))) {
+    throw new Error('the new order did not survive a reload');
+  }
+
+  // Reset, so the rest of the run sees the layout it expects — and so the one
+  // control that undoes all of this is covered too.
+  await tap('Rearrange home screen');
+  await tap('Reset home layout');
+  await page.waitForTimeout(700);
+  if ((await topOf('Welcome to Orbit')) > (await topOf('Join our WhatsApp'))) {
+    throw new Error('Reset did not put the blocks back');
+  }
+  await tap('Finish rearranging');
+});
+
 await step('year picker opens and browses a year', async () => {
   await tap('View all years');
   await seesText('Choose the year you want to browse');

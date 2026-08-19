@@ -216,6 +216,7 @@ and the primitives that use them are:
 | Either/or decisions | `components/Dialog.tsx` |
 | A value on a range | `components/Slider.tsx` — thumb glued to the finger, velocity handed to the spring, detents |
 | The subject cards | `components/HoloCard.tsx` — iridescent foil that drifts on its own, and stops when the screen is not focused |
+| Rearranging Home | `components/Reorderable.tsx` — hold a block to pick it up; order lives in `hooks/useHomeOrder.ts` |
 | Back navigation | `components/BackButton.tsx` |
 | Long lists | spread `components/listTuning.ts` onto the `FlatList` |
 
@@ -234,6 +235,27 @@ regresses.
 
 Reduced motion is not optional. `useReducedMotion()` is wired into every
 primitive; new motion must handle it in the same commit, not as a follow-up.
+
+## Reordering Home moves transforms, never the tree
+
+`components/Reorderable.tsx` always renders the blocks in the order it was
+given at mount and expresses the current order as `translateY`. Committing a
+drop therefore changes nothing on screen. Re-rendering the children in the new
+order would repaint every block on the same frame the offsets are zeroed, and
+any disagreement between those two is a visible flash.
+
+Two consequences worth knowing before touching it:
+
+- **Blocks swap on the dragged block's leading edge crossing its neighbour's
+  midpoint**, not on its own centre reaching a slot. The blocks are wildly
+  different heights — the subject grid is most of a screen — and the centre
+  rule makes a tall block travel ~400dp to clear a 76dp banner.
+- **`ReorderLock.tsx` is why holding a subject card does not open that
+  subject.** React Native has no gesture arbitration between parent and child
+  without react-native-gesture-handler, so the card is already the responder
+  when the hold is recognised. `Touchable` reads the lock and drops the press.
+  It wraps the block's *content* only — wrapping the row would disable the
+  reorder arrows, which are Touchables too.
 
 ## A render error must never blank the app
 

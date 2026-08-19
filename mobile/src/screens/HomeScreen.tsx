@@ -4,6 +4,8 @@ import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
 import { HoloCard } from '@/components/HoloCard';
+import { Reorderable } from '@/components/Reorderable';
+import { HOME_SECTION_LABEL, useHomeOrder } from '@/hooks/useHomeOrder';
 import { Slider } from '@/components/Slider';
 import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
@@ -94,6 +96,9 @@ const WHATSAPP_LABEL: Record<YearKey, string> = {
 
 export default function HomeScreen() {
   const { colors, theme, textSize, setTextSize, custom, setCustom, setPreference } = useTheme();
+  const { order, rendered, save, reset } = useHomeOrder();
+  const [editing, setEditing] = useState(false);
+  const [dragging, setDragging] = useState(false);
   /**
    * Content drawn straight onto the background reads this rather than
    * colors.text, because over a wallpaper the palette's guarantee no longer
@@ -205,16 +210,36 @@ export default function HomeScreen() {
      * WallpaperBackground is what keeps the text readable.
      */
     <WallpaperBackground>
-    <ScrollView
-      style={styles.transparent}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
-      showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.transparent}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
+        // A block being dragged must not also be scrolling the page under
+        // itself; the drag owns the vertical axis while it lasts.
+        scrollEnabled={!dragging}
+        showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.iconButton}>
-            <Menu size={20} color={colors.text} />
-          </View>
+          {/* The hamburger was a plain View: it looked pressable and did
+              nothing, which is the same bug the FONT SIZE control had.
+              Rearranging is normally entered by holding a block, but a hold
+              is not something a screen reader can offer, so this is the other
+              way in — and the way back out. */}
+          <Touchable
+            onPress={() => setEditing(value => !value)}
+            label={editing ? 'Finish rearranging' : 'Rearrange home screen'}
+            hint={
+              editing ? undefined : 'Or hold any block on this screen to start moving it'
+            }
+            state={{ expanded: editing }}
+            scaleTo={0.9}
+            style={styles.iconButton}>
+            {editing ? (
+              <Check size={20} color={colors.accent} />
+            ) : (
+              <Menu size={20} color={colors.text} />
+            )}
+          </Touchable>
           <View>
             <Text style={[styles.brand, { color: onWall }]}>ORBIT</Text>
             <Text style={[styles.tagline, { color: colors.textMuted }]}>
@@ -226,7 +251,7 @@ export default function HomeScreen() {
           <Touchable
             onPress={() => setTextSizeOpen(true)}
               label="Text size"
-            hint={`Currently ${textSize}`}
+            hint={`Currently ${formatTextSize(textSize)}`}
             scaleTo={0.9}>
             <RoundButton label="TEXT SIZE">
               <Type size={16} color={colors.text} />
@@ -255,129 +280,242 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Hero card */}
-      <GlassSurface style={styles.hero} borderRadius={20}>
-        <View
-          style={[styles.heroGlow, { backgroundColor: withAlpha(colors.fuchsia, 0.12) }]}
-          pointerEvents="none"
-        />
-        <Animated.View style={{ opacity: heroFade }}>
-          <Text
-            accessibilityRole="header"
-            style={[styles.heroTitle, { color: colors.fuchsia }]}>
-            {hero.title}
-          </Text>
-          <Text style={[styles.heroBody, { color: colors.textMuted }]}>{hero.body}</Text>
-        </Animated.View>
-
-        <View style={[styles.credit, { borderColor: colors.border }]}>
-          <View>
-            <Text style={[styles.creditLabel, { color: colors.textMuted }]}>CREATED BY</Text>
-            <Text style={[styles.creditName, { color: colors.text }]}>Sabharivarshan S</Text>
-          </View>
-          <Flag size={16} color={colors.textMuted} />
-        </View>
-
-        {/* Tappable, so the carousel is something the reader controls rather
-            than something that happens to them (SKILL §16 Agency). */}
-        <View style={styles.dots}>
-          {HERO_SLIDES.map((item, index) => (
-            <Touchable
-              key={item.title}
-              onPress={() => setSlide(index)}
-              label={item.title}
-              role="tab"
-              state={{ selected: index === slide }}
-              hitSlop={12}
-              scale={false}>
-              <View
-                style={[
-                  styles.dot,
-                  index === slide
-                    ? { width: 20, backgroundColor: colors.primary }
-                    : { width: 6, backgroundColor: colors.cardElevated },
-                ]}
-              />
+        {editing ? (
+          <View
+            style={[
+              styles.editBanner,
+              { backgroundColor: withAlpha(colors.accent, 0.14), borderColor: colors.accent },
+            ]}>
+            <Text style={[styles.editBannerText, { color: colors.text }]}>
+              Drag a block, or use its arrows, to put Home in the order you want.
+            </Text>
+            <Touchable onPress={reset} label="Reset home layout" scaleTo={0.94}>
+              <Text style={[styles.editReset, { color: colors.textMuted }]}>Reset</Text>
             </Touchable>
-          ))}
-        </View>
-      </GlassSurface>
+            <Touchable onPress={() => setEditing(false)} label="Finish rearranging" scaleTo={0.94}>
+              <Text style={[styles.editReset, { color: colors.accent }]}>Done</Text>
+            </Touchable>
+          </View>
+        ) : null}
 
-      {/* Quick actions */}
-      <View style={styles.quickRow}>
-        <QuickAction
-          icon={<TrendingUp size={20} color={colors.primary} />}
-          label="Progress"
-          sub="Track your learning"
-          color={colors.primary}
-          onPress={() => goToTab('Progress')}
-        />
-        <QuickAction
-          icon={<Search size={20} color={colors.cyan} />}
-          label="Search"
-          sub="Find topics instantly"
-          color={colors.cyan}
-          onPress={() => navigation.navigate('BrowseHome', { focusSearch: true })}
-        />
-        <QuickAction
-          icon={<TimerIcon size={20} color={colors.emerald} />}
-          label="Timer"
-          sub="Focus with Pomodoro"
-          color={colors.emerald}
-          onPress={() => goToTab('Timer')}
-        />
-        <QuickAction
-          icon={<Sparkles size={20} color={colors.fuchsia} />}
-          label="Ask AI"
-          sub="Get instant help"
-          color={colors.fuchsia}
-          onPress={() => goToTab('AskAI')}
-        />
-      </View>
+        <Reorderable
+          rendered={rendered}
+          order={order}
+          onOrderChange={save}
+          editing={editing}
+          onRequestEdit={() => setEditing(true)}
+          onDragChange={setDragging}
+          labels={HOME_SECTION_LABEL}
+          sections={{
+            hero: (
+              <>
+            {/* Hero card */}
+            <GlassSurface style={styles.hero} borderRadius={20}>
+              <View
+                style={[styles.heroGlow, { backgroundColor: withAlpha(colors.fuchsia, 0.12) }]}
+                pointerEvents="none"
+              />
+              <Animated.View style={{ opacity: heroFade }}>
+                <Text
+                  accessibilityRole="header"
+                  style={[styles.heroTitle, { color: colors.fuchsia }]}>
+                  {hero.title}
+                </Text>
+                <Text style={[styles.heroBody, { color: colors.textMuted }]}>{hero.body}</Text>
+              </Animated.View>
 
-      {/* WhatsApp community */}
-      <Touchable
-        onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
-        label="Join our WhatsApp community"
-        hint="Opens WhatsApp"
-        scaleTo={0.985}
-        style={[
-          styles.whatsapp,
-          {
-            borderColor: withAlpha(colors.green, 0.3),
-            backgroundColor: withAlpha(colors.green, 0.05),
-          },
-        ]}>
-        <View style={[styles.whatsappIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
-          <MessageCircle size={16} color={colors.green} />
-        </View>
-        <View style={styles.whatsappBody}>
-          <Text style={[styles.whatsappTitle, { color: colors.text }]}>
-            Join our WhatsApp community
-          </Text>
-          <Text style={[styles.whatsappSub, { color: colors.textMuted }]}>
-            {WHATSAPP_LABEL[year]} materials, notes & updates
-          </Text>
-        </View>
-        <Text style={[styles.whatsappJoin, { color: colors.green }]}>Join</Text>
-      </Touchable>
+              <View style={[styles.credit, { borderColor: colors.border }]}>
+                <View>
+                  <Text style={[styles.creditLabel, { color: colors.textMuted }]}>CREATED BY</Text>
+                  <Text style={[styles.creditName, { color: colors.text }]}>Sabharivarshan S</Text>
+                </View>
+                <Flag size={16} color={colors.textMuted} />
+              </View>
 
-      {/* Your Subjects */}
-      <View style={styles.sectionHeader}>
-        <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.text }]}>
-          Your Subjects
-        </Text>
-        <Touchable
-          onPress={() => setYearPickerOpen(open => !open)}
-          label="View all years"
-          hint="Opens the year picker"
-          state={{ expanded: yearPickerOpen }}
-          style={styles.viewAll}>
-          <Text style={[styles.viewAllText, { color: colors.primary }]}>View all</Text>
-          <ChevronRight size={16} color={colors.primary} />
-        </Touchable>
-      </View>
+              {/* Tappable, so the carousel is something the reader controls rather
+                  than something that happens to them (SKILL §16 Agency). */}
+              <View style={styles.dots}>
+                {HERO_SLIDES.map((item, index) => (
+                  <Touchable
+                    key={item.title}
+                    onPress={() => setSlide(index)}
+                    label={item.title}
+                    role="tab"
+                    state={{ selected: index === slide }}
+                    hitSlop={12}
+                    scale={false}>
+                    <View
+                      style={[
+                        styles.dot,
+                        index === slide
+                          ? { width: 20, backgroundColor: colors.primary }
+                          : { width: 6, backgroundColor: colors.cardElevated },
+                      ]}
+                    />
+                  </Touchable>
+                ))}
+              </View>
+            </GlassSurface>
+              </>
+            ),
+            quick: (
+              <>
+            {/* Quick actions */}
+            <View style={styles.quickRow}>
+              <QuickAction
+                icon={<TrendingUp size={20} color={colors.primary} />}
+                label="Progress"
+                sub="Track your learning"
+                color={colors.primary}
+                onPress={() => goToTab('Progress')}
+              />
+              <QuickAction
+                icon={<Search size={20} color={colors.cyan} />}
+                label="Search"
+                sub="Find topics instantly"
+                color={colors.cyan}
+                onPress={() => navigation.navigate('BrowseHome', { focusSearch: true })}
+              />
+              <QuickAction
+                icon={<TimerIcon size={20} color={colors.emerald} />}
+                label="Timer"
+                sub="Focus with Pomodoro"
+                color={colors.emerald}
+                onPress={() => goToTab('Timer')}
+              />
+              <QuickAction
+                icon={<Sparkles size={20} color={colors.fuchsia} />}
+                label="Ask AI"
+                sub="Get instant help"
+                color={colors.fuchsia}
+                onPress={() => goToTab('AskAI')}
+              />
+            </View>
+              </>
+            ),
+            whatsapp: (
+              <>
+            {/* WhatsApp community */}
+            <Touchable
+              onPress={() => Linking.openURL('https://chat.whatsapp.com/').catch(() => {})}
+              label="Join our WhatsApp community"
+              hint="Opens WhatsApp"
+              scaleTo={0.985}
+              style={[
+                styles.whatsapp,
+                {
+                  borderColor: withAlpha(colors.green, 0.3),
+                  backgroundColor: withAlpha(colors.green, 0.05),
+                },
+              ]}>
+              <View style={[styles.whatsappIcon, { backgroundColor: withAlpha(colors.green, 0.15) }]}>
+                <MessageCircle size={16} color={colors.green} />
+              </View>
+              <View style={styles.whatsappBody}>
+                <Text style={[styles.whatsappTitle, { color: colors.text }]}>
+                  Join our WhatsApp community
+                </Text>
+                <Text style={[styles.whatsappSub, { color: colors.textMuted }]}>
+                  {WHATSAPP_LABEL[year]} materials, notes & updates
+                </Text>
+              </View>
+              <Text style={[styles.whatsappJoin, { color: colors.green }]}>Join</Text>
+            </Touchable>
+              </>
+            ),
+            subjects: (
+              <>
+            {/* Your Subjects */}
+            <View style={styles.sectionHeader}>
+              <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.text }]}>
+                Your Subjects
+              </Text>
+              <Touchable
+                onPress={() => setYearPickerOpen(open => !open)}
+                label="View all years"
+                hint="Opens the year picker"
+                state={{ expanded: yearPickerOpen }}
+                style={styles.viewAll}>
+                <Text style={[styles.viewAllText, { color: colors.primary }]}>View all</Text>
+                <ChevronRight size={16} color={colors.primary} />
+              </Touchable>
+            </View>
+            <View style={styles.subjectGrid}>
+              {subjects.map((subject, i) => (
+                <HoloCard
+                  key={subject.key}
+                  index={i}
+                  onPress={() => openSubject(subject.key, subject.name)}
+                  // One spoken sentence beats four fragments; TalkBack reads the
+                  // card as a whole, not as name / bar / percent / arrow.
+                  label={`${subject.name}, ${subject.pct}% complete`}
+                  from={subject.gradient[0]}
+                  to={subject.gradient[1]}
+                  borderColor={colors.border}
+                  borderRadius={16}
+                  style={styles.subjectBox}
+                  innerStyle={styles.subjectCard}>
+                  <Text style={styles.subjectEmoji}>{subject.icon}</Text>
+                  <View style={styles.subjectFooter}>
+                    <Text style={[styles.subjectName, { color: colors.text }]}>
+                      {subject.name.toUpperCase()}
+                    </Text>
+                    <View style={[styles.subjectTrack, { backgroundColor: withAlpha('#000000', 0.4) }]}>
+                      <SubjectFill pct={subject.pct} color={colors.primary} />
+                    </View>
+                    <View style={styles.subjectMeta}>
+                      <Text style={[styles.subjectPct, { color: colors.primary }]}>
+                        {subject.pct}% Complete
+                      </Text>
+                      <View
+                        style={[styles.subjectArrow, { backgroundColor: withAlpha('#000000', 0.4) }]}>
+                        <ArrowRight size={12} color={colors.text} />
+                      </View>
+                    </View>
+                  </View>
+                </HoloCard>
+              ))}
+            </View>
+              </>
+            ),
+            stats: (
+              <>
+            {/* Stats */}
+            <View style={[styles.stats, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.stat}>
+                <View style={[styles.statIcon, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
+                  <Flame size={20} color={colors.primary} />
+                </View>
+                <View>
+                  <Text style={[styles.statLabel, { color: colors.textMuted }]}>Study Streak</Text>
+                  <Text style={[styles.statValue, { color: colors.text }]}>
+                    {streak}
+                    <Text style={[styles.statUnit, { color: colors.textMuted }]}> days 🔥</Text>
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.stat}>
+                <View style={[styles.statIcon, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
+                  <Trophy size={20} color={colors.primary} />
+                </View>
+                <View>
+                  <Text style={[styles.statLabel, { color: colors.textMuted }]}>Total Study Time</Text>
+                  <Text style={[styles.statValueSmall, { color: colors.text }]}>
+                    {formatFocusTime(focusMinutes)}
+                  </Text>
+                  <Text style={[styles.statHint, { color: colors.primary }]}>Keep going!</Text>
+                </View>
+              </View>
+            </View>
+              </>
+            ),
+          }}
+        />
 
+        {/* Overlays. They render into their own layer, so their place in the
+            tree is arbitrary — what matters is that they are not inside a
+            block that can be dragged. */}
       <ThemeMenu
         visible={themeOpen}
         anchor={anchor}
@@ -455,73 +593,7 @@ export default function HomeScreen() {
           navigation.navigate('BrowseHome', { year: key });
         }}
       />
-
-      <View style={styles.subjectGrid}>
-        {subjects.map((subject, i) => (
-          <HoloCard
-            key={subject.key}
-            index={i}
-            onPress={() => openSubject(subject.key, subject.name)}
-            // One spoken sentence beats four fragments; TalkBack reads the
-            // card as a whole, not as name / bar / percent / arrow.
-            label={`${subject.name}, ${subject.pct}% complete`}
-            from={subject.gradient[0]}
-            to={subject.gradient[1]}
-            borderColor={colors.border}
-            borderRadius={16}
-            style={styles.subjectBox}
-            innerStyle={styles.subjectCard}>
-            <Text style={styles.subjectEmoji}>{subject.icon}</Text>
-            <View style={styles.subjectFooter}>
-              <Text style={[styles.subjectName, { color: colors.text }]}>
-                {subject.name.toUpperCase()}
-              </Text>
-              <View style={[styles.subjectTrack, { backgroundColor: withAlpha('#000000', 0.4) }]}>
-                <SubjectFill pct={subject.pct} color={colors.primary} />
-              </View>
-              <View style={styles.subjectMeta}>
-                <Text style={[styles.subjectPct, { color: colors.primary }]}>
-                  {subject.pct}% Complete
-                </Text>
-                <View
-                  style={[styles.subjectArrow, { backgroundColor: withAlpha('#000000', 0.4) }]}>
-                  <ArrowRight size={12} color={colors.text} />
-                </View>
-              </View>
-            </View>
-          </HoloCard>
-        ))}
-      </View>
-
-      {/* Stats */}
-      <View style={[styles.stats, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.stat}>
-          <View style={[styles.statIcon, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
-            <Flame size={20} color={colors.primary} />
-          </View>
-          <View>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Study Streak</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {streak}
-              <Text style={[styles.statUnit, { color: colors.textMuted }]}> days 🔥</Text>
-            </Text>
-          </View>
-        </View>
-        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-        <View style={styles.stat}>
-          <View style={[styles.statIcon, { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
-            <Trophy size={20} color={colors.primary} />
-          </View>
-          <View>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Total Study Time</Text>
-            <Text style={[styles.statValueSmall, { color: colors.text }]}>
-              {formatFocusTime(focusMinutes)}
-            </Text>
-            <Text style={[styles.statHint, { color: colors.primary }]}>Keep going!</Text>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </WallpaperBackground>
   );
 }
@@ -1103,6 +1175,28 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,
     marginTop: 20,
+    // Every block owns the space that follows it, so the gaps travel with the
+    // block when the order changes instead of being redistributed. This one
+    // used to be last and needed none.
+    marginBottom: space.lg,
+  },
+  editBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    marginBottom: space.lg,
+  },
+  editBannerText: {
+    ...typeScale.caption,
+    flex: 1,
+  },
+  editReset: {
+    ...typeScale.footnote,
+    fontWeight: '700',
   },
   stat: {
     flex: 1,
