@@ -36,8 +36,19 @@ name: Android debug APK
 # bigger and slower than what ships. Fine for "does this work?" — not a fair
 # measurement of performance on a low-end phone.
 
+# Two triggers, and the push one is not a convenience.
+#
+# GitHub only offers "Run workflow" for a workflow that exists on the
+# repository's **default branch** — the dispatch API 404s otherwise. This file
+# lives on the feature branch, so until it is merged, workflow_dispatch cannot
+# reach it from anywhere: not from the Actions tab, not from the API. A push
+# trigger runs from whatever branch was pushed, which is the only way to get an
+# APK out of this branch today.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - claude/android-react-native-app-o54cjj
 
 jobs:
   debug-apk:
