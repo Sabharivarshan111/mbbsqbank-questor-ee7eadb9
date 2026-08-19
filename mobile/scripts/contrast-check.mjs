@@ -35,7 +35,7 @@ const colorBundle = await build({
   write: false,
   platform: 'neutral',
 });
-const { contrast } = await import(
+const { contrast, lit } = await import(
   `data:text/javascript;base64,${Buffer.from(colorBundle.outputFiles[0].text).toString('base64')}`
 );
 
@@ -47,6 +47,11 @@ const RULES = [
   { name: 'muted on background', a: 'textMuted', b: 'background', min: 3 },
   { name: 'accent on background', a: 'accent', b: 'background', min: 3 },
   { name: 'label on accent', a: 'onAccent', b: 'accent', min: 4.5 },
+  // The bottom nav's blob is a gradient, so the icon on it has to survive the
+  // far stop as well as the accent itself. `lit` moves away from the label
+  // colour precisely so this can never be the failing end — this is the proof,
+  // not the argument.
+  { name: 'icon on lit blob', a: 'onAccent', b: 'blobLit', min: 4.5 },
   // A card you cannot see is the flat-wall-of-borders problem.
   { name: 'card vs background', a: 'card', b: 'background', min: 1.05 },
 ];
@@ -59,6 +64,7 @@ const themes = [
 
 for (const theme of themes) {
   const colors = paletteFrom(theme.palette);
+  colors.blobLit = lit(colors.accent, colors.onAccent);
   const bad = [];
   for (const rule of RULES) {
     const ratio = contrast(colors[rule.a], colors[rule.b]);

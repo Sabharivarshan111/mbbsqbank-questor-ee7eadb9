@@ -58,8 +58,9 @@ rules had to be re-implemented rather than copy-pasted.
 
 From `review-animations/STANDARDS.md` and `animate/SKILL.md`'s "Never Ship":
 
-1. **Never `scale(0)`.** The checkbox fill grows from `0.6`, the tab dot from
-   `0.4`. Nothing in the app scales from zero.
+1. **Never `scale(0)`.** The checkbox fill grows from `0.6`, the bottom nav's
+   blob and the Timer's selection ring from `0.9`. Nothing in the app scales
+   from zero.
 2. **Never `ease-in`; built-in easings are too weak.** Every `Animated.timing`
    in the app names a curve from `EASE`. RN's default is `Easing.inOut(ease)` —
    an ease-in-out — so leaving `easing` off is itself the violation.

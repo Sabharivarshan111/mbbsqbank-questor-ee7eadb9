@@ -145,3 +145,18 @@ export function normalizeHex(value: string): string {
       : v;
   return `#${full.toUpperCase()}`;
 }
+
+/**
+ * A lit variant of `base`, for the far stop of a gradient drawn *under*
+ * `label` text.
+ *
+ * A gradient needs a second colour, and a theme only ever hands us four. The
+ * safe direction is away from the label: mixing the accent towards white when
+ * the label is black (or towards black when it is white) can only widen the
+ * luminance gap the label depends on, so a gradient can never make the thing
+ * written on it harder to read. Picking a second hue instead would be a fifth
+ * colour the user never chose, with no such guarantee.
+ */
+export function lit(base: string, label: string, amount = 0.22): string {
+  return mix(base, isDark(label) ? '#FFFFFF' : '#000000', amount);
+}

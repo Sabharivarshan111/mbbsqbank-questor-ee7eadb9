@@ -51,8 +51,9 @@ Do not "fix" these without reading the reasoning:
    way to draw a bar; it is the difference between a smooth one and a stuttering
    one on a cheap phone.
 
-8. **Nothing scales from 0.** The checkbox fill starts at `0.6`, the tab dot at
-   `0.4`. A `scale(0)` entrance reads as materialising out of nowhere.
+8. **Nothing scales from 0.** The checkbox fill starts at `0.6`, the bottom
+   nav's blob and the Timer's selection ring at `0.9`. A `scale(0)` entrance
+   reads as materialising out of nowhere.
 
 9. **Every `Animated.timing` names an `easing` from `EASE`.** React Native's
    default is `Easing.inOut(Easing.ease)` — an ease-in-out that starts slow,
