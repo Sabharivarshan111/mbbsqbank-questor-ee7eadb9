@@ -108,53 +108,45 @@ jobs:
       # and NDK 27.1.12297006 are what android/build.gradle pins; none of them
       # is guaranteed to be on the runner image, and Gradle's failure when one
       # is missing names the component but not the fix.
-      # The first run of this failed here, with "Failed to find package
-      # 'platforms;android-37'". Two things were wrong with asking for all
-      # three unconditionally: the runner image already ships most of them, so
-      # the install was usually pointless, and a package the image has but the
-      # repository index does not list is a failure for no reason at all.
+      # Two runs died here, and both causes are worth writing down.
       #
-      # So: install only what is actually missing from disk, and if the stable
-      # channel does not have it, try the preview channels before giving up —
-      # a compileSdk that is still in preview is only published there. The
-      # listing is printed either way, because "failed to find package" without
-      # the set of packages that *do* exist costs a whole run to diagnose.
+      # API 37 is published with a **minor version**: the package is
+      # `platforms;android-37.0`, and `platforms;android-37` does not exist.
+      # And sdkmanager fails the *entire* invocation when one package name is
+      # unknown — so that single wrong name also stopped the NDK, which was
+      # available all along, from being installed. Hence one package per call.
+      #
+      # Only what is genuinely missing is fetched: the runner image already
+      # ships most of this, and installing it again is ten minutes of nothing.
       - name: Install the SDK components the build pins
         run: |
           set -euo pipefail
           SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
           SDKM="$SDK/cmdline-tools/latest/bin/sdkmanager"
           echo "SDK root: $SDK"
-          echo "platforms on disk:  $(ls "$SDK/platforms" 2>/dev/null | tr '\n' ' ')"
-          echo "build-tools on disk: $(ls "$SDK/build-tools" 2>/dev/null | tr '\n' ' ')"
-          echo "ndk on disk:         $(ls "$SDK/ndk" 2>/dev/null | tr '\n' ' ')"
           yes | "$SDKM" --licenses > /dev/null 2>&1 || true
 
-          need=()
-          [ -d "$SDK/platforms/android-37" ]   || need+=("platforms;android-37")
-          [ -d "$SDK/build-tools/37.0.0" ]     || need+=("build-tools;37.0.0")
-          [ -d "$SDK/ndk/27.1.12297006" ]      || need+=("ndk;27.1.12297006")
+          # Tries each spelling in turn; the platform has had two.
+          install_one() {
+            for candidate in "$@"; do
+              if "$SDKM" "$candidate"; then
+                echo "installed $candidate"
+                return 0
+              fi
+              echo "not available: $candidate"
+            done
+            echo "::error::none of these could be installed: $*"
+            return 1
+          }
 
-          if [ ${#need[@]} -eq 0 ]; then
-            echo "Everything the build pins is already installed."
-            exit 0
-          fi
-          echo "missing: ${need[*]}"
+          [ -d "$SDK/platforms/android-37" ] || [ -d "$SDK/platforms/android-37.0" ] \
+            || install_one "platforms;android-37.0" "platforms;android-37"
+          [ -d "$SDK/build-tools/37.0.0" ] || install_one "build-tools;37.0.0"
+          [ -d "$SDK/ndk/27.1.12297006" ] || install_one "ndk;27.1.12297006"
 
-          # channel 0 = stable, 3 = canary. Preview platforms live in the
-          # latter, and asking on stable reports them as non-existent.
-          for channel in 0 1 2 3; do
-            if "$SDKM" --channel=$channel "${need[@]}"; then
-              echo "installed from channel $channel"
-              exit 0
-            fi
-            echo "channel $channel did not have all of: ${need[*]}"
-          done
-
-          echo "::error::could not install ${need[*]} from any channel"
-          echo "packages this SDK repository offers:"
-          "$SDKM" --list --channel=3 2>/dev/null | sed -n '1,200p'
-          exit 1
+          echo "platforms:   $(ls "$SDK/platforms" 2>/dev/null | tr '\n' ' ')"
+          echo "build-tools: $(ls "$SDK/build-tools" 2>/dev/null | tr '\n' ' ')"
+          echo "ndk:         $(ls "$SDK/ndk" 2>/dev/null | tr '\n' ' ')"
 
       # Printed before the build so a failure log opens with the versions that
       # produced it, rather than requiring a second run to find out.

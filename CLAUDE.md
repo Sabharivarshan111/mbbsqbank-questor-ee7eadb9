@@ -217,6 +217,7 @@ and the primitives that use them are:
 | A value on a range | `components/Slider.tsx` — thumb glued to the finger, velocity handed to the spring, detents |
 | The subject cards | `components/HoloCard.tsx` — iridescent foil that drifts on its own, and stops when the screen is not focused |
 | Rearranging Home | `components/Reorderable.tsx` — hold a block to pick it up; order lives in `hooks/useHomeOrder.ts` |
+| Sorting the subject cards | `components/SortableGrid.tsx` — same rule, uniform tiles; order per year in `hooks/useSubjectOrder.ts` |
 | Back navigation | `components/BackButton.tsx` |
 | Long lists | spread `components/listTuning.ts` onto the `FlatList` |
 
@@ -250,6 +251,11 @@ Two consequences worth knowing before touching it:
   midpoint**, not on its own centre reaching a slot. The blocks are wildly
   different heights — the subject grid is most of a screen — and the centre
   rule makes a tall block travel ~400dp to clear a 76dp banner.
+- **A card inside a block is draggable on its own**, so two draggables share
+  one finger. `dragOwner.ts` settles it: the card writes its name there on
+  touch-down, and the block declines to steal the gesture when it is already
+  spoken for. Capture runs parent-first, so without that the block wins every
+  time and no card can ever be picked up.
 - **`ReorderLock.tsx` is why holding a subject card does not open that
   subject.** React Native has no gesture arbitration between parent and child
   without react-native-gesture-handler, so the card is already the responder

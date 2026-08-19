@@ -6,6 +6,8 @@ import { Sheet } from '@/components/Sheet';
 import { HoloCard } from '@/components/HoloCard';
 import { Reorderable } from '@/components/Reorderable';
 import { HOME_SECTION_LABEL, useHomeOrder } from '@/hooks/useHomeOrder';
+import { SortableGrid } from '@/components/SortableGrid';
+import { useSubjectOrder } from '@/hooks/useSubjectOrder';
 import { Slider } from '@/components/Slider';
 import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
@@ -86,6 +88,10 @@ const SUBJECT_GRADIENT: Record<string, [string, string]> = {
   microbiology: ['rgba(5,150,105,0.40)', 'rgba(20,83,45,0.60)'],
 };
 const DEFAULT_GRADIENT: [string, string] = ['rgba(124,58,237,0.40)', 'rgba(88,28,135,0.60)'];
+
+/** One card's height, and its width as a fraction of the grid. */
+const SUBJECT_CARD_HEIGHT = 160;
+const SUBJECT_CARD_RATIO = 0.485;
 
 const WHATSAPP_LABEL: Record<YearKey, string> = {
   'first-year': '1st year',
@@ -176,6 +182,17 @@ export default function HomeScreen() {
       }),
     [year, countDone],
   );
+
+  const subjectKeys = useMemo(() => subjects.map(subject => subject.key), [subjects]);
+  const subjectByKey = useMemo(
+    () => new Map(subjects.map(subject => [subject.key, subject])),
+    [subjects],
+  );
+  const {
+    order: subjectOrder,
+    rendered: subjectRender,
+    save: saveSubjectOrder,
+  } = useSubjectOrder(year, subjectKeys);
 
   const goToTab = useCallback(
     (tab: keyof RootTabParamList) => {
@@ -440,42 +457,63 @@ export default function HomeScreen() {
                 <ChevronRight size={16} color={colors.primary} />
               </Touchable>
             </View>
-            <View style={styles.subjectGrid}>
-              {subjects.map((subject, i) => (
-                <HoloCard
-                  key={subject.key}
-                  index={i}
-                  onPress={() => openSubject(subject.key, subject.name)}
-                  // One spoken sentence beats four fragments; TalkBack reads the
-                  // card as a whole, not as name / bar / percent / arrow.
-                  label={`${subject.name}, ${subject.pct}% complete`}
-                  from={subject.gradient[0]}
-                  to={subject.gradient[1]}
-                  borderColor={colors.border}
-                  borderRadius={16}
-                  style={styles.subjectBox}
-                  innerStyle={styles.subjectCard}>
-                  <Text style={styles.subjectEmoji}>{subject.icon}</Text>
-                  <View style={styles.subjectFooter}>
-                    <Text style={[styles.subjectName, { color: colors.text }]}>
-                      {subject.name.toUpperCase()}
-                    </Text>
-                    <View style={[styles.subjectTrack, { backgroundColor: withAlpha('#000000', 0.4) }]}>
-                      <SubjectFill pct={subject.pct} color={colors.primary} />
-                    </View>
-                    <View style={styles.subjectMeta}>
-                      <Text style={[styles.subjectPct, { color: colors.primary }]}>
-                        {subject.pct}% Complete
+            {/* The cards sort among themselves as well as travelling with
+                the block they are in — hold one and it lifts out of the grid.
+                Rendered until the stored order has been read, so the grid
+                does not appear in the default order and then rearrange
+                itself a frame later. */}
+            <SortableGrid
+              key={year}
+              rendered={subjectRender ?? subjects.map(subject => subject.key)}
+              order={subjectOrder}
+              onOrderChange={saveSubjectOrder}
+              editing={editing}
+              columns={2}
+              itemHeight={SUBJECT_CARD_HEIGHT}
+              rowGap={12}
+              widthRatio={SUBJECT_CARD_RATIO}
+              style={styles.subjectGrid}
+              renderItem={key => {
+                const subject = subjectByKey.get(key);
+                if (!subject) {
+                  return null;
+                }
+                return (
+                  <HoloCard
+                    index={subjects.indexOf(subject)}
+                    onPress={() => openSubject(subject.key, subject.name)}
+                    // One spoken sentence beats four fragments; TalkBack reads
+                    // the card as a whole, not as name / bar / percent / arrow.
+                    label={`${subject.name}, ${subject.pct}% complete`}
+                    from={subject.gradient[0]}
+                    to={subject.gradient[1]}
+                    borderColor={colors.border}
+                    borderRadius={16}
+                    style={styles.subjectTile}
+                    innerStyle={styles.subjectCard}>
+                    <Text style={styles.subjectEmoji}>{subject.icon}</Text>
+                    <View style={styles.subjectFooter}>
+                      <Text style={[styles.subjectName, { color: colors.text }]}>
+                        {subject.name.toUpperCase()}
                       </Text>
                       <View
-                        style={[styles.subjectArrow, { backgroundColor: withAlpha('#000000', 0.4) }]}>
-                        <ArrowRight size={12} color={colors.text} />
+                        style={[styles.subjectTrack, { backgroundColor: withAlpha('#000000', 0.4) }]}>
+                        <SubjectFill pct={subject.pct} color={colors.primary} />
+                      </View>
+                      <View style={styles.subjectMeta}>
+                        <Text style={[styles.subjectPct, { color: colors.primary }]}>
+                          {subject.pct}% Complete
+                        </Text>
+                        <View
+                          style={[styles.subjectArrow, { backgroundColor: withAlpha('#000000', 0.4) }]}>
+                          <ArrowRight size={12} color={colors.text} />
+                        </View>
                       </View>
                     </View>
-                  </View>
-                </HoloCard>
-              ))}
-            </View>
+                  </HoloCard>
+                );
+              }}
+            />
               </>
             ),
             stats: (
@@ -1102,6 +1140,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     rowGap: 12,
     marginBottom: space.lg,
+  },
+  // The tile's own box comes from SortableGrid; the card fills it.
+  subjectTile: {
+    width: '100%',
+    height: '100%',
   },
   subjectBox: {
     // 48.5% x 2 = 97%, leaving a 3% gutter between the columns and nothing at

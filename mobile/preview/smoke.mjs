@@ -422,6 +422,48 @@ await step('home blocks rearrange, and the order survives a reload', async () =>
   await tap('Finish rearranging');
 });
 
+await step('a subject card can be dragged to another slot', async () => {
+  await open('screen=home');
+
+  const cards = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('[aria-label]')]
+        .filter(el => /% complete$/.test(el.getAttribute('aria-label') || ''))
+        .map(el => {
+          const rect = el.getBoundingClientRect();
+          return { name: (el.getAttribute('aria-label') || '').split(',')[0], x: rect.x, y: rect.y };
+        })
+        .sort((a, b) => a.y - b.y || a.x - b.x)
+        .map(card => card.name),
+    );
+
+  const before = await cards();
+  if (before.length < 2) {
+    throw new Error(`expected at least two subject cards, saw ${before.length}`);
+  }
+
+  await tap('Rearrange home screen');
+  const first = page.locator(`[aria-label^="${before[0]}"]`).first();
+  const box = await first.boundingBox();
+  // Into the slot to its right. The card claims the gesture ahead of the
+  // block it sits in; if that ever regresses, the whole block moves instead
+  // and the card order comes back unchanged.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 1.5, box.y + box.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForTimeout(800);
+
+  const after = await cards();
+  if (after[0] === before[0]) {
+    throw new Error(`dragging "${before[0]}" right left it first: ${after.join(', ')}`);
+  }
+  if (after.length !== before.length) {
+    throw new Error(`a card went missing: ${before.join(', ')} → ${after.join(', ')}`);
+  }
+  await tap('Finish rearranging');
+});
+
 await step('year picker opens and browses a year', async () => {
   await tap('View all years');
   await seesText('Choose the year you want to browse');

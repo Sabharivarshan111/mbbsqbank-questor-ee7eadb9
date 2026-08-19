@@ -9,6 +9,7 @@ import {
 import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react-native';
 import { Touchable } from '@/components/Touchable';
 import { ReorderLockContext } from '@/components/ReorderLock';
+import { dragOwner } from '@/components/dragOwner';
 import { useTheme, withAlpha } from '@/theme';
 import { SPRING, springConfig, springTo, useReducedMotion } from '@/theme/motion';
 
@@ -188,7 +189,12 @@ export function Reorderable<Id extends string>({
         // is taken over the moment it moves. Without this the drag could only
         // start on a part of the block that is not a control, which on the
         // subject grid is almost nothing.
-        onMoveShouldSetPanResponderCapture: () => editing,
+        //
+        // Unless a tile inside the block already has the finger: the subject
+        // cards are individually sortable, and capture runs parent-first, so
+        // without this check the block would win every time and a card could
+        // never be picked up.
+        onMoveShouldSetPanResponderCapture: () => editing && dragOwner.current === null,
         onPanResponderGrant: () => {
           tentative = order;
           const renderTops = topsFor(rendered);
@@ -355,10 +361,11 @@ export function Reorderable<Id extends string>({
                   { scale: lift.interpolate({ inputRange: [0, 1], outputRange: [1, 1.02] }) },
                 ],
               }}
-              // In edit mode the row swallows the touch instead of handing it
-              // to the buttons inside: a drag that sometimes opens a subject
-              // is worse than no drag at all.
-              pointerEvents={editing ? 'box-only' : 'auto'}
+              // Touches still reach the contents in edit mode — they have to,
+              // or the individually sortable subject cards inside could never
+              // be grabbed. What stops a drag from also *pressing* something
+              // is ReorderLockContext below, not the pointer events.
+              pointerEvents="auto"
               {...responders[id].panHandlers}>
               {/* The lock covers the block's own controls and nothing else.
                   Wrapping the row would disable the reorder arrows too — they
