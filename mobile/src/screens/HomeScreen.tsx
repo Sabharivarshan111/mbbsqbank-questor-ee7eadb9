@@ -7,6 +7,7 @@ import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
 import { ThemeEditor } from '@/components/ThemeEditor';
 import { GlassSurface } from '@/components/GlassSurface';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -182,8 +183,16 @@ export default function HomeScreen() {
   const hero = HERO_SLIDES[slide];
 
   return (
+    /**
+     * The wallpaper sits behind the scroll view, not inside it, so it stays
+     * put while the content moves over it — a background that scrolls with the
+     * page is a very tall image, not a wallpaper. The ScrollView goes
+     * transparent so the media shows through; the scrim inside
+     * WallpaperBackground is what keeps the text readable.
+     */
+    <WallpaperBackground>
     <ScrollView
-      style={{ backgroundColor: colors.background }}
+      style={styles.transparent}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
       showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -502,6 +511,7 @@ export default function HomeScreen() {
         </View>
       </View>
     </ScrollView>
+    </WallpaperBackground>
   );
 }
 
@@ -700,6 +710,9 @@ const SubjectFill = React.memo(function SubjectFillBar({
 });
 
 const styles = StyleSheet.create({
+  transparent: {
+    backgroundColor: 'transparent',
+  },
   textSizeRow: {
     flexDirection: 'row',
     gap: space.sm,

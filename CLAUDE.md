@@ -177,6 +177,31 @@ or Skia. A lighter rectangle pretending to be a blur is what makes an
 imitation look cheap. If that dependency is ever added, GlassSurface is the
 one file that changes.
 
+## A wallpaper always carries a scrim
+
+`src/lib/wallpaper.ts` and `components/WallpaperBackground.tsx`. A photo has no
+contrast guarantee — the same white heading is perfect over a night sky and
+invisible over a beach — so the wash of theme background between the media and
+the content is part of the wallpaper, not a setting elsewhere. `MIN_DIM` is
+0.2 rather than 0: an unreadable app is not a preference.
+
+The scrim is drawn in `colors.background`, never black. A black scrim under a
+light theme would invert the relationship the palette was built on.
+
+Video is the most expensive thing this app can put on screen, on phones chosen
+for being cheap. It is muted, paused whenever the app is not in the foreground,
+and stopped entirely under reduced motion. The picker downscales to 1440x2880
+on the way in, because a 108MP photo as a background is tens of megabytes of
+bitmap held for the life of the app.
+
+`launchImageLibrary` needs **no permission**: Android's photo picker runs out
+of process and returns only the chosen item. Do not add `READ_MEDIA_IMAGES` —
+it would request the whole gallery to do a job that never needs it.
+
+The returned URI points into the app cache, which Android may evict. A load
+error clears the wallpaper and the plain theme shows through, so a missing file
+leaves a working screen rather than a black one.
+
 ## Motion goes through `src/theme/motion.ts`
 
 Do not hand-roll an animation. The house springs, easing curves, duration scale,

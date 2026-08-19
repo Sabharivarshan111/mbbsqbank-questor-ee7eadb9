@@ -3,12 +3,15 @@ import { Animated, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { ColorPicker } from '@/components/ColorPicker';
-import { X } from 'lucide-react-native';
+import { Image as ImageIcon, Trash2, X } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { contrast } from '@/theme/color';
 import { paletteFrom, presetByKey, QUICK_PRESETS, type CustomPalette } from '@/theme/presets';
 import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
 import { radius, space } from '@/theme/tokens';
+import { Image } from 'react-native';
+import { DEFAULT_DIM, MIN_DIM, pickWallpaper, type Wallpaper } from '@/lib/wallpaper';
+import { getWallpaper, setWallpaper } from '@/hooks/useWallpaper';
 
 /**
  * "Create Your Own Theme" — the four colours, laid out as in the published app.
@@ -53,6 +56,12 @@ export function ThemeEditor({
    * preview updates continuously; the app changes once, on Apply.
    */
   const [draft, setDraft] = useState<CustomPalette>(initial);
+  /**
+   * The wallpaper is drafted too, so Reset puts it back and closing without
+   * applying leaves the screen as it was. Picking one and then changing your
+   * mind should not have already changed the app.
+   */
+  const [paper, setPaper] = useState<Wallpaper | null>(() => getWallpaper());
   const [editing, setEditing] = useState<keyof CustomPalette | null>(null);
   const enter = useRef(new Animated.Value(0)).current;
 
@@ -61,6 +70,7 @@ export function ThemeEditor({
       enter.setValue(0);
       setEditing(null);
       setDraft(initial);
+      setPaper(getWallpaper());
       return;
     }
     if (reduceMotion) {
@@ -173,6 +183,83 @@ export function ThemeEditor({
               ))}
             </View>
 
+            <Text style={[styles.section, { color: colors.textMuted }]}>Wallpaper</Text>
+            {paper ? (
+              <View style={[styles.paperRow, { borderColor: colors.border }]}>
+                {/* A still frame either way: a video thumbnail here would mean
+                    decoding it twice, once for a chip nobody is watching. */}
+                {paper.kind === 'image' ? (
+                  <Image source={{ uri: paper.uri }} style={styles.paperThumb} />
+                ) : (
+                  <View style={[styles.paperThumb, styles.paperVideo, { borderColor: colors.border }]}>
+                    <Text style={[styles.paperKind, { color: colors.textMuted }]}>VIDEO</Text>
+                  </View>
+                )}
+                <View style={styles.paperBody}>
+                  <Text style={[styles.paperName, { color: colors.text }]}>
+                    {paper.kind === 'video' ? 'Video wallpaper' : 'Photo wallpaper'}
+                  </Text>
+                  {/* The dim is the readability control, so it lives with the
+                      wallpaper rather than in a settings screen. Stepped, not a
+                      slider: five choices you can hit with a thumb beat a
+                      continuous control that needs a steady hand. */}
+                  <View style={styles.dimRow}>
+                    {[MIN_DIM, 0.4, DEFAULT_DIM, 0.7, 0.85].map(value => {
+                      const active = Math.abs(paper.dim - value) < 0.01;
+                      return (
+                        <Touchable
+                          key={value}
+                          onPress={() => setPaper({ ...paper, dim: value })}
+                          role="radio"
+                          label={`Dim ${Math.round(value * 100)} percent`}
+                          state={{ checked: active }}
+                          scaleTo={0.9}
+                          style={[
+                            styles.dimChip,
+                            {
+                              backgroundColor: active ? colors.primary : 'transparent',
+                              borderColor: active ? colors.primary : colors.border,
+                            },
+                          ]}>
+                          <Text
+                            style={[
+                              styles.dimText,
+                              { color: active ? colors.primaryText : colors.textMuted },
+                            ]}>
+                            {Math.round(value * 100)}
+                          </Text>
+                        </Touchable>
+                      );
+                    })}
+                  </View>
+                </View>
+                <Touchable
+                  onPress={() => setPaper(null)}
+                  label="Remove wallpaper"
+                  hitSlop={10}
+                  scaleTo={0.85}>
+                  <Trash2 size={18} color={colors.danger} />
+                </Touchable>
+              </View>
+            ) : (
+              <Touchable
+                onPress={async () => {
+                  const picked = await pickWallpaper();
+                  if (picked) {
+                    setPaper(picked);
+                  }
+                }}
+                label="Choose a photo or video"
+                hint="Sets a wallpaper behind the home screen"
+                scaleTo={0.98}
+                style={[styles.paperPick, { borderColor: colors.border }]}>
+                <ImageIcon size={18} color={colors.accent} />
+                <Text style={[styles.paperPickText, { color: colors.text }]}>
+                  Choose a photo or video…
+                </Text>
+              </Touchable>
+            )}
+
             {/* The preview is the app, drawn in the draft — including the
                 derived surfaces, so what is shown is what will actually
                 render, not the four colours that were picked. */}
@@ -219,7 +306,10 @@ export function ThemeEditor({
 
           <View style={[styles.footer, { borderTopColor: colors.border }]}>
             <Touchable
-              onPress={() => setDraft(presetByKey('dark')!.palette!)}
+              onPress={() => {
+                setDraft(presetByKey('dark')!.palette!);
+                setPaper(null);
+              }}
               label="Reset"
               hint="Back to the default colours"
               scaleTo={0.97}
@@ -227,7 +317,10 @@ export function ThemeEditor({
               <Text style={[styles.actionText, { color: colors.text }]}>Reset</Text>
             </Touchable>
             <Touchable
-              onPress={() => onApply(draft)}
+              onPress={() => {
+                setWallpaper(paper);
+                onApply(draft);
+              }}
               label="Apply Theme"
               scaleTo={0.97}
               style={[
@@ -438,6 +531,66 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  paperPick: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 52,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
+    paddingHorizontal: space.md,
+  },
+  paperPickText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  paperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: space.sm,
+  },
+  paperThumb: {
+    width: 46,
+    height: 46,
+    borderRadius: 6,
+  },
+  paperVideo: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  paperKind: {
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  paperBody: {
+    flex: 1,
+    gap: 6,
+  },
+  paperName: {
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  dimRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  dimChip: {
+    minWidth: 34,
+    height: 28,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dimText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   popoverLayer: {
     position: 'absolute',

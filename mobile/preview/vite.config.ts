@@ -36,6 +36,14 @@ export default defineConfig({
         replacement: path.resolve(__dirname, 'shims', 'google-signin.ts'),
       },
       {
+        find: 'react-native-image-picker',
+        replacement: path.resolve(__dirname, 'shims', 'image-picker.ts'),
+      },
+      {
+        find: 'react-native-video',
+        replacement: path.resolve(__dirname, 'shims', 'video.tsx'),
+      },
+      {
         find: 'react-native-google-mobile-ads',
         replacement: path.resolve(__dirname, 'shims', 'google-mobile-ads.ts'),
       },

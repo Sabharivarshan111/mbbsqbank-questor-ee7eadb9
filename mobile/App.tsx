@@ -8,6 +8,7 @@ import { hydrateProgress, reconcileProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
 import { initializeAds } from '@/lib/ads';
 import { hydratePremium, usePremiumSync } from '@/lib/premium';
+import { hydrateWallpaper } from '@/hooks/useWallpaper';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -24,6 +25,8 @@ function Shell() {
     });
     // Profile, streak and XP; all cloud steps are best-effort.
     hydrateProfile().catch(() => {});
+    // The chosen wallpaper, before the first paint of Home.
+    hydrateWallpaper().catch(() => {});
     // Load the cached ad-free expiry before any ad decision is made, then
     // start the SDK and preload so the first ad has no wait.
     hydratePremium().then(() => initializeAds()).catch(() => {});

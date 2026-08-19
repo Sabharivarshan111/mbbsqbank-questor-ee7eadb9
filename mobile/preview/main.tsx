@@ -15,6 +15,7 @@ import { hydrateProgress } from '@/lib/progress';
 import { hydrateProfile } from '@/hooks/useProfile';
 import { DailyAdConsent } from '@/components/DailyAdConsent';
 import { hydratePremium } from '@/lib/premium';
+import { hydrateWallpaper } from '@/hooks/useWallpaper';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ScrollView, Text, View } from 'react-native';
 import { NotesContentView } from '@/components/NotesContentView';
@@ -180,6 +181,7 @@ function Shell() {
     hydrateProgress();
     hydrateProfile().catch(() => {});
     hydratePremium().catch(() => {});
+    hydrateWallpaper().catch(() => {});
   }, []);
 
   const base = theme === 'dark' ? DarkTheme : DefaultTheme;
