@@ -3,5 +3,17 @@
   "displayName": "Orbit MBBS",
   "react-native-google-mobile-ads": {
     "android_app_id": "ca-app-pub-3177287525203129~3298255365"
+  },
+  "expo": {
+    "name": "Orbit MBBS",
+    "slug": "orbit-mbbs",
+    "android": {
+      "package": "com.aistudio.mbbsqbank.aycxvd"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2f7f034c-2726-411b-9cd3-ae2398abf131"
+      }
+    }
   }
 }
