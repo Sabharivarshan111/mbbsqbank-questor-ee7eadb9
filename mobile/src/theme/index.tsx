@@ -11,7 +11,13 @@ import { isDark } from '@/theme/color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestDailyAd } from '@/lib/dailyAd';
 import { tick } from '@/lib/haptics';
-import { TEXT_SIZE_SCALE, TextScaleContext, type TextSize } from '@/theme/textScale';
+import {
+  TEXT_SIZE_DEFAULT,
+  TextScaleContext,
+  clampTextSize,
+  parseTextSize,
+  type TextSize,
+} from '@/theme/textScale';
 import {
   paletteFrom,
   presetByKey,
@@ -134,7 +140,7 @@ const ThemeContext = createContext<ThemeContextValue>({
   preference: 'dark',
   setPreference: () => {},
   toggleTheme: () => {},
-  textSize: 'default',
+  textSize: TEXT_SIZE_DEFAULT,
   setTextSize: () => {},
   custom: null,
   setCustom: () => {},
@@ -155,7 +161,7 @@ export function ThemeProvider({
   const systemScheme = useColorScheme();
   // The web app ships dark by default; keep that rather than following the OS.
   const [preference, setPreferenceState] = useState<ThemePreference>(initialPreference);
-  const [textSize, setTextSizeState] = useState<TextSize>('default');
+  const [textSize, setTextSizeState] = useState<TextSize>(TEXT_SIZE_DEFAULT);
   const [custom, setCustomState] = useState<CustomPalette | null>(null);
 
   useEffect(() => {
@@ -184,16 +190,20 @@ export function ThemeProvider({
       .catch(() => {});
     AsyncStorage.getItem(TEXT_SIZE_KEY)
       .then(value => {
-        if (value === 'default' || value === 'large' || value === 'larger') {
-          setTextSizeState(value);
+        // parseTextSize also understands what the three-preset version wrote,
+        // so an update does not quietly reset the setting.
+        const parsed = parseTextSize(value);
+        if (parsed !== null) {
+          setTextSizeState(parsed);
         }
       })
       .catch(() => {});
   }, []);
 
   const setTextSize = useCallback((next: TextSize) => {
-    setTextSizeState(next);
-    AsyncStorage.setItem(TEXT_SIZE_KEY, next).catch(() => {});
+    const value = clampTextSize(next);
+    setTextSizeState(value);
+    AsyncStorage.setItem(TEXT_SIZE_KEY, String(value)).catch(() => {});
     // No ad here. Text size is an accessibility setting, and gating one behind
     // an ad is not a trade anybody should be asked to make.
   }, []);
@@ -280,7 +290,7 @@ export function ThemeProvider({
 
   return (
     <ThemeContext.Provider value={value}>
-      <TextScaleContext.Provider value={TEXT_SIZE_SCALE[textSize]}>
+      <TextScaleContext.Provider value={textSize}>
         {children}
       </TextScaleContext.Provider>
     </ThemeContext.Provider>

@@ -307,10 +307,68 @@ await step('declining the ad prompt stops it re-asking on the next change', asyn
   }
 });
 
-await step('text size sheet opens, applies Larger, and closes', async () => {
+await step('text size slider resizes the app live, and snaps to 100%', async () => {
   await tap('Text size');
   await seesText('Applies across the app');
-  await tap('Larger');
+
+  // The sample in the sheet is real app text, so its computed size is the
+  // check: a readout that says 115% while nothing grew is the bug worth
+  // catching.
+  const sampleSize = async () =>
+    page.evaluate(() => {
+      // The innermost match: react-native-web renders a Text as a div inside
+      // several layout divs, and the ancestors report the document's default
+      // 16px rather than the ramp's size.
+      const nodes = [...document.querySelectorAll('div')].filter(el =>
+        el.textContent?.startsWith('Bilirubin is conjugated'),
+      );
+      const node = nodes[nodes.length - 1];
+      return node ? parseFloat(getComputedStyle(node).fontSize) : 0;
+    });
+  const readout = async () =>
+    page.evaluate(() => {
+      const nodes = [...document.querySelectorAll('div')].filter(el =>
+        /^\d+%$/.test(el.textContent ?? ''),
+      );
+      return nodes[nodes.length - 1]?.textContent ?? '';
+    });
+
+  const slider = page.locator('[role="slider"]').first();
+  const box = await slider.boundingBox();
+  if (!box) {
+    throw new Error('no slider in the text size sheet');
+  }
+  const before = await sampleSize();
+
+  // Drag to the maximum.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 2, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+  const grown = await sampleSize();
+  if (!(grown > before)) {
+    throw new Error(`dragging right did not enlarge the sample (${before} → ${grown})`);
+  }
+  if ((await readout()) !== '115%') {
+    throw new Error(`readout says ${await readout()} at the right-hand end, expected 115%`);
+  }
+
+  // Release a little short of the 100% tick: the detent is what makes the one
+  // named value on the scale reachable exactly.
+  const defaultX = box.x + 14 + (box.width - 28) * ((1 - 0.9) / (1.15 - 0.9));
+  await page.mouse.move(box.x + box.width - 2, box.y + box.height / 2);
+  await page.mouse.down();
+  // Far enough past the tick to round to 101% on its own, close enough that
+  // the detent should reel it in. Land it on 100% by luck and this asserts
+  // nothing.
+  await page.mouse.move(defaultX + 14, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  if ((await readout()) !== '100%') {
+    throw new Error(`released near the 100% tick and got ${await readout()}`);
+  }
+
   await tap('Done');
   // The exit is a spring, not a fixed duration — give it room to settle.
   await page.waitForTimeout(1200);

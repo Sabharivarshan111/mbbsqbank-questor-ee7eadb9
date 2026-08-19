@@ -214,6 +214,7 @@ and the primitives that use them are:
 | Anything tappable | `components/Touchable.tsx` — press-down spring, hit slop, required a11y label |
 | Bottom sheets | `components/Sheet.tsx` — drag-to-dismiss with velocity handoff |
 | Either/or decisions | `components/Dialog.tsx` |
+| A value on a range | `components/Slider.tsx` — thumb glued to the finger, velocity handed to the spring, detents |
 | Back navigation | `components/BackButton.tsx` |
 | Long lists | spread `components/listTuning.ts` onto the `FlatList` |
 
@@ -258,8 +259,23 @@ belong to it, which is the whole reason the ramp exists.
 
 `src/theme/textScale.tsx` is the in-app text size. It multiplies the ramp and
 is applied centrally in `components/Text.tsx`, which takes a **zero-cost fast
-path when the size is Default** — do not move that work anywhere it would run
+path when the size is exactly 1** — do not move that work anywhere it would run
 per row.
+
+It is a continuous multiplier from 0.9 to 1.15, set by a slider that resizes
+the app as it moves. Two things about those numbers:
+
+- **1.15 is a measured ceiling, not a round one.** What sets it is the bottom
+  bar: "My Progress" has to fit inside a fifth of the screen *and* inside the
+  selection pill. At 1.25 the label is wider than the pill; at 1.35 it wraps
+  and the bar breaks. Raising it means shortening that label first.
+- **`orbit:text-size` used to hold `default`/`large`/`larger`.** `parseTextSize`
+  still reads those as 1 / 1.08 / 1.15, because dropping them would silently
+  reset the setting for everyone who had changed it.
+
+The slider emits on the **step**, not on the frame. Every `Text` in the app
+subscribes to this value, so a callback per frame is a full-tree re-render per
+frame on exactly the phones that cannot afford one.
 
 ## Accessibility is part of the component contract
 

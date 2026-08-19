@@ -3,6 +3,7 @@ import { Animated, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Touchable } from '@/components/Touchable';
 import { Sheet } from '@/components/Sheet';
+import { Slider } from '@/components/Slider';
 import { ThemeMenu, type Anchor } from '@/components/ThemeMenu';
 import { presetByKey } from '@/theme/presets';
 import { ThemeEditor } from '@/components/ThemeEditor';
@@ -30,7 +31,13 @@ import {
 } from 'lucide-react-native';
 import { useTheme, withAlpha } from '@/theme';
 import { DURATION, EASE, useReducedMotion } from '@/theme/motion';
-import { TEXT_SIZE_OPTIONS, TEXT_SIZE_SCALE } from '@/theme/textScale';
+import {
+  TEXT_SIZE_DEFAULT,
+  TEXT_SIZE_MAX,
+  TEXT_SIZE_MIN,
+  TEXT_SIZE_STEP,
+  formatTextSize,
+} from '@/theme/textScale';
 import { radius, space } from '@/theme/tokens';
 import { typeScale } from '@/theme/typography';
 import { GradientFill } from '@/components/Gradient';
@@ -217,7 +224,7 @@ export default function HomeScreen() {
         <View style={styles.headerRight}>
           <Touchable
             onPress={() => setTextSizeOpen(true)}
-            label="Text size"
+              label="Text size"
             hint={`Currently ${textSize}`}
             scaleTo={0.9}>
             <RoundButton label="TEXT SIZE">
@@ -392,49 +399,46 @@ export default function HomeScreen() {
         visible={textSizeOpen}
         onClose={() => setTextSizeOpen(false)}
         title="Text size">
-        <Text style={[styles.sheetSub, { color: colors.textMuted }]}>
+        <Text style={[styles.sheetSub, { color: colors.textMuted }]} numberOfLines={2}>
           Applies across the app. Your phone's own display size still works too.
         </Text>
-        <View style={styles.textSizeRow}>
-          {TEXT_SIZE_OPTIONS.map(option => {
-            const active = option.key === textSize;
-            return (
-              <Touchable
-                key={option.key}
-                onPress={() => setTextSize(option.key)}
-                role="radio"
-                label={option.label}
-                state={{ checked: active }}
-                scaleTo={0.96}
-                style={[
-                  styles.textSizeChip,
-                  {
-                    backgroundColor: active ? colors.primary : colors.cardElevated,
-                    borderColor: active ? colors.primary : colors.border,
-                  },
-                ]}>
-                {/* Each sample is set at the size it selects, so the choice is
-                    shown rather than described. */}
-                <Text
-                  style={[
-                    styles.textSizeSample,
-                    {
-                      color: active ? colors.primaryText : colors.text,
-                      fontSize: Math.round(15 * TEXT_SIZE_SCALE[option.key]),
-                    },
-                  ]}>
-                  Aa
-                </Text>
-                <Text
-                  style={[
-                    styles.textSizeLabel,
-                    { color: active ? colors.primaryText : colors.textMuted },
-                  ]}>
-                  {option.label}
-                </Text>
-              </Touchable>
-            );
-          })}
+
+        {/* The preview is the app's own text at the chosen size — the sample
+            is a question, because questions are what this size is for. The
+            box is a fixed height so the sheet cannot resize under the finger
+            that is dragging the slider. */}
+        <View
+          style={[
+            styles.textSizePreview,
+            { backgroundColor: colors.cardElevated, borderColor: colors.border },
+          ]}>
+          <Text style={[styles.textSizeSample, { color: colors.text }]} numberOfLines={3}>
+            Bilirubin is conjugated in the hepatocyte and excreted in bile.
+          </Text>
+        </View>
+
+        <View style={styles.textSizeScale}>
+          <Text style={[styles.textSizeSmallA, { color: colors.textMuted }]}>A</Text>
+          <Text style={[styles.textSizeValue, { color: colors.text }]}>
+            {formatTextSize(textSize)}
+          </Text>
+          <Text style={[styles.textSizeLargeA, { color: colors.textMuted }]}>A</Text>
+        </View>
+
+        <View style={styles.textSizeSlider}>
+          <Slider
+            value={textSize}
+            min={TEXT_SIZE_MIN}
+            max={TEXT_SIZE_MAX}
+            step={TEXT_SIZE_STEP}
+            onChange={setTextSize}
+            label="Text size"
+            format={formatTextSize}
+            // The one value on the scale with a name is the one worth being
+            // able to get back to exactly.
+            detents={[TEXT_SIZE_DEFAULT]}
+            ticks={[TEXT_SIZE_MIN, TEXT_SIZE_DEFAULT, 1.08, TEXT_SIZE_MAX]}
+          />
         </View>
       </Sheet>
 
@@ -719,28 +723,40 @@ const styles = StyleSheet.create({
   transparent: {
     backgroundColor: 'transparent',
   },
-  textSizeRow: {
-    flexDirection: 'row',
-    gap: space.sm,
+  textSizePreview: {
     marginTop: space.lg,
-    marginBottom: space.sm,
-  },
-  textSizeChip: {
-    flex: 1,
-    gap: space.xs,
-    paddingVertical: space.md,
+    padding: space.md,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
+    // Fixed, not min: at 115% the sample is taller, and a box that grows
+    // while the slider is being dragged moves the slider.
+    height: 92,
     justifyContent: 'center',
-    minHeight: 72,
   },
   textSizeSample: {
+    ...typeScale.body,
+  },
+  textSizeScale: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 30,
+    marginTop: space.md,
+  },
+  textSizeSmallA: {
+    fontSize: 12,
     fontWeight: '700',
   },
-  textSizeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+  textSizeLargeA: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  textSizeValue: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  textSizeSlider: {
+    marginBottom: space.md,
   },
   content: {
     paddingHorizontal: space.lg,
