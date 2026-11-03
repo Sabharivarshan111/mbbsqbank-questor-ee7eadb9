@@ -10,6 +10,7 @@ import { pushBackHandler } from "@/lib/back-stack";
 
 
 import { cn } from "@/lib/utils";
+import MuhsEarlyYearsBrowser from "./MuhsEarlyYearsBrowser";
 
 const SUBJECT_ICONS: Record<string, string> = {
   anatomy: "🫀", physiology: "🧠", biochemistry: "🧬",
@@ -83,6 +84,7 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
   }, [local?.year]);
 
   const [yearKey, setYearKey] = useState<string>(meta?.year ?? profileYearKey);
+  const [showMuhs, setShowMuhs] = useState(false);
   const [subjectKey, setSubjectKey] = useState<string | null>(meta?.subject ?? null);
   const [paperKey, setPaperKey] = useState<string | null>(meta?.paper ?? null);
   const [topicKey, setTopicKey] = useState<string | null>(meta?.topic ?? null);
@@ -151,6 +153,8 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
 
   const subjectNode = subjectKey ? yearNode?.subtopics?.[subjectKey] : null;
   const subjectHasPapers = !!(subjectNode?.subtopics?.["paper-1"] || subjectNode?.subtopics?.["paper-2"]);
+
+  if (showMuhs) return <MuhsEarlyYearsBrowser onBack={() => setShowMuhs(false)} />;
 
   // ---------- Level: TOPIC DETAIL (essay / short-notes questions) ----------
   if (subjectKey && topicKey) {
@@ -394,6 +398,16 @@ export default function BrowseTab({ meta }: { meta?: BrowseMeta }) {
         <h1 className="text-2xl font-extrabold">Browse</h1>
         <p className="text-sm text-muted-foreground">Pick a year and a subject to dive in</p>
       </header>
+
+      <button type="button" onClick={() => { setSubjectKey(null); setPaperKey(null); setTopicKey(null); setShowMuhs(true); }}
+        className="w-full rounded-xl border border-primary/40 bg-primary/10 p-4 text-left flex items-center gap-3 hover:bg-primary/20 transition">
+        <span className="text-2xl">📚</span>
+        <span className="flex-1 min-w-0">
+          <span className="font-semibold block">MUHS University Questions</span>
+          <span className="text-xs text-muted-foreground">1st, 2nd &amp; 3rd MBBS · Scanned university question bank</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+      </button>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
         {YEAR_KEYS.map((yk) => {
