@@ -7,6 +7,7 @@ import SearchBar from "./question-bank/SearchBar";
 import NoResultsMessage from "./question-bank/NoResultsMessage";
 import QuestionBankContent from "./question-bank/QuestionBankContent";
 import StudyMaterialsCard from "./question-bank/StudyMaterialsCard";
+import MuhsQuestionBank from "./question-bank/MuhsQuestionBank";
 import HandwrittenNotesHub from "./handwritten/HandwrittenNotesHub";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BookLock, ChevronDown } from "lucide-react";
@@ -176,6 +177,16 @@ const QuestionBank = () => {
   return (
     <div className="bg-white dark:bg-black h-full min-h-[600px]">
       <div className="flex-1 p-4 max-w-4xl mx-auto space-y-4" {...handlers}>
+        <Collapsible className="rounded-xl border border-border bg-card p-3">
+          <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 text-left">
+            <span className="font-semibold">MUHS PYQs — 1st, 2nd, 3rd & Final MBBS</span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3 border-t border-border pt-3">
+            <MuhsQuestionBank />
+          </CollapsibleContent>
+        </Collapsible>
+
         <Tabs
           defaultValue="essay"
           value={activeTab}
