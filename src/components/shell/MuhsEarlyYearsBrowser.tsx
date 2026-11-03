@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, BookOpen, FileText, Search, RefreshCw, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import QuestionCard from "@/components/QuestionCard";
-import { countDone, QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
+import { QUESTION_PROGRESS_EVENT } from "@/lib/question-progress";
 import { requestDailyAd } from "@/lib/daily-ad";
-import { useSignInGate } from "@/hooks/use-signin-gate";
 import GoogleGateCard from "@/components/GoogleGateCard";
 import { pushBackHandler } from "@/lib/back-stack";
 
@@ -59,7 +58,6 @@ export default function MuhsEarlyYearsBrowser({ onBack }: { onBack: () => void }
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [progressTick, setProgressTick] = useState(0);
-  const gated = useSignInGate();
 
   useEffect(() => {
     const handler = () => setProgressTick((v) => v + 1);
@@ -147,7 +145,7 @@ export default function MuhsEarlyYearsBrowser({ onBack }: { onBack: () => void }
         <div className="flex-1 min-w-0">
           <p className="text-[11px] text-primary font-semibold tracking-wide">MAHARASHTRA UNIVERSITY OF HEALTH SCIENCES</p>
           <h2 className="text-xl font-extrabold truncate">MUHS Question Bank</h2>
-          <p className="text-xs text-muted-foreground">{YEAR_LABELS[year]} · Source-checked OCR questions</p>
+          <p className="text-xs text-muted-foreground">{YEAR_LABELS[year]} · OCR-screened questions</p>
         </div>
       </header>
 
@@ -212,7 +210,7 @@ export default function MuhsEarlyYearsBrowser({ onBack }: { onBack: () => void }
               </button>
             ))}
           </div>
-          {gated && <GoogleGateCard />}
+          <GoogleGateCard />
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search MUHS questions…"
